@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import icons from "../constants/icon";
 import { useState } from "react";
-
+import { useLocation } from "react-router-dom";
 const SideBar = () => {
+  const location = useLocation()
   const [isActive, setIsActive] = useState<string>("dashboard");
   const [isActiveSubMenu, setIsActiveSubMenu] = useState<string | null>(null);
   const [isSubMenu, setIsSubMenu] = useState(false);
@@ -26,7 +27,7 @@ const SideBar = () => {
               isActiveMenu("dashboard");
             }}
             className={`transition-all duration-300 delay-100 flex items-center  text-2xl    ${toggleMenu ? "justify-center p-1 mt-1 " : "p-2 gap-3 w-full"} ${
-              isActive === "dashboard"
+              location.pathname.includes("/admin/dashboard") 
                 ? "menu-bg text-white rounded-md "
                 : "text-gray-400"
             }`}
@@ -43,7 +44,7 @@ const SideBar = () => {
               isActiveMenu("availability");
             }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${toggleMenu ? "justify-center p-1 mt-1" : "p-2"} ${
-              isActive === "availability"
+              location.pathname.includes("/admin/availability") 
                 ? "menu-bg text-white  rounded-md"
                 : "text-gray-400"
             }`}
@@ -60,7 +61,7 @@ const SideBar = () => {
               isActiveMenu("bookings");
             }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${toggleMenu ? "justify-center p-1 mt-1" : "p-2"} ${
-              isActive === "bookings"
+              location.pathname.includes("/admin/bookings") 
                 ? "menu-bg text-white  rounded-md"
                 : "text-gray-400"
             }`}
@@ -76,15 +77,18 @@ const SideBar = () => {
               isActiveMenu("renterhistory");
             }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${toggleMenu ? "justify-center p-1 mt-1" : "p-2"} ${
-              isActive === "renterhistory"
+              location.pathname.includes("/admin/renterhistory") 
                 ? "menu-bg text-white  rounded-md"
                 : "text-gray-400"
             }`}
-            to="renterhistory"
+            
+            to="/admin/renterhistory"
           >
+             
             <icons.booking />
             {toggleMenu ? "" : "Renter History"}
           </Link>
+           
         </li>
         <li className="">
           <button
