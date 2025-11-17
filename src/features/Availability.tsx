@@ -1,7 +1,9 @@
 
 const Availability = () => {
   return (
-    <div>Availability</div>
+    <div>
+      Availability
+    </div>
   )
 }
 

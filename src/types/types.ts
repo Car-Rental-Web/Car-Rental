@@ -1,8 +1,8 @@
 export interface LinksPath {
   className?: string;
   urlDashBoard: string;
-  dashboard: string;
-  recent: string;
+  dashboard?: string;
+  recent?: string;
   folder?: string;
   otherfolder?: string;
   urlFolder?: string;
@@ -16,4 +16,11 @@ export interface CustomLinksTypes {
   icon?: React.ReactNode;
   children?: React.ReactNode;
   onclick?: () => void;
+}
+
+export interface CustomButtonTypes {
+  className?: string;
+  children: React.ReactNode;
+  handleclick?: () => void;
+
 }

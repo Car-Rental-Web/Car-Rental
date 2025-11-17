@@ -9,6 +9,9 @@ import { CgProfile } from "react-icons/cg";
 import { BsPerson } from "react-icons/bs";
 import { IoIosArrowRoundForward } from "react-icons/io";
 import { PiAddressBook } from "react-icons/pi";
+import { FaArrowCircleLeft } from "react-icons/fa";
+import { FaArrowAltCircleRight } from "react-icons/fa";
+
 
 
 
@@ -26,6 +29,9 @@ const icons = {
     person:BsPerson,
     rightArrow:IoIosArrowRoundForward,
     book:PiAddressBook,
+    toggleLeft:FaArrowCircleLeft,
+    toggleRight:FaArrowAltCircleRight,
+
 }
 
 export default icons

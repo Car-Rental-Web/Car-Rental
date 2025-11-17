@@ -1,12 +1,7 @@
+import type { CustomButtonTypes } from "../types/types"
 
 
-interface CustomTypes {
-  className?: string;
-  children: React.ReactNode;
-  handleclick?: () => void;
-
-}
-export const CustomButtons:React.FC<CustomTypes> = ({
+export const CustomButtons:React.FC<CustomButtonTypes> = ({
   className,children,handleclick
 }) => {
   return (
