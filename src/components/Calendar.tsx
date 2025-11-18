@@ -8,11 +8,13 @@ import {useRef, useEffect, useState} from 'react'
 interface CalendarTypes {
   contentHeight?:string;
   height?:number
+  end?:string
 }
 
 const Calendar:React.FC<CalendarTypes> = ({
   contentHeight,
-  height
+  height,
+  end
 }) => {
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -42,8 +44,8 @@ const Calendar:React.FC<CalendarTypes> = ({
     headerToolbar ={{
         start:"title",
         center:"",
-        end:"prev,next"
-    }}
+        end: end
+    }} 
     height={height}
     contentHeight={contentHeight}
     />

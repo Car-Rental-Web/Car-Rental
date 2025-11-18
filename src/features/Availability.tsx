@@ -3,7 +3,7 @@ import Calendar from "../components/Calendar"
 const Availability = () => {
   return (
     <div className="p-12 w-full">
-      <Calendar height={1200}/>
+      <Calendar height={1200} end="today prevYear nextYear prev next"/>
     </div>
   )
 }
