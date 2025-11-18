@@ -17,8 +17,12 @@ const AppRoutes = () => {
         <Route path="availability" element={<Aavailability />}></Route>
         <Route path="bookings" element={<Bookings />}></Route>
         <Route path="renterhistory" element={<RenterHistory />}></Route>
-        <Route path="availablevehicles" element={<AvailableVehicles />}></Route>
-        <Route path="maintenance" element={<Maintenance />}></Route>
+
+        <Route path="vehicle">
+          <Route index element={<AvailableVehicles />} />
+          <Route path="availablevehicles" element={<AvailableVehicles />} />
+          <Route path="maintenance" element={<Maintenance />} />
+        </Route>
       </Route>
     </Routes>
   );

@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 const SideBar = () => {
   const location = useLocation();
+  const path = location.pathname;
+  
   const [isActive, setIsActive] = useState<string>("dashboard");
-  const [isActiveSubMenu, setIsActiveSubMenu] = useState<string | null>(null);
   const [isSubMenu, setIsSubMenu] = useState(false);
   const [toggleMenu, setIsToggleMenu] = useState(false);
 
@@ -13,10 +14,11 @@ const SideBar = () => {
     setIsActive(key);
     setIsSubMenu(false);
   };
-
-  const handleSubMenu = (key: string) => {
-    setIsActiveSubMenu(key);
-  };
+  const isActiveSubMenu = path.includes("availablevehicles")
+    ? "availablevehicles"
+    : path.includes("maintenance")
+    ? "maintenance"
+    : "";
 
   return (
     <div className={` h-svh relative ${toggleMenu ? "w-24" : " min-w-96"}`}>
@@ -94,12 +96,13 @@ const SideBar = () => {
             }`}
             to="/admin/renterhistory"
           >
-            <icons.booking />
+            <icons.person />
             {toggleMenu ? "" : "Renter History"}
           </Link>
         </li>
         <li className="">
-          <Link to="/admin/availablevehicles"
+          <Link
+            to="/admin/vehicle/availablevehicles"
             onClick={() => {
               isActiveMenu("vehicle");
               setIsSubMenu(true);
@@ -119,14 +122,11 @@ const SideBar = () => {
             <ul className="pt-2 ">
               <li className={`${toggleMenu ? "px-2" : ""}`}>
                 <Link
-                  onClick={() => {
-                    handleSubMenu("availablevehicles");
-                  }}
-                  to="availablevehicles"
-                  className={`text-gray-400  ${
+                  to="/admin/vehicle/availablevehicles"
+                  className={`  ${
                     isActiveSubMenu === "availablevehicles"
-                      ? " border-b-2 border-gray-200"
-                      : "border-none"
+                      ? " text-gray-700 border-b-2 border-gray-600"
+                      : "border-none text-gray-400"
                   } ${toggleMenu ? "text-xs " : "text-base"}`}
                 >
                   Available Vehicles
@@ -134,15 +134,12 @@ const SideBar = () => {
               </li>
               <li className={`${toggleMenu ? "" : ""}`}>
                 <Link
-                  onClick={() => {
-                    handleSubMenu("maintenance");
-                  }}
-                  to="maintenance"
-                  className={`text-gray-400  ${
+                  to="/admin/vehicle/maintenance"
+                  className={` ${
                     isActiveSubMenu === "maintenance"
-                      ? " border-b-2 border-gray-200"
-                      : "border-none"
-                  } ${toggleMenu ? "text-xs" : "text-base"}`}
+                      ? " text-gray-700 border-b-2 border-gray-600 "
+                      : "border-none text-gray-400"
+                  }   ${toggleMenu ? "text-xs" : "text-base"}`}
                 >
                   Maintenance
                 </Link>
