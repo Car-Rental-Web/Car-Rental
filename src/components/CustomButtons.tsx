@@ -1,7 +1,7 @@
 import type { CustomButtonTypes } from "../types/types"
 
 
-export const CustomButtons:React.FC<CustomButtonTypes> = ({
+ const CustomButtons:React.FC<CustomButtonTypes> = ({
   className,children,handleclick
 }) => {
   return (
@@ -13,4 +13,6 @@ export const CustomButtons:React.FC<CustomButtonTypes> = ({
     </button> 
   )
 }
+
+export default CustomButtons
 

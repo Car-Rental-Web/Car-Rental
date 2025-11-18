@@ -11,10 +11,8 @@ import { IoIosArrowRoundForward } from "react-icons/io";
 import { PiAddressBook } from "react-icons/pi";
 import { FaArrowCircleLeft } from "react-icons/fa";
 import { FaArrowAltCircleRight } from "react-icons/fa";
-
-
-
-
+import { FcSalesPerformance } from "react-icons/fc";
+import { LuPhilippinePeso } from "react-icons/lu";
 
 
 const icons = {
@@ -31,6 +29,9 @@ const icons = {
     book:PiAddressBook,
     toggleLeft:FaArrowCircleLeft,
     toggleRight:FaArrowAltCircleRight,
+    money:FcSalesPerformance,
+    peso:LuPhilippinePeso,
+    
 
 }
 

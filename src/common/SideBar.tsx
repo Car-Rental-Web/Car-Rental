@@ -14,6 +14,7 @@ const SideBar = () => {
     setIsActive(key);
     setIsSubMenu(false);
   };
+  
   const isActiveSubMenu = path.includes("availablevehicles")
     ? "availablevehicles"
     : path.includes("maintenance")
@@ -21,10 +22,10 @@ const SideBar = () => {
     : "";
 
   return (
-    <div className={` h-svh relative ${toggleMenu ? "w-24" : " min-w-96"}`}>
+    <div className={` h-svh relative  ${toggleMenu ? "w-24 " : " min-w-96"}`}>
       <ul
-        className={`border-r-2 border-gray-300 h-full flex flex-col gap-2 pt-8 w-full ${
-          toggleMenu ? "px-4" : "px-8"
+        className={`border-r-2 border-gray-300 h-full flex flex-col gap-2 pt-8 w-full  ${
+          toggleMenu ? "px-4 " : "px-8"
         }`}
       >
         <li className="w-full">

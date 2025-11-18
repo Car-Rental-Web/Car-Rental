@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import type { CustomLinksTypes, LinksPath } from "../types/types";
 
 
-export const CustomLinks: React.FC<CustomLinksTypes> = ({
+ const CustomLinks: React.FC<CustomLinksTypes> = ({
   url,
   className,
   text,
@@ -19,7 +19,7 @@ export const CustomLinks: React.FC<CustomLinksTypes> = ({
 };
 
 
-export const Links : React.FC<LinksPath> = ({
+const Links : React.FC<LinksPath> = ({
   urlDashBoard,
   urlFolder,
   dashboard,
@@ -43,3 +43,5 @@ export const Links : React.FC<LinksPath> = ({
   )
 
 }
+
+export default Links

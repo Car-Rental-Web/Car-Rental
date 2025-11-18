@@ -1,8 +1,9 @@
+import Calendar from "../components/Calendar"
 
 const Availability = () => {
   return (
-    <div>
-      Availability
+    <div className="p-12 w-full">
+      <Calendar height={1200}/>
     </div>
   )
 }
