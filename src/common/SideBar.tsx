@@ -4,22 +4,7 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 const SideBar = () => {
   const location = useLocation();
-  const path = location.pathname;
-  
-  const [isActive, setIsActive] = useState<string>("dashboard");
-  const [isSubMenu, setIsSubMenu] = useState(false);
   const [toggleMenu, setIsToggleMenu] = useState(false);
-
-  const isActiveMenu = (key: string) => {
-    setIsActive(key);
-    setIsSubMenu(false);
-  };
-  
-  const isActiveSubMenu = path.includes("availablevehicles")
-    ? "availablevehicles"
-    : path.includes("maintenance")
-    ? "maintenance"
-    : "";
 
   return (
     <div className={` h-svh relative  ${toggleMenu ? "w-24 " : " min-w-96"}`}>
@@ -30,9 +15,6 @@ const SideBar = () => {
       >
         <li className="w-full">
           <Link
-            onClick={() => {
-              isActiveMenu("dashboard");
-            }}
             className={`transition-all duration-300 delay-100 flex items-center  text-2xl    ${
               toggleMenu ? "justify-center p-1 mt-1 " : "p-2 gap-3 w-full"
             } ${
@@ -49,9 +31,6 @@ const SideBar = () => {
         <label className="text-gray-400">{toggleMenu ? "" : "Manage"}</label>
         <li className="w-full">
           <Link
-            onClick={() => {
-              isActiveMenu("availability");
-            }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${
               toggleMenu ? "justify-center p-1 mt-1" : "p-2"
             } ${
@@ -67,9 +46,6 @@ const SideBar = () => {
         </li>
         <li className="">
           <Link
-            onClick={() => {
-              isActiveMenu("bookings");
-            }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${
               toggleMenu ? "justify-center p-1 mt-1" : "p-2"
             } ${
@@ -85,9 +61,6 @@ const SideBar = () => {
         </li>
         <li className="">
           <Link
-            onClick={() => {
-              isActiveMenu("renterhistory");
-            }}
             className={`transition-all duration-300 delay-100 flex items-center text-2xl gap-3 ${
               toggleMenu ? "justify-center p-1 mt-1" : "p-2"
             } ${
@@ -103,15 +76,11 @@ const SideBar = () => {
         </li>
         <li className="">
           <Link
-            to="/admin/vehicle/availablevehicles"
-            onClick={() => {
-              isActiveMenu("vehicle");
-              setIsSubMenu(true);
-            }}
+            to="/admin/vehicles/"
             className={`transition-all duration-300 delay-100 cursor-pointer flex items-center text-2xl gap-3 w-full ${
               toggleMenu ? "justify-center p-1 mt-1" : "p-2"
             } ${
-              isActive === "vehicle"
+              location.pathname.includes("/admin/vehicles")
                 ? "menu-bg text-white  rounded-md"
                 : "text-gray-400"
             }`}
@@ -119,41 +88,28 @@ const SideBar = () => {
             <icons.vehicle />
             {toggleMenu ? "" : "Vehicles"}
           </Link>
-          {isSubMenu && (
-            <ul className="pt-2 ">
-              <li className={`${toggleMenu ? "px-2" : ""}`}>
-                <Link
-                  to="/admin/vehicle/availablevehicles"
-                  className={`  ${
-                    isActiveSubMenu === "availablevehicles"
-                      ? " text-gray-700 border-b-2 border-gray-600"
-                      : "border-none text-gray-400"
-                  } ${toggleMenu ? "text-xs " : "text-base"}`}
-                >
-                  Available Vehicles
-                </Link>
-              </li>
-              <li className={`${toggleMenu ? "" : ""}`}>
-                <Link
-                  to="/admin/vehicle/maintenance"
-                  className={` ${
-                    isActiveSubMenu === "maintenance"
-                      ? " text-gray-700 border-b-2 border-gray-600 "
-                      : "border-none text-gray-400"
-                  }   ${toggleMenu ? "text-xs" : "text-base"}`}
-                >
-                  Maintenance
-                </Link>
-              </li>
-            </ul>
-          )}
-          <button
-            className="cursor-pointer absolute -right-2 text-violet-500 text-3xl"
-            onClick={() => setIsToggleMenu((prev) => !prev)}
-          >
-            {toggleMenu ? <icons.toggleRight /> : <icons.toggleLeft />}
-          </button>
         </li>
+        <li className="">
+          <Link
+            to="/admin/maintenance"
+            className={`transition-all duration-300 delay-100 cursor-pointer flex items-center text-2xl gap-3 w-full ${
+              toggleMenu ? "justify-center p-1 mt-1" : "p-2"
+            } ${
+              location.pathname.includes("/admin/maintenance")
+                ? "menu-bg text-white  rounded-md"
+                : "text-gray-400"
+            }`}
+          >
+            <icons.onMaintenance />
+            {toggleMenu ? "" : "Maintenance"}
+          </Link>
+        </li>
+        <button
+          className="cursor-pointer absolute -right-2 text-violet-500 text-3xl"
+          onClick={() => setIsToggleMenu((prev) => !prev)}
+        >
+          {toggleMenu ? <icons.toggleRight /> : <icons.toggleLeft />}
+        </button>
       </ul>
     </div>
   );

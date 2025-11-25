@@ -13,6 +13,16 @@ import { FaArrowCircleLeft } from "react-icons/fa";
 import { FaArrowAltCircleRight } from "react-icons/fa";
 import { FcSalesPerformance } from "react-icons/fc";
 import { LuPhilippinePeso } from "react-icons/lu";
+import { BsThreeDots } from "react-icons/bs";
+import { FaCaretUp } from "react-icons/fa";
+import { FaCaretDown } from "react-icons/fa";
+import { IoMdTimer } from "react-icons/io";
+import { RiCalendarScheduleFill } from "react-icons/ri";
+import { IoMdDoneAll } from "react-icons/io";
+import { GrHostMaintenance } from "react-icons/gr";
+import { FaCheckCircle } from "react-icons/fa";
+
+
 
 
 const icons = {
@@ -31,7 +41,14 @@ const icons = {
     toggleRight:FaArrowAltCircleRight,
     money:FcSalesPerformance,
     peso:LuPhilippinePeso,
-    
+    action:BsThreeDots,
+    up:FaCaretUp,
+    down:FaCaretDown,
+    onService:IoMdTimer,
+    onReserve:RiCalendarScheduleFill,
+    onEnded:IoMdDoneAll,
+    onMaintenance:GrHostMaintenance,
+    onAvailable:FaCheckCircle,
 
 }
 

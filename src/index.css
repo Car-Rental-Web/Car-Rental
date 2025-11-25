@@ -25,3 +25,13 @@ input {
 .tertiray-box-bg {
   background-color: #BB6653;
 }
+
+.on-service {
+  background-color: #5FBA3E;
+}
+.on-reservation {
+  background-color: #5353F3;
+}
+.on-ended {
+  background-color: #C92C2C;
+}

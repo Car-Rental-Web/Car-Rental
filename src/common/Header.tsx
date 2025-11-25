@@ -1,17 +1,31 @@
+// import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import SearchBar from "../components/SearchBar";
 import icons from "../constants/icon";
+// import path from "path";
 
 const Header = () => {
+  const [query, setQuery] = useState("");
+  // const [open, setOpen] = useState(false);
+  // const navigate = useNavigate();
+
+  // const pages = [
+  //   { name: "Dashboard", path: "/admin/dashboard" },
+  //   { name: "Availability", path: "/admin/availability" },
+  //   { name: "Bookings", path: "/admin/bookings" },
+  //   { name: "Renter History", path: "/admin/renterhistory" },
+  //   { name: "Vehicles", path: "/admin/vehicle/availablevehicles" },
+  //   { name: "Maintenance", path: "/admin/vehicle/maintenance" },
+  // ];
+
+  // const filtered = pages.filter((page) =>
+  //   page.name.toLowerCase().includes(query.toLowerCase())
+  // );
+
   return (
     <div className="border border-gray-400 p-6  flex justify-between items-center ">
       <p className="text-3xl font-bold pl-12 text-center jakarta">Car-Rental</p>
-      <div className="border border-gray-400 rounded-md px-3 py-4 w-2xl relative">
-        <input
-          type="search"
-          className="pl-8 w-full text-xl "
-          placeholder="search"
-        />
-        <icons.search className="absolute top-4 text-3xl text-gray-400" />
-      </div>
+        <SearchBar onClear={() => setQuery("")} value={query} onChange={(e) => setQuery(e.target.value)} className="-top-2 border border-gray-400 pr-2 py-2 w-2xl rounded " placeholder="search"/>
       <div className="flex items-center gap-2">
         <button
           type="button"

@@ -17,7 +17,7 @@ const RootLayout = () => {
   return (
       <div className="flex flex-col w-full max-w-[2000px] mx-auto">
         <Header/>
-        <main className="w-full flex">
+        <main className=" w-full flex">
         <SideBar/>
             <Outlet/>
         </main>
