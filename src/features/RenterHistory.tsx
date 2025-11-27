@@ -153,7 +153,7 @@ const columns = [
   {
     name: "Action",
       cell: (row: DataRenterProps) => 
-    <div className="text-center  w-full">
+    <div className=" ">
         {row.action}
     </div>
   },

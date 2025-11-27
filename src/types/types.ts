@@ -60,6 +60,7 @@ export interface DataBookingProps {
   startDate: Date
   endDate:Date
   location:string
+  typeOfRent: "self-drive" | "with Driver"
   status: "On Service" | "Ended" | "Reserved"
   action: React.ReactNode
  }
@@ -72,4 +73,29 @@ export interface DataBookingProps {
   timesRented:string;
   feedBack:string;
   action:React.ReactNode 
+ }
+
+
+ export interface DataVehicleProps {
+    id:number;
+    model:string;
+    brand:string;
+    type:string;
+    color:string;
+    plateNumber:string;
+    status: "On Service" | "On Reservations" | "On Maintenance" | "Available"
+    action:React.ReactNode
+ }
+
+
+ export interface DataMaintenanceProps {
+    id:number;
+    date: Date;
+    car:string;
+    typeOfMaintenance: string;
+    costOfMaintenance: React.ReactNode;
+    location:string;
+    maintainedBy:string;
+    status: "On Maintenance" | "Maintained"
+    action:React.ReactNode
  }

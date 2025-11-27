@@ -2,6 +2,7 @@ import icons from "../constants/icon";
 import ReactChartLine from "../components/ReactChartLine";
 import Calendar from "../components/Calendar";
 import Card from "../components/Card";
+import { Link } from "react-router-dom";
 
 
 const Dashboard = () => {
@@ -55,7 +56,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex flex-col justify-between w-2/6 pt-7 py-2 gap-2 pr-5">
-              <div className=" rounded border border-gray-400 px-2 py-2">
+              <div className=" rounded border border-gray-400 px-2 py-2 flex flex-col ">
+                <Link to="/admin/availability" className=" pr-4 flex items-center justify-end"> View <icons.rightArrow className="text-2xl"/></Link>
                 <Calendar />
               </div>
               {/* w-full h-full  flex flex-col justify-around items-center tertiray-box-bg py-4 px-4 */}

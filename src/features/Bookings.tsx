@@ -19,6 +19,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -31,6 +32,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "Ended",
     action: <BsThreeDots />,
   },
@@ -43,6 +45,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "with Driver",
     status: "Reserved",
     action: <BsThreeDots />,
   },
@@ -55,6 +58,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -67,6 +71,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "with Driver",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -79,6 +84,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "with Driver",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -91,6 +97,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -103,6 +110,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -115,6 +123,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "Reserved",
     action: <BsThreeDots />,
   },
@@ -127,6 +136,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -139,6 +149,7 @@ const staticData: DataBookingProps[] = [
     startDate: new Date(),
     endDate: new Date(),
     location: "Angeles",
+    typeOfRent: "self-drive",
     status: "On Service",
     action: <BsThreeDots />,
   },
@@ -198,16 +209,22 @@ const columns = [
     cell: (row: DataBookingProps) => <div className="text-center ">{row.location}</div>,
   },
   {
+    name: "Type of Rent",
+    cell: (row: DataBookingProps) => (
+        <div>{row.typeOfRent}</div>
+    )
+  },
+  {
     name: "Status",
     cell: (row: DataBookingProps) => (
       <span
-        className={`text-center ${
+        className={`text-xs text-center px-4 py-1 ${
           row.status === "On Service"
-            ? "on-service text-white px-4 py-1 rounded-full w-full text-center"
+            ? "on-service text-white  rounded-full w-full text-center"
             : row.status === "Reserved"
-            ? " on-reservation px-4 py-1 rounded-full text-white w-full text-center"
+            ? " on-reservation  rounded-full text-white w-full text-center"
             : row.status === "Ended"
-            ? "on-ended text-white px-4 py-1 rounded-full w-full text-center"
+            ? "on-ended text-white  rounded-full w-full text-center"
             : "text-gray-400"
         }`}
       >
@@ -218,7 +235,7 @@ const columns = [
   },
   {
     name: "Action",
-    cell: (row: DataBookingProps) => <div className="text-center w-full">{row.action}</div>
+    cell: (row: DataBookingProps) => <div className="">{row.action}</div>
    
   },
 ];
@@ -299,7 +316,7 @@ const Bookings = () => {
                 <select
                   onChange={(e) => setSelectValue(e.target.value)}
                   value={selectValue}
-                  className=" w-full rounded appearance-none bg-transparent outline-none relative px-4 py-2 cursor-pointer"
+                  className=" w-full rounded appearance-none bg-transparent outline-none  px-4 py-2 cursor-pointer"
                 >
                   <option value="" >All</option>
                   <option value="On Service">On-Service</option>
@@ -313,7 +330,7 @@ const Bookings = () => {
               <SearchBar
                 onClear={() => setSearchTerm("")}
                 value={searchTerm}
-                className=" absolute bg-gray-100 rounded py-2 w-60 "
+                className="  bg-gray-100 rounded py-2 w-60 "
                 placeholder="Search"
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
