@@ -6,6 +6,7 @@ const customStyles:TableStyles = {
   headCells: {
     style: {
       justifyContent:"center",
+      backgroundColor: "#F3F4F6",
       textAlign: "center",
       fontSize: "16px",
       fontWeight: "bolder",
@@ -15,6 +16,7 @@ const customStyles:TableStyles = {
   cells: {
     style: {
       justifyContent:"center",
+      fontSize: "14px",
       textAlign: "center",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
     },

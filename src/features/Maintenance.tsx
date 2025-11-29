@@ -208,7 +208,7 @@ const Maintenance = () => {
   }, [debounceSearchTerm, selectValue]);
 
   return (
-    <div className="px-6 mt-12 w-full gap-2">
+    <div className="px-6 mt-12 w-full h-[600px] overflow-y-auto gap-2">
       <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
         Maintenance
       </p>

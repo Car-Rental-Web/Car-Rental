@@ -189,7 +189,7 @@ const AvailableVehicles = () => {
   }, [debounceValue, selectValue]);
 
   return (
-    <div className="w-full px-6 mt-12">
+    <div className="w-full h-[600px] overflow-y-auto px-6 mt-12">
       <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
         Vehicles
       </p>
