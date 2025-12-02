@@ -8,6 +8,7 @@ import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import SearchBar from "../components/SearchBar";
 import { CustomButtons } from "../components";
+import { MaintenanceForm } from "../modals";
 
 const staticData: DataMaintenanceProps[] = [
   {
@@ -186,6 +187,7 @@ const Maintenance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
+  const [openModal, setOpenModal] = useState(false)
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
@@ -208,7 +210,7 @@ const Maintenance = () => {
   }, [debounceSearchTerm, selectValue]);
 
   return (
-    <div className="px-6 mt-12 w-full h-[600px] overflow-y-auto gap-2">
+    <div className="px-6 pt-12 w-full relative  overflow-y-auto gap-2">
       <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
         Maintenance
       </p>
@@ -243,9 +245,11 @@ const Maintenance = () => {
 
         <div className="text-end mb-4">
           <CustomButtons
+          handleclick={() => setOpenModal(true)}
             children="Add Maintenance"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
           />
+          <MaintenanceForm open={openModal} onClose={() => setOpenModal(false)}/>
         </div>
       </div>
 

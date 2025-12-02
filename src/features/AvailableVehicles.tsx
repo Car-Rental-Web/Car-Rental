@@ -8,6 +8,7 @@ import SearchBar from "../components/SearchBar";
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
+import { VehicleForm } from "../modals";
 
 const staticData: DataVehicleProps[] = [
   {
@@ -168,6 +169,7 @@ const AvailableVehicles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false)
+  const [openModal, setOpenModal] = useState(false)
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
@@ -189,7 +191,7 @@ const AvailableVehicles = () => {
   }, [debounceValue, selectValue]);
 
   return (
-    <div className="w-full h-[600px] overflow-y-auto px-6 mt-12">
+    <div className="w-full relative overflow-y-auto px-6 pt-12">
       <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
         Vehicles
       </p>
@@ -230,9 +232,11 @@ const AvailableVehicles = () => {
       </div>
       <div className="text-end mb-4">
          <CustomButtons
+        handleclick={()=> setOpenModal(true)}
             children="Add Vehicle"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
           />
+          <VehicleForm open={openModal} onClose={() => setOpenModal(false)}/>
       </div>
       </div>
       <div className="border border-gray-400 px-6 py-2 rounded ">

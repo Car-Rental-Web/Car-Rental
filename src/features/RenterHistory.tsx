@@ -178,7 +178,7 @@ const RenterHistory = () => {
   }, [debounceSearchTerm]);
 
   return (
-    <div className="w-full h-[600px] overflow-y-auto flex flex-col gap-5 rounded-lg mt-12 px-6">
+    <div className="w-full  overflow-y-auto flex flex-col gap-5 rounded-lg mt-12 px-6">
       <div className="">
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Renter History

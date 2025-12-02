@@ -21,6 +21,7 @@ import { RiCalendarScheduleFill } from "react-icons/ri";
 import { IoMdDoneAll } from "react-icons/io";
 import { GrHostMaintenance } from "react-icons/gr";
 import { FaCheckCircle } from "react-icons/fa";
+import { IoIosCloseCircleOutline } from "react-icons/io";
 
 
 
@@ -49,6 +50,7 @@ const icons = {
     onEnded:IoMdDoneAll,
     onMaintenance:GrHostMaintenance,
     onAvailable:FaCheckCircle,
+    closeModal: IoIosCloseCircleOutline ,
 
 }
 
