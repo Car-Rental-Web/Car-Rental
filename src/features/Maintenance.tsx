@@ -256,10 +256,10 @@ const Maintenance = () => {
         <div className="mt-2 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
-            className="flex relative  items-center border border-gray-200 rounded w-44"
+            className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
           >
             <select
-              className="outline-none appearance-none px-4 py-2 w-full "
+              className="outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base "
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
               name=""
@@ -269,7 +269,7 @@ const Maintenance = () => {
               <option value="On Maintenance">On Maintenance</option>
               <option value="Maintained">Maintained</option>
             </select>
-            <div className="absolute top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
+            <div className="absolute top-2 xl:top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
           </div>
           <div>
             <SearchBar

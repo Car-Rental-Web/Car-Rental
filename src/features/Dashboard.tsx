@@ -7,36 +7,35 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   return (
-    <div className=" w-full h-full">
-      <div className="h-full overflow-y-auto overflow-x-hidden">
-        <div className="flex flex-col pl-6 pt-6 items-start">
-          <p className="text-5xl font-semibold text-gray-600 tracking-wide ">
+    <div className=" w-full py-12 ">
+      <div className="  px-2 xl:px-4 ">
+        <div className="flex flex-col items-start">
+          <p className="text-2xl xl:text-5xl font-semibold text-gray-600 tracking-wide ">
             Overview
           </p>
-          <p className="text-gray-400">Monitor Monthly Status</p>
+          <p className="text-gray-400 text-sm xl:text-xl">Monitor Monthly Status</p>
         </div>
-        <div className="flex flex-col">
-          <div className="w-full flex">
-            <div className="flex flex-col w-8/12 p-2">
-              <div className=" w-full  flex gap-3 pl-5 pt-5">
+          <div className="w-full  gap-2 flex flex-col xl:flex-row ">
+            <div className="flex flex-col xl:w-8/12  ">
+              <div className=" w-full  gap-2 flex flex-col xl:flex-row  ">
                 <Card
-                  className="menu-bg"
-                  title="Renters"
-                  linkText="view"
+                  className="w-full h-42 menu-bg"
+                  title={<span className="text-md xl:text-3xl">Renters</span>}
+                  linkText={<span className="text-md xl:text-xl">view</span>}
                   icon={
-                    <icons.person className="w-12 h-12 mt-2 -mb-12 text-white" />
+                    <icons.person className="w-6 xl:w-12 h-6 xl:h-12 mt-2 -mb-12 text-white" />
                   }
                   linkIcon={
                     <icons.rightArrow className="text-2xl text-start mt-1" />
                   }
                   url="/admin/renterhistory"
-                  amount="200"
-                  description="Monthly Renters"
+                  amount={<span className="text-6xl">200</span>}
+                  description={<span>Monthly Renters</span>}
                 />
                 <Card
-                  className="secondary-box-bg"
-                  title="Bookings"
-                  linkText="view"
+                  className="secondary-box-bg w-full h-42"
+                  title={<span className="text-md xl:text-3xl">Bookings</span>}
+                  linkText={<span className="text-md xl:text-xl">view</span>}
                   linkIcon={
                     <icons.rightArrow className="text-2xl text-start mt-1" />
                   }
@@ -44,18 +43,18 @@ const Dashboard = () => {
                     <icons.book className="w-12 h-12 mt-2 -mb-12 text-white" />
                   }
                   url="/admin/bookings"
-                  amount="200"
-                  description="Monthly Bookings"
+                  amount={<span className="text-6xl">200</span>}
+                  description={<span>Monthly Bookings</span>}
                 />
               </div>
-              <div className="pl-5 pt-2">
+              <div className="pt-2">
                 <div className=" border border-gray-400 rounded p-4">
                   <p className="text-gray-400">Monthly Renters</p>
                   <ReactChartLine />
                 </div>
               </div>
             </div>
-            <div className="flex flex-col justify-between w-2/6 pt-7 py-2 gap-2 pr-5">
+            <div className="flex flex-col  justify-center  xl:w-2/6  gap-2 ">
               <div className=" rounded border border-gray-400 px-2 py-2 flex flex-col ">
                 <Link to="/admin/availability" className=" pr-4 flex items-center justify-end"> View <icons.rightArrow className="text-2xl"/></Link>
                 <Calendar />
@@ -63,15 +62,14 @@ const Dashboard = () => {
               {/* w-full h-full  flex flex-col justify-around items-center tertiray-box-bg py-4 px-4 */}
                  <Card
                 className="w-full h-full  flex flex-col justify-around  tertiray-box-bg py-4 px-4"
-                title="Revenue"
+                title={<span className="text-md xl:text-3xl">Revenue</span>}
                 url={""}
                 topIcon={<icons.money className="text-4xl text-white text-start mt-1"/>}
-                amount="20,000"
+                amount={<span className="text-6xl">20,000</span>}
                 amountIcon ={<icons.peso className="text-6xl text-center"/>}
                 description="Monthly Revenue"
               />
             </div>
-          </div>
         </div>
       </div>
     </div>

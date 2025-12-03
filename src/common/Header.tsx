@@ -23,8 +23,8 @@ const Header = () => {
   // );
 
   return (
-    <div className="border border-gray-400 p-6  flex justify-between items-center ">
-      <p className="text-3xl font-bold pl-12 text-center jakarta">Car-Rental</p>
+    <div className="border border-gray-400 p-6  flex justify-between items-center w-full bg-red-200 ">
+      <p className="text-xl md:text-3xl font-bold pl-12 text-center jakarta">Car-Rental</p>
         <SearchBar onClear={() => setQuery("")} value={query} onChange={(e) => setQuery(e.target.value)} className="-top-2 border border-gray-400 pr-2 py-2 w-2xl rounded " placeholder="search"/>
       <div className="flex items-center gap-2">
         <button

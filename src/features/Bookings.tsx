@@ -219,7 +219,7 @@ const columns = [
     name: "Status",
     cell: (row: DataBookingProps) => (
       <span
-        className={`text-xs text-center px-4 py-1 ${
+        className={`text-[8px] xl:text-xs text-center px-4 py-1 ${
           row.status === "On Service"
             ? "on-service text-white  rounded-full w-full text-center"
             : row.status === "Reserved"
@@ -273,28 +273,28 @@ const Bookings = () => {
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Bookings
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="on-service"
-            title="On Service"
+            className="on-service w-full"
+            title={<span className="text-md xl:text-3xl">On Service</span>}
             url={""}
-            amount="5"
+            amount={<span className="text-6xl">200</span>}
             description="Total Booked On Service"
             topIcon={<icons.onService className="text-white text-2xl" />}
           />
           <Card
-            className="on-reservation"
-            title="Reservation"
+            className="on-reservation w-full"
+            title={<span className="text-md xl:text-3xl">On Reservation</span>}
             url={""}
-            amount="5"
+            amount={<span className="text-6xl">200</span>}
             description="Total Booked Reservation"
             topIcon={<icons.onReserve className="text-white text-2xl" />}
           />
           <Card
-            className="on-ended"
-            title="Ended"
+            className="on-ended w-full"
+            title={<span className="text-md xl:text-3xl">On Ended</span>}
             url={""}
-            amount="5"
+            amount={<span className="text-6xl">200</span>}
             description="Total Booked Ended"
             topIcon={<icons.onEnded className="text-white text-2xl" />}
           />
@@ -305,30 +305,28 @@ const Bookings = () => {
           <CustomButtons
           handleclick={() => setOpenModal(true)}
             children="Add Renter"
-            className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
+            className="py-1 md:py-2 px-2 md:px-4  rounded menu-bg text-white cursor-pointer text-xs md:text-base "
           />
           <BookingForm open={openModal} onClose={() => setOpenModal(false)}/>
         </div>
-        <div className="flex flex-col gap-2 w-full px-6 border border-gray-400 py-4 rounded  ">
-          <div className="flex items-center justify-end gap-3">
-            <div className="">
+        <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
+          <div className="flex w-full justify-end gap-3">
               <div
                 onClick={() => setToggle((t) => !t)}
-                className="flex relative justify-center items-center border border-gray-200 rounded w-44"
+                className="flex relative border border-gray-200 rounded w-full  md:w-44"
               >
                 <select
                   onChange={(e) => setSelectValue(e.target.value)}
                   value={selectValue}
-                  className=" w-full rounded appearance-none outline-none  px-4 py-2 cursor-pointer"
+                  className=" w-full  rounded appearance-none outline-none  px-4 py-2 cursor-pointer text-xs xl:text-base"
                 >
                   <option value="" >All</option>
                   <option value="On Service">On-Service</option>
                   <option value="Reserved" > Reserved</option>
                   <option value="Ended"> Ended</option>
                 </select>
-                <div className="absolute top-3 right-3"> {toggle ? <icons.up/> : <icons.down/>}</div>
+                <div className="absolute top-2 xl:top-3 right-3"> {toggle ? <icons.up/> : <icons.down/>}</div>
               </div>
-            </div>
             <div className="">
               <SearchBar
                 onClear={() => setSearchTerm("")}
@@ -349,7 +347,7 @@ const Bookings = () => {
               columns={columns}
               fixedHeader={true}
               responsive={true}
-              fixedHeaderScrollHeight="500px "
+              fixedHeaderScrollHeight="350px"
             />
           </div>
         </div>

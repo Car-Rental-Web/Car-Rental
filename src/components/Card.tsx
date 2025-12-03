@@ -3,20 +3,20 @@ import { Link } from "react-router-dom";
 interface CardProps {
   className: string;
   topIcon?:React.ReactNode
-  title: string;
+  title: React.ReactNode;
   linkText?: string | React.ReactNode
   linkIcon?: React.ReactNode;
   icon?: React.ReactNode;
   url: string;
   amountIcon?: React.ReactNode;
-  amount: string;
-  description: string;
+  amount: React.ReactNode;
+  description: React.ReactNode;
 }
 
 const Card: React.FC<CardProps> = ({ ...CardProps }) => {
   return (
     <div
-      className={`flex flex-col justify-around  rounded w-full h-42 py-4 px-4 ${CardProps.className}`}
+      className={`flex flex-col justify-around  rounded  py-4 px-4 ${CardProps.className}`}
     >
       <div className="flex justify-between px-4">
         <div className="flex flex-col items-center">
@@ -33,7 +33,7 @@ const Card: React.FC<CardProps> = ({ ...CardProps }) => {
           <p>{CardProps.topIcon}</p>
         </div>
       </div>
-      <p className="text-center text-6xl text-white pb-2 font-extrabold flex justify-center items-center">
+      <p className="text-center  text-white pb-2 font-extrabold flex justify-center items-center">
         {CardProps.amountIcon}
         {CardProps.amount}
       </p>
