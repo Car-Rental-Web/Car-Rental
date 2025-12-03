@@ -1,5 +1,4 @@
 import { BsThreeDots } from "react-icons/bs";
-import { CustomButtons } from "../components";
 import Card from "../components/Card";
 import TableData from "../components/TableData";
 import icons from "../constants/icon";
@@ -9,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import { VehicleForm } from "../modals";
+import { CustomButtons } from "../components/CustomButtons";
 
 const staticData: DataVehicleProps[] = [
   {

@@ -22,6 +22,7 @@ import { IoMdDoneAll } from "react-icons/io";
 import { GrHostMaintenance } from "react-icons/gr";
 import { FaCheckCircle } from "react-icons/fa";
 import { IoIosCloseCircleOutline } from "react-icons/io";
+import { FiUpload } from "react-icons/fi";
 
 
 
@@ -50,7 +51,8 @@ const icons = {
     onEnded:IoMdDoneAll,
     onMaintenance:GrHostMaintenance,
     onAvailable:FaCheckCircle,
-    closeModal: IoIosCloseCircleOutline ,
+    closeModal: IoIosCloseCircleOutline,
+    upload: FiUpload
 
 }
 

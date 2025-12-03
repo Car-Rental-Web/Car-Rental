@@ -1,19 +1,16 @@
+import { ModalButton } from "../components/CustomButtons"
 import icons from "../constants/icon"
+import type { ModalProps } from "../types/types"
 
-interface MaintenanceFormProps {
-  open: boolean;
-  onClose: () => void;
-}
 
-const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
+
+const MaintenanceForm:React.FC<ModalProps> = ({open, onClose}) => {
   if (!open) return null
   return (
 
     <div className="absolute inset-0 bg-gray-400/25 z-999 flex justify-center items-center">
-      <form  onClick={(e) => e.stopPropagation()}  action="" className="border border-gray-400 rounded-xl py-6 px-12 w-2/6 bg-white">
-        <button onClick={onClose} className="cursor-pointer">
-          <icons.closeModal className="text-[#696FC7] w-12 h-12" />
-        </button>
+      <form  onClick={(e) => e.stopPropagation()}  action="" className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-white">
+        <ModalButton onclick={onClose}/>
         <div className="flex flex-col mb-3">
           <label htmlFor="" className="text-start">
             Maintenance Date

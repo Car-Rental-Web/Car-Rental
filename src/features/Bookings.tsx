@@ -5,9 +5,10 @@ import { BsThreeDots } from "react-icons/bs";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import SearchBar from "../components/SearchBar";
-import { CustomButtons } from "../components";
 import Card from "../components/Card";
 import icons from "../constants/icon";
+import { CustomButtons } from "../components/CustomButtons";
+import { BookingForm } from "../modals";
 
 const staticData: DataBookingProps[] = [
   {
@@ -245,7 +246,7 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
-
+  const [openModal, setOpenModal] = useState(false)
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
@@ -267,7 +268,7 @@ const Bookings = () => {
   }, [debounceSearchTerm, selectValue]);
 
   return (
-    <div className="w-full  overflow-y-auto  flex flex-col gap-5 rounded-lg mt-12 px-6">
+    <div className="w-full relative  overflow-y-auto  flex flex-col gap-5 rounded-lg mt-12 px-6">
       <div className="">
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Bookings
@@ -302,28 +303,30 @@ const Bookings = () => {
       <div className="flex flex-col gap-6">
         <div className="text-end ">
           <CustomButtons
+          handleclick={() => setOpenModal(true)}
             children="Add Renter"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
           />
+          <BookingForm open={openModal} onClose={() => setOpenModal(false)}/>
         </div>
-        <div className="flex flex-col gap-2 w-full px-6 border border-gray-400 py-4 rounded ">
+        <div className="flex flex-col gap-2 w-full px-6 border border-gray-400 py-4 rounded  ">
           <div className="flex items-center justify-end gap-3">
             <div className="">
               <div
                 onClick={() => setToggle((t) => !t)}
-                className="flex justify-center items-center border border-gray-200 rounded"
+                className="flex relative justify-center items-center border border-gray-200 rounded w-44"
               >
                 <select
                   onChange={(e) => setSelectValue(e.target.value)}
                   value={selectValue}
-                  className=" w-full rounded appearance-none bg-transparent outline-none  px-4 py-2 cursor-pointer"
+                  className=" w-full rounded appearance-none outline-none  px-4 py-2 cursor-pointer"
                 >
                   <option value="" >All</option>
                   <option value="On Service">On-Service</option>
                   <option value="Reserved" > Reserved</option>
                   <option value="Ended"> Ended</option>
                 </select>
-                <div className="mr-2">{toggle ? <icons.up /> : <icons.down />}</div>
+                <div className="absolute top-3 right-3"> {toggle ? <icons.up/> : <icons.down/>}</div>
               </div>
             </div>
             <div className="">

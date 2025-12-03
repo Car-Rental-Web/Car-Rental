@@ -35,3 +35,8 @@ input {
 .on-ended {
   background-color: #C92C2C;
 }
+
+
+.text-primary {
+  color: #696FC7;
+}

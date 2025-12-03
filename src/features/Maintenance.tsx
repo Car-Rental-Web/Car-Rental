@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import SearchBar from "../components/SearchBar";
-import { CustomButtons } from "../components";
 import { MaintenanceForm } from "../modals";
+import { CustomButtons } from "../components/CustomButtons";
 
 const staticData: DataMaintenanceProps[] = [
   {
@@ -242,7 +242,6 @@ const Maintenance = () => {
             description="Total Ongoing Maintenance"
           />
         </div>
-
         <div className="text-end mb-4">
           <CustomButtons
           handleclick={() => setOpenModal(true)}
@@ -253,14 +252,14 @@ const Maintenance = () => {
         </div>
       </div>
 
-      <div className="border border-gray-400 rounded px-6 py-2">
+      <div className="border border-gray-400 rounded px-6 py-2 flex flex-col gap-2">
         <div className="mt-2 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
-            className="flex  items-center border border-gray-200 rounded"
+            className="flex relative  items-center border border-gray-200 rounded w-44"
           >
             <select
-              className="outline-none appearance-none px-1 py-2"
+              className="outline-none appearance-none px-4 py-2 w-full "
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
               name=""
@@ -270,9 +269,7 @@ const Maintenance = () => {
               <option value="On Maintenance">On Maintenance</option>
               <option value="Maintained">Maintained</option>
             </select>
-            <div className="">
-              {selectToggle ? <icons.up /> : <icons.down />}
-            </div>
+            <div className="absolute top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
           </div>
           <div>
             <SearchBar
@@ -285,6 +282,7 @@ const Maintenance = () => {
           </div>
         </div>
         <TableData
+        title={<span className="font-bold">Maintenance</span>}
           pagination={true}
           fixedHeader={true}
           fixedHeaderScrollHeight="350px"

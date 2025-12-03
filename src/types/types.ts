@@ -99,3 +99,9 @@ export interface DataBookingProps {
     status: "On Maintenance" | "Maintained"
     action:React.ReactNode
  }
+
+
+ export interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+}
