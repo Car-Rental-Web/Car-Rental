@@ -205,11 +205,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <option value="">Self Drive</option>
                       <option value="">With Driver</option>
                     </select>
-                    {selectToggle ? (
-                      <icons.up className="absolute top-11 right-3" />
-                    ) : (
-                      <icons.down className="absolute top-11 right-3" />
-                    )}
+                    <div className="absolute top-12 right-3"> {selectToggle ? (<icons.up />) :(<icons.down/>)}</div>
                   </div>
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className="text-start">
