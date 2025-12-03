@@ -27,14 +27,8 @@ const Header = () => {
       <p className="text-xl md:text-3xl font-bold pl-12 text-center jakarta">Car-Rental</p>
         <SearchBar onClear={() => setQuery("")} value={query} onChange={(e) => setQuery(e.target.value)} className="-top-2 border border-gray-400 pr-2 py-2 w-2xl rounded " placeholder="search"/>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="cursor-pointer menu-bg rounded-full p-4"
-        >
-          <icons.notification className="w-7 h-7 text-white " />
-        </button>
-        <div className="">
-          <icons.profile className="w-18 h-18 text-gray-600" />
+        <div className="bg-blue-200">
+          <icons.profile className="w-18 h-18 text-gray-600 " />
         </div>
       </div>
     </div>

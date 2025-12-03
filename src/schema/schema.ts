@@ -10,7 +10,6 @@ const VehicleForm = z.object({
   plateNumber: z.string(),
 });
 
-
 const MaintenanceForm = z.object({
   date: z.date(),
   car: z.string(),
@@ -19,7 +18,6 @@ const MaintenanceForm = z.object({
   location: z.string(),
   maintainedBy: z.string(),
 });
-
 
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -35,7 +33,6 @@ const formatBytes = (bytes: number, decimals = 2) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
-
 
 
 

@@ -7,15 +7,14 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   return (
-    <div className=" w-full py-12 ">
-      <div className="  px-2 xl:px-4 ">
+    <div className=" w-full py-12 px-2 xl:px-4  ">
         <div className="flex flex-col items-start">
           <p className="text-2xl xl:text-5xl font-semibold text-gray-600 tracking-wide ">
             Overview
           </p>
           <p className="text-gray-400 text-sm xl:text-xl">Monitor Monthly Status</p>
         </div>
-          <div className="w-full  gap-2 flex flex-col xl:flex-row ">
+          <div className="w-full  gap-2 flex flex-col xl:flex-row pt-3 ">
             <div className="flex flex-col xl:w-8/12  ">
               <div className=" w-full  gap-2 flex flex-col xl:flex-row  ">
                 <Card
@@ -65,13 +64,12 @@ const Dashboard = () => {
                 title={<span className="text-md xl:text-3xl">Revenue</span>}
                 url={""}
                 topIcon={<icons.money className="text-4xl text-white text-start mt-1"/>}
-                amount={<span className="text-6xl">20,000</span>}
+                amount={<span className="text-6xl">200</span>}
                 amountIcon ={<icons.peso className="text-6xl text-center"/>}
                 description="Monthly Revenue"
               />
             </div>
         </div>
-      </div>
     </div>
   );
 };
