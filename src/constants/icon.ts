@@ -23,6 +23,8 @@ import { GrHostMaintenance } from "react-icons/gr";
 import { FaCheckCircle } from "react-icons/fa";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { FiUpload } from "react-icons/fi";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
 
 
 
@@ -52,7 +54,9 @@ const icons = {
     onMaintenance:GrHostMaintenance,
     onAvailable:FaCheckCircle,
     closeModal: IoIosCloseCircleOutline,
-    upload: FiUpload
+    upload: FiUpload,
+    openEye: FaEye,
+    closeEye:FaEyeSlash ,
 
 }
 

@@ -164,7 +164,7 @@ const columns = [
     name: "Status",
     cell: (row: DataMaintenanceProps) => (
       <div
-        className={`rounded-full w-full px-2 py-1 ${
+        className={`rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
           row.status === "On Maintenance"
             ? "text-white on-ended"
             : row.status === "Maintained"
@@ -215,31 +215,28 @@ const Maintenance = () => {
         Maintenance
       </p>
       <div className="flex flex-col gap-10 w-full">
-        <div className="flex gap-2">
+        <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="on-service"
-            title="Expense"
-            url=""
-            topIcon={<icons.money className="text-white text-2xl" />}
-            amountIcon={<icons.peso />}
-            amount="30,200"
+            className="bg-red-400 w-full"
+            title={<span className="text-md xl:text-2xl">Expense</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
             description="Total Maintenance Expense"
-          />
-          <Card
-            className="on-reservation"
-            title="Maintenance Count"
-            url=""
-            topIcon={<icons.onMaintenance className="text-white text-2xl" />}
-            amount="40"
+            topIcon={<icons.money className="text-white text-2xl" />}
+          /><Card
+            className="menu-bg w-full"
+            title={<span className="text-md xl:text-2xl">Maintenance Count</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
             description="Total Maintenance Count"
-          />
-          <Card
-            className="on-ended"
-            title="Ongoing Maintenance"
-            url=""
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
-            amount="5"
+          /><Card
+            className="on-ended w-full"
+            title={<span className="text-md xl:text-2xl">Ongoing Maintenance</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
             description="Total Ongoing Maintenance"
+            topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />
         </div>
         <div className="text-end mb-4">
@@ -252,14 +249,14 @@ const Maintenance = () => {
         </div>
       </div>
 
-      <div className="border border-gray-400 rounded px-6 py-2 flex flex-col gap-2">
+      <div className="border border-gray-400 px-6 py-2 rounded ">
         <div className="mt-2 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
-            className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
+            className=" flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
           >
             <select
-              className="outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base "
+              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base "
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
               name=""

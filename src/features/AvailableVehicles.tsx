@@ -142,7 +142,7 @@ const columns = [
     name: "Status",
     cell: (row: DataVehicleProps) => (
       <div
-        className={` px-4 py-1 rounded-full w-full ${
+        className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
           row.status === "On Service"
             ? "text-white on-service"
             : row.status === "On Reservations"
@@ -168,8 +168,8 @@ const AvailableVehicles = () => {
   const [records, setRecords] = useState(staticData);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
-  const [selectToggle, setSelectToggle] = useState(false)
-  const [openModal, setOpenModal] = useState(false)
+  const [selectToggle, setSelectToggle] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
@@ -196,60 +196,69 @@ const AvailableVehicles = () => {
         Vehicles
       </p>
       <div className="flex flex-col gap-10">
-         <div className="flex w-full gap-2">
-        <Card
-          className="on-service"
-          title="On Service"
-          url={""}
-          amount="5"
-          description="Total On Service"
-          topIcon={<icons.onService className="text-white text-2xl" />}
-        />
-        <Card
-          className="on-reservation"
-          title="Reservations"
-          url={""}
-          amount="5"
-          description="Total Reservations"
-          topIcon={<icons.onReserve className="text-white text-2xl" />}
-        />
-        <Card
-          className="on-ended"
-          title="Maintenance"
-          url={""}
-          amount="5"
-          description="Total Maintenance"
-          topIcon={<icons.onMaintenance className="text-white text-2xl" />}
-        />
-        <Card
-          className="on-service"
-          title="Available"
-          url={""}
-          amount="5"
-          description="Total Available"
-          topIcon={<icons.onAvailable className="text-white text-2xl" />}
-        />
-      </div>
-      <div className="text-end mb-4">
-         <CustomButtons
-        handleclick={()=> setOpenModal(true)}
+        <div className="flex flex-col xl:flex-row w-full gap-2">
+          <Card
+            className="on-service w-full"
+            title={<span className="text-md xl:text-2xl">On Service</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
+            description="Total On Service"
+            topIcon={<icons.onService className="text-white text-2xl" />}
+          />{" "}
+          <Card
+            className="on-reservation w-full"
+            title={<span className="text-md xl:text-2xl">Reservations</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
+            description="Total Reservations"
+            topIcon={<icons.onReserve className="text-white text-2xl" />}
+          />{" "}
+          <Card
+            className="on-ended w-full"
+            title={<span className="text-md xl:text-2xl">Maintenance</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
+            description="Total Maintenance"
+            topIcon={<icons.onMaintenance className="text-white text-2xl" />}
+          />{" "}
+          <Card
+            className="on-service w-full"
+            title={<span className="text-md xl:text-2xl">Available</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
+            description="Total Available"
+            topIcon={<icons.onAvailable className="text-white text-2xl" />}
+          />
+        </div>
+        <div className="text-end mb-4">
+          <CustomButtons
+            handleclick={() => setOpenModal(true)}
             children="Add Vehicle"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
           />
-          <VehicleForm open={openModal} onClose={() => setOpenModal(false)}/>
-      </div>
+          <VehicleForm open={openModal} onClose={() => setOpenModal(false)} />
+        </div>
       </div>
       <div className="border border-gray-400 px-6 py-2 rounded ">
         <div className="mt-2 flex justify-end items-center gap-3">
-          <div onClick={() => setSelectToggle((t) => !t)} className="flex  items-center border border-gray-200 rounded">
-            <select className="outline-none appearance-none px-1 py-2" value={selectValue} onChange={(e) => setSelectValue(e.target.value)} name="" id="">
+          <div
+            onClick={() => setSelectToggle((t) => !t)}
+            className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
+          >
+            <select
+              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base "
+              value={selectValue}
+              onChange={(e) => setSelectValue(e.target.value)}
+              name=""
+              id=""
+            >
               <option value="">All</option>
               <option value="On Service">On Service</option>
               <option value="On Reservations">On Reservation</option>
               <option value="On Maintenance">On Maintenance</option>
               <option value="Available">Available</option>
             </select>
-            <div className="">{selectToggle ? <icons.up /> : <icons.down />}</div>
+           <div className="absolute top-2 xl:top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
           </div>
           <div>
             <SearchBar
@@ -262,7 +271,7 @@ const AvailableVehicles = () => {
           </div>
         </div>
         <TableData
-        title={<span className="font-bold">Vehicle</span>}
+          title={<span className="font-bold">Vehicle</span>}
           data={records}
           columns={columns}
           fixedHeader={true}

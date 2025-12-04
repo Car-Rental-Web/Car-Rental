@@ -104,58 +104,47 @@ const staticData: DataRenterProps[] = [
 const columns = [
   {
     name: "No.",
-    cell: (row: DataRenterProps) => 
-    <div className="text-center">
-        {row.id}
-    </div>,
+    cell: (row: DataRenterProps) => <div className="text-center">{row.id}</div>,
   },
   {
     name: "Name",
-     cell: (row: DataRenterProps) => 
-    <div className="text-center">
-        {row.name}
-    </div>
+    cell: (row: DataRenterProps) => (
+      <div className="text-center">{row.name}</div>
+    ),
   },
   {
     name: "License #",
-     cell: (row: DataRenterProps) => 
-    <div className="text-center">
-        {row.license}
-    </div>
+    cell: (row: DataRenterProps) => (
+      <div className="text-center">{row.license}</div>
+    ),
   },
   {
     name: "Last Date Rented",
     cell: (row: DataRenterProps) => (
       <div className=" w-full text-center">
-          { new Date(row.lastDateRented).toLocaleString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })}
+        {new Date(row.lastDateRented).toLocaleString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        })}
       </div>
-    )
-     
+    ),
   },
   {
     name: "Times Rented",
-      cell: (row: DataRenterProps) => 
-    <div className="text-center w-full">
-        {row.timesRented}
-    </div>
+    cell: (row: DataRenterProps) => (
+      <div className="text-center w-full">{row.timesRented}</div>
+    ),
   },
   {
     name: "Feedback",
-      cell: (row: DataRenterProps) => 
-    <div className="text-center  w-full">
-        {row.feedBack}
-    </div>
+    cell: (row: DataRenterProps) => (
+      <div className="text-center  w-full">{row.feedBack}</div>
+    ),
   },
   {
     name: "Action",
-      cell: (row: DataRenterProps) => 
-    <div className=" ">
-        {row.action}
-    </div>
+    cell: (row: DataRenterProps) => <div className=" ">{row.action}</div>,
   },
 ];
 
@@ -183,29 +172,35 @@ const RenterHistory = () => {
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Renter History
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="menu-bg"
-            title="Total Renters"
+            className="menu-bg w-full"
+            title={<span className="text-md xl:text-2xl">Renters</span>}
             url={""}
-            amount="5"
-            description="Total Booked On Service"
+            amount={<span className="text-6xl">200</span>}
+            description="Total Renters"
             topIcon={<icons.person className="text-white text-2xl" />}
           />
           <Card
-            className="on-service"
-            title="Active Renters"
+            className="on-service w-full"
+            title={
+              <span className="text-md xl:text-2xl"> Active Renters</span>
+            }
             url={""}
-            amount="5"
+            amount={<span className="text-6xl">200</span>}
             description="Total Active Renters"
             topIcon={<icons.person className="text-white text-2xl" />}
           />
           <Card
-            className="on-ended"
-            title="In-active Renters"
+            className="on-ended w-full"
+            title={
+              <span className="text-md xl:text-2xl">
+                Inactive Renters
+              </span>
+            }
             url={""}
-            amount="5"
-            description="Total In-active Renter"
+            amount={<span className="text-6xl">200</span>}
+            description="Total Inactive Service"
             topIcon={<icons.person className="text-white text-2xl" />}
           />
         </div>
@@ -222,8 +217,8 @@ const RenterHistory = () => {
         </div>
         <div>
           <TableData
-          progressPending={false}
-          highlightOnHover={true}
+            progressPending={false}
+            highlightOnHover={true}
             title={<span className="font-bold">Renter History</span>}
             data={records}
             columns={columns}

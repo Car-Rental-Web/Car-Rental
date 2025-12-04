@@ -27,7 +27,7 @@ const Dashboard = () => {
                   linkIcon={
                     <icons.rightArrow className="text-2xl text-start mt-1" />
                   }
-                  url="/admin/renterhistory"
+                  url="/renterhistory"
                   amount={<span className="text-6xl">200</span>}
                   description={<span>Monthly Renters</span>}
                 />
@@ -41,7 +41,7 @@ const Dashboard = () => {
                   icon={
                     <icons.book className="w-12 h-12 mt-2 -mb-12 text-white" />
                   }
-                  url="/admin/bookings"
+                  url="/bookings"
                   amount={<span className="text-6xl">200</span>}
                   description={<span>Monthly Bookings</span>}
                 />

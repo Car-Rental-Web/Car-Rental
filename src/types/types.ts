@@ -27,7 +27,12 @@ export interface CustomButtonTypes {
 
 }
 
-
+export interface SideBarProps {
+  iconChildren: React.ReactNode;
+  path: string;
+  url: string;
+  label: string;
+}
 
 export interface CustomTableProps<T> {
   data: T[];

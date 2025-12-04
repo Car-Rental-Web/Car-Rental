@@ -1,6 +1,20 @@
 import * as z from "zod";
 
+export const LoginFormSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+export type LoginFormData = z.infer<typeof LoginFormSchema>;
 
+
+
+export const ForgotPassword = z.object({
+  password: z.string(),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword , {
+  message: "Password do not match",
+  path: ["confirmPassword"]
+})
 
 const VehicleForm = z.object({
   model: z.string(),
@@ -147,6 +161,8 @@ const RenterForm = z.object({
 });
 
 export default {
+  LoginFormSchema,
+  ForgotPassword,
   VehicleForm,
   MaintenanceForm,
   RenterForm,
