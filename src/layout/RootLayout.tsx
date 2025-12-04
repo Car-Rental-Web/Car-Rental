@@ -15,7 +15,7 @@ const RootLayout = () => {
     // },[location,navigate])
 
   return (
-      <div className="flex flex-col w-full max-w-[2000px]  mx-auto">
+      <div className="flex flex-col w-full max-w-[2000px]  mx-auto min-h-screen">
         <Header/>
         <main className=" w-full flex">
         <SideBar/>
