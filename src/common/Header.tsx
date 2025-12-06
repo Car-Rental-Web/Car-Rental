@@ -1,7 +1,7 @@
 // import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import SearchBar from "../components/SearchBar";
-import { useAuthStore } from "../store/AuthStore";
+import { useAuthStore } from "../store/useAuthStore.ts";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";

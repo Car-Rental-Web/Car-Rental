@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "../utils/supabase";
-import { useAuthStore } from "../store/AuthStore";
+import { useAuthStore } from "../store/useAuthStore.ts";
 
 export const useRestoreSession = () => {
   const login = useAuthStore((state) => state.login);
@@ -15,7 +15,7 @@ export const useRestoreSession = () => {
       } else {
         finishLoading(); // No session, stop loading
       }
-    };
+    }; 
 
     checkSession();
 
