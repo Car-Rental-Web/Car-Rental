@@ -81,8 +81,10 @@ const Maintenance = () => {
 
 
   useEffect(() => {
+    let isMounted = true;
     const fetchMaintenance = async () => {
       const { data, error} = await supabase.from("maintenance").select('*');
+      if(!isMounted) return;
 
       if(error ) {
         console.log("Error fetching maintenance:", error?.message);
@@ -106,6 +108,9 @@ const Maintenance = () => {
       console.log("Fetched vehicles:", data);
     }
     fetchMaintenance()
+    return () => {
+      isMounted = false;
+    }
   },[openModal])
 
 
@@ -130,7 +135,6 @@ const Maintenance = () => {
   }, [debounceSearchTerm, selectValue, allrecords]);
 
 const totalExpense = records.reduce((sum, row) => sum + Number(row.costOfMaintenance),0)
-
 const ongoing = records.filter(r => r.status === "On Maintenance").length;
 const maintained = records.filter(r => r.status === "Maintained").length;
 

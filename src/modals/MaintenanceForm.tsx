@@ -18,6 +18,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(MaintenanceFormSchema),
@@ -48,6 +49,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
     console.log("Maintenance added successfully:", maintenance);
     toast.success("Maintenance added successfully");
     onClose();
+    reset()
   };
 
   useEffect(() => {
@@ -69,7 +71,11 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
   return (
     <div className="absolute inset-0 bg-gray-400/25 z-999 flex justify-center items-center">
       <form
-        onSubmit={handleSubmit(onAddMaintenance)}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onAddMaintenance)(e);
+        }
+          }
         onClick={(e) => e.stopPropagation()}
         action=""
         className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-white"

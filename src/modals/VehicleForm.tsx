@@ -13,6 +13,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<VehicleFormData>({
     resolver: zodResolver(VehicleFormSchema),
@@ -21,33 +22,32 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const onAddVehicle = async (data: VehicleFormData) => {
     setIsLoading(true);
 
-    const model = data.model;
-    const brand = data.brand;
-    const type = data.type;
-    const color = data.color;
-    const plate_no = data.plate_no;
-    console.log(data)
-    const { data:vehicle, error } = await supabase.from("vehicle").insert({
-      model,
-      brand,
-      type,
-      color,
-      plate_no,
-    }).select().single();
+    console.log(data);
+    const { data: vehicle, error } = await supabase
+      .from("vehicle")
+      .insert({
+        model: data.model,
+        brand: data.brand,
+        type: data.type,
+        color: data.color,
+        plate_no: data.plate_no,
+      })
+      .select()
+      .single();
 
-    if(error) {
+    if (error) {
       console.log("Error adding vehicle:", error.message);
       setIsLoading(false);
-      toast.error("Error adding vehicle:"+ error.message);
+      toast.error("Error adding vehicle:" + error.message);
       return;
     }
-   
-    
-  console.log("Vehicle added successfully:", vehicle);
-  toast.success("Vehicle added successfully");
 
-  setIsLoading(false);           
-  onClose();   
+    console.log("Vehicle added successfully:", vehicle);
+    toast.success("Vehicle added successfully");
+
+    setIsLoading(false);
+    onClose();
+    reset();
   };
 
   if (!open) return null;
@@ -103,7 +103,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             Color
           </label>
           <input
-          {...register("color")}
+            {...register("color")}
             className="border py-4 px-4 border-gray-400 rounded"
             type="text"
             placeholder="Ex:Midnight Blue"

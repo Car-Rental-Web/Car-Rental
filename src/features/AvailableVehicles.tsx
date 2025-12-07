@@ -39,8 +39,10 @@ const columns = [
   },
   {
     name: "Status",
-    cell: (row: DataVehicleProps) => (
-      <div
+    cell: (row: DataVehicleProps) => 
+    { 
+      return (
+         <div
         className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
           row.status === "On Service"
             ? "text-white on-service"
@@ -55,10 +57,10 @@ const columns = [
       >
         {row.status}
       </div>
-    ),
+    )}
   },
   {
-    name: "No.",
+    name: "Action",
     cell: (row: DataVehicleProps) => <div>{row.action}</div>,
   },
 ];
@@ -119,6 +121,11 @@ const AvailableVehicles = () => {
     }
     setRecords(result);
   }, [debounceValue, selectValue, allrecords]);
+  
+  const available = records.filter(item => item.status === "Available").length;
+  const onService = records.filter(item => item.status === "On Service").length;
+  const onReservation = records.filter(item => item.status === "On Reservations").length;
+  const onMaintenance = records.filter(item => item.status === "On Maintenance").length;
 
   return (
     <div className="w-full relative overflow-y-auto px-6 pt-12">
@@ -131,15 +138,15 @@ const AvailableVehicles = () => {
             className="on-service w-full"
             title={<span className="text-md xl:text-2xl">On Service</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onService}</span>}
             description="Total On Service"
             topIcon={<icons.onService className="text-white text-2xl" />}
           />{" "}
           <Card
             className="on-reservation w-full"
-            title={<span className="text-md xl:text-2xl">Reservations</span>}
+            title={<span className="text-md xl:text-2xl">On Reservation</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onReservation}</span>}
             description="Total Reservations"
             topIcon={<icons.onReserve className="text-white text-2xl" />}
           />{" "}
@@ -147,7 +154,7 @@ const AvailableVehicles = () => {
             className="on-ended w-full"
             title={<span className="text-md xl:text-2xl">Maintenance</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onMaintenance}</span>}
             description="Total Maintenance"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />{" "}
@@ -155,7 +162,7 @@ const AvailableVehicles = () => {
             className="on-service w-full"
             title={<span className="text-md xl:text-2xl">Available</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{available}</span>}
             description="Total Available"
             topIcon={<icons.onAvailable className="text-white text-2xl" />}
           />
