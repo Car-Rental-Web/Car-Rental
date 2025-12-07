@@ -2,10 +2,10 @@ import { create } from "zustand";
 
 interface AuthStore {
   isAuthenticated: boolean;
-  user: any | null;
+  user: unknown | null;
   loading: boolean;
   signUp: () => void;
-  login: (user: any) => void;
+  login: (user: unknown) => void;
   logout: () => void;  
   finishLoading: () => void;
 }

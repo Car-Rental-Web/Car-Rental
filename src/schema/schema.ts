@@ -6,33 +6,46 @@ export const LoginFormSchema = z.object({
 });
 export type LoginFormData = z.infer<typeof LoginFormSchema>;
 
+export const ForgotPassword = z
+  .object({
+    password: z.string(),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password do not match",
+    path: ["confirmPassword"],
+  });
 
-
-export const ForgotPassword = z.object({
-  password: z.string(),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword , {
-  message: "Password do not match",
-  path: ["confirmPassword"]
-})
-
-const VehicleForm = z.object({
+export const VehicleFormSchema = z.object({
   model: z.string(),
   brand: z.string(),
   type: z.string(),
   color: z.string(),
-  plateNumber: z.string(),
+  plate_no: z.string(),
 });
 
-const MaintenanceForm = z.object({
-  date: z.date(),
-  car: z.string(),
-  typeOfMaintenance: z.string(),
-  costOfMaintenance: z.number(),
-  location: z.string(),
-  maintainedBy: z.string(),
+export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
+export const MaintenanceFormSchema = z.object({
+  date: z
+    .string()
+    .min(1, "Date is required")
+    .transform(v => new Date(v)),
+
+  car: z.string().min(1, "Vehicle is required"),
+
+  typeOfMaintenance: z.string().min(1),
+
+  costOfMaintenance: z
+    .string()
+    .min(1, "Cost is required")
+    .transform(v => Number(v)),
+
+  location: z.string().min(1),
+
+  maintainedBy: z.string().min(1),
 });
 
+export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MIN_DIMENSIONS = { width: 200, height: 200 };
@@ -48,8 +61,6 @@ const formatBytes = (bytes: number, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
 
-
-
 const RenterForm = z.object({
   fullName: z.string(),
   address: z.string(),
@@ -59,7 +70,9 @@ const RenterForm = z.object({
       message: "Please Select an image File",
     })
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(MAX_FILE_SIZE)}`,
+      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
+        MAX_FILE_SIZE
+      )}`,
     })
     .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
       message: "Please upload a valid image file (JPED, PNG)",
@@ -83,28 +96,30 @@ const RenterForm = z.object({
           reader.readAsDataURL(file);
         })
     ),
-    pagIbigNumber: z.string().optional(),
-    sssNumber: z.string().optional(),
-    tinNumber: z.string().optional(),
-    philHealthNumber: z.string().optional(),
-    carPlateNumber: z.string(),
-    carModel: z.string(),
-    carType: z.string(),
-    totalPriceRent: z.number(),
-    downPayment: z.number(),
-    startDate: z.date(),
-    endDate: z.date(),
-    typeOfRent: z.string(),
-    location: z.string(),
-    vehicleLeftPlateNumber: z.string().optional(),
-    vehicleLeft: z.string().optional(),
-    vehicleLeftType: z.string().optional(),
-    agreementPhoto:z
+  pagIbigNumber: z.string().optional(),
+  sssNumber: z.string().optional(),
+  tinNumber: z.string().optional(),
+  philHealthNumber: z.string().optional(),
+  carPlateNumber: z.string(),
+  carModel: z.string(),
+  carType: z.string(),
+  totalPriceRent: z.number(),
+  downPayment: z.number(),
+  startDate: z.date(),
+  endDate: z.date(),
+  typeOfRent: z.string(),
+  location: z.string(),
+  vehicleLeftPlateNumber: z.string().optional(),
+  vehicleLeft: z.string().optional(),
+  vehicleLeftType: z.string().optional(),
+  agreementPhoto: z
     .instanceof(File, {
       message: "Please Select an image File",
     })
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(MAX_FILE_SIZE)}`,
+      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
+        MAX_FILE_SIZE
+      )}`,
     })
     .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
       message: "Please upload a valid image file (JPED, PNG)",
@@ -128,13 +143,15 @@ const RenterForm = z.object({
           reader.readAsDataURL(file);
         })
     ),
-    notes: z.string().optional(),
-    proofPhoto: z
+  notes: z.string().optional(),
+  proofPhoto: z
     .instanceof(File, {
       message: "Please Select an image File",
     })
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(MAX_FILE_SIZE)}`,
+      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
+        MAX_FILE_SIZE
+      )}`,
     })
     .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
       message: "Please upload a valid image file (JPED, PNG)",
@@ -163,9 +180,7 @@ const RenterForm = z.object({
 export default {
   LoginFormSchema,
   ForgotPassword,
-  VehicleForm,
-  MaintenanceForm,
+  VehicleFormSchema,
+  MaintenanceFormSchema,
   RenterForm,
 };
-
-

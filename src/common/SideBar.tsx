@@ -36,6 +36,12 @@ const SideBarData: SideBarProps[] = [
     path: "/maintenance",
     iconChildren: <icons.onMaintenance />,
   },
+  {
+    label: "Vehicles",
+    url: "/vehicle",
+    path: "/vehicle",
+    iconChildren: <icons.onMaintenance />,
+  },
 ];
 
 const SideBar = () => {

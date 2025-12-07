@@ -42,7 +42,7 @@ const Dashboard = () => {
                     <icons.book className="w-12 h-12 mt-2 -mb-12 text-white" />
                   }
                   url="/bookings"
-                  amount={<span className="text-6xl">200</span>}
+                  amount={<span className="text-base xl:text-6xl">200</span>}
                   description={<span>Monthly Bookings</span>}
                 />
               </div>

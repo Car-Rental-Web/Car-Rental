@@ -9,114 +9,13 @@ import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import { VehicleForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
+import { supabase } from "../utils/supabase";
 
-const staticData: DataVehicleProps[] = [
-  {
-    id: 1,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 2,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 3,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 4,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Reservations",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 5,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "Available",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 6,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "Available",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 7,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 8,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 9,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 10,
-    model: "Civic Lx",
-    brand: "Honda",
-    type: "sedan",
-    color: "Midnight Blue",
-    plateNumber: "ABC-1234",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-];
 
 const columns = [
   {
     name: "No.",
-    cell: (row: DataVehicleProps) => <div>{row.id}</div>,
+    cell: (_row: DataVehicleProps, index:number) => <div>{index + 1}</div>,
   },
   {
     name: "Model",
@@ -165,17 +64,48 @@ const columns = [
 ];
 
 const AvailableVehicles = () => {
-  const [records, setRecords] = useState(staticData);
+  const [records, setRecords] = useState<DataVehicleProps[]>([]);
+  const [allrecords, setAllRecords] = useState<DataVehicleProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchVehicles = async () => {
+      const { data, error } = await supabase.from("vehicle").select("*");
+
+      if(!isMounted) return;
+
+      if (error ) {
+        console.log("Error fetching vehicles:", error.message);
+      }
+      const rows = data ?? [];
+      const formattedData = rows.map((item) => ({
+        id: item.id,
+        model: item.model,
+        brand: item.brand,
+        type: item.type,
+        color: item.color,
+        plateNumber: item.plate_no,
+        status: item.status ?? "Available",
+        action: <BsThreeDots />,
+      }));
+      setRecords(formattedData);
+      setAllRecords(formattedData);
+      console.log("Fetched vehicles:", data);
+    };
+    fetchVehicles();
+    return () => {
+      isMounted = false
+    }
+  }, [openModal]);
+
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    let result = filterData(debounceValue, staticData, [
-      "id",
+    let result = filterData(debounceValue,allrecords, [
       "model",
       "brand",
       "type",
@@ -188,7 +118,7 @@ const AvailableVehicles = () => {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
-  }, [debounceValue, selectValue]);
+  }, [debounceValue, selectValue, allrecords]);
 
   return (
     <div className="w-full relative overflow-y-auto px-6 pt-12">
@@ -258,7 +188,10 @@ const AvailableVehicles = () => {
               <option value="On Maintenance">On Maintenance</option>
               <option value="Available">Available</option>
             </select>
-           <div className="absolute top-2 xl:top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
+            <div className="absolute top-2 xl:top-3 right-3">
+              {" "}
+              {selectToggle ? <icons.up /> : <icons.down />}
+            </div>
           </div>
           <div>
             <SearchBar

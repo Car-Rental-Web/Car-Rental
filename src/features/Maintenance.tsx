@@ -1,4 +1,3 @@
-import { BsThreeDots } from "react-icons/bs";
 import Card from "../components/Card";
 import icons from "../constants/icon";
 import type { DataMaintenanceProps } from "../types/types";
@@ -9,124 +8,14 @@ import { filterData } from "../utils/FilterData";
 import SearchBar from "../components/SearchBar";
 import { MaintenanceForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
+import { supabase } from "../utils/supabase";
+import { BsThreeDots } from "react-icons/bs";
 
-const staticData: DataMaintenanceProps[] = [
-  {
-    id: 1,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 2,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Vince",
-    status: "Maintained",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 3,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 4,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 5,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 6,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "On Maintenance",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 7,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Vince",
-    status: "Maintained",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 8,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Nicko",
-    status: "Maintained",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 9,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Vince",
-    status: "Maintained",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 10,
-    date: new Date(),
-    car: "Honda",
-    typeOfMaintenance: "Tire Change",
-    costOfMaintenance: "2,000",
-    location: "angeles",
-    maintainedBy: "Vince",
-    status: "Maintained",
-    action: <BsThreeDots />,
-  },
-];
 
 const columns = [
   {
     name: "No.",
-    cell: (row: DataMaintenanceProps) => <div>{row.id}</div>,
+    cell: (_row: DataMaintenanceProps, index:number) => <div>{index + 1}</div>,
   },
   {
     name: "Date",
@@ -183,16 +72,47 @@ const columns = [
 ];
 
 const Maintenance = () => {
-  const [records, setRecords] = useState(staticData);
+  const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
+  const [allrecords, setAllRecords] = useState<DataMaintenanceProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
   const [openModal, setOpenModal] = useState(false)
 
+
+  useEffect(() => {
+    const fetchMaintenance = async () => {
+      const { data, error} = await supabase.from("maintenance").select('*');
+
+      if(error ) {
+        console.log("Error fetching maintenance:", error?.message);
+        return
+      };
+
+      const row = data ?? []
+      const rowsData = row.map((item) => ({
+        id: item.id,
+        date: item.date,
+        car: item.car,
+        typeOfMaintenance: item.type_of_maintenance,
+        costOfMaintenance: item.cost_of_maintenance,
+        location: item.location,
+        maintainedBy: item.maintained_by,
+        status: item.status ?? "On Maintenance",
+        action:<BsThreeDots />,
+      }));
+      setRecords(rowsData);
+      setAllRecords(rowsData);
+      console.log("Fetched vehicles:", data);
+    }
+    fetchMaintenance()
+  },[openModal])
+
+
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    let result = filterData(debounceSearchTerm, staticData, [
+    let result = filterData(debounceSearchTerm, allrecords, [
       "id",
       "date",
       "car",
@@ -207,7 +127,12 @@ const Maintenance = () => {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
-  }, [debounceSearchTerm, selectValue]);
+  }, [debounceSearchTerm, selectValue, allrecords]);
+
+const totalExpense = records.reduce((sum, row) => sum + Number(row.costOfMaintenance),0)
+
+const ongoing = records.filter(r => r.status === "On Maintenance").length;
+const maintained = records.filter(r => r.status === "Maintained").length;
 
   return (
     <div className="px-6 pt-12 w-full relative  overflow-y-auto gap-2">
@@ -220,21 +145,21 @@ const Maintenance = () => {
             className="bg-red-400 w-full"
             title={<span className="text-md xl:text-2xl">Expense</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{totalExpense}</span>}
             description="Total Maintenance Expense"
             topIcon={<icons.money className="text-white text-2xl" />}
           /><Card
             className="menu-bg w-full"
             title={<span className="text-md xl:text-2xl">Maintenance Count</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{maintained}</span>}
             description="Total Maintenance Count"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           /><Card
             className="on-ended w-full"
             title={<span className="text-md xl:text-2xl">Ongoing Maintenance</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{ongoing}</span>}
             description="Total Ongoing Maintenance"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />
