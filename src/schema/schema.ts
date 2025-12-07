@@ -61,7 +61,7 @@ const formatBytes = (bytes: number, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 };
 
-const RenterForm = z.object({
+export const RenterFormSchema = z.object({
   fullName: z.string(),
   address: z.string(),
   licenseNumber: z.string(),
@@ -110,6 +110,7 @@ const RenterForm = z.object({
   typeOfRent: z.string(),
   location: z.string(),
   vehicleLeftPlateNumber: z.string().optional(),
+  vehicleLeftModel: z.string().optional(),
   vehicleLeft: z.string().optional(),
   vehicleLeftType: z.string().optional(),
   agreementPhoto: z
@@ -144,7 +145,7 @@ const RenterForm = z.object({
         })
     ),
   notes: z.string().optional(),
-  proofPhoto: z
+  uploadedProof: z
     .instanceof(File, {
       message: "Please Select an image File",
     })
@@ -175,12 +176,15 @@ const RenterForm = z.object({
           reader.readAsDataURL(file);
         })
     ),
+    isReservation: z.boolean().optional(),
 });
+
+export type RenterFormData = z.infer<typeof RenterFormSchema>;
 
 export default {
   LoginFormSchema,
   ForgotPassword,
   VehicleFormSchema,
   MaintenanceFormSchema,
-  RenterForm,
+  RenterFormSchema,
 };
