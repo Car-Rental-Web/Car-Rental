@@ -55,7 +55,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
     const {data:updateVehicle, error: errorUpdate} = await supabase
       .from("vehicle")
       .update({status: "On Maintenance"})
-      .eq("id", data.car)
+      .eq("plate_no" , data.car)
 
       if(errorUpdate) {
         setIsLoading(false)
@@ -123,7 +123,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
           >
             <option value="" className="txt-color">Select Vehicle</option>
             {vehicles.map((vehicle) => (
-              <option className="txt-color" key={vehicle.id} value={vehicle.id}>
+              <option className="txt-color" key={vehicle.id} value={vehicle.plate_no}>
                 {vehicle.plate_no}
               </option>
             ))}

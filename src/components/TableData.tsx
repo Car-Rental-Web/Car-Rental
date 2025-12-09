@@ -41,6 +41,24 @@ const customStyles:TableStyles = {
       backgroundColor: "#011a31"
     },
   },
+ pagination: {
+    style: {
+      color: "#fff"
+    },
+    pageButtonsStyle: {
+      color: "#ffffff",            // Text color
+      fill: "#ffffff",             // SVG arrow color
+      backgroundColor: "transparent",
+      borderRadius: "50%",
+      "&:hover:not(:disabled)": {
+        backgroundColor: "#054f6d",
+      },
+      "&:disabled": {
+        color: "#888888",
+        fill: "#888888",
+      },
+    },
+  },
 };
 
 const TableData = <T,>({ ...props }: CustomTableProps<T>) => {

@@ -22,7 +22,7 @@ const Maintenance = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const fetchMaintenance = async () => {
+      const fetchMaintenance = async () => {
       const { data, error } = await supabase.from("maintenance").select("*");
       if (!isMounted) return;
 
@@ -53,7 +53,7 @@ const Maintenance = () => {
     };
   }, [openModal]);
 
-  const handleUpdate = async (id: number, vehicleId: string) => {
+  const handleUpdate = async (id:number, vehicleId:string) => {
     const { data, error } = await supabase
       .from("maintenance")
       .update({ status: "Maintained" })
@@ -62,21 +62,22 @@ const Maintenance = () => {
     if (error) {
       console.log("Error Updating", error);
     }
-    console.log("Update Successfully", data);
+      console.log("Update Successfully", data);
 
     const { data: vehicleStatus, error: errorStatus } = await supabase
       .from("vehicle")
       .update({ status: "Available" })
-      .eq("id", vehicleId);
+      .eq("plate_no", vehicleId);
+
     if (errorStatus) {
       console.log("Vehicle Update Error", errorStatus);
       toast.error("Error Updating");
     }
-    console.log(vehicleStatus);
-    toast.success("Update Successfully");
-    setRecords((prev) =>
+      console.log(vehicleStatus);
+      toast.success("Update Successfully");
+      setRecords((prev) =>
       prev.map((row) =>
-        row.id === id ? { ...row, status: "Maintained" } : row
+      row.id === id ? { ...row, status: "Maintained" } : row
       )
     );
   };
@@ -172,7 +173,6 @@ const Maintenance = () => {
             className="cursor-pointer"
             onClick={() => handleUpdate(row.id, row.car)}
           >
-            {" "}
             {row.action}
           </button>
         </div>
@@ -242,9 +242,15 @@ const Maintenance = () => {
               name=""
               id=""
             >
-              <option value="" className="txt-color">All</option>
-              <option value="On Maintenance" className="txt-color">On Maintenance</option>
-              <option value="Maintained" className="txt-color">Maintained</option>
+              <option value="" className="txt-color">
+                All
+              </option>
+              <option value="On Maintenance" className="txt-color">
+                On Maintenance
+              </option>
+              <option value="Maintained" className="txt-color">
+                Maintained
+              </option>
             </select>
             <div className="absolute top-2 xl:top-3 right-3 txt-color">
               {selectToggle ? <icons.up /> : <icons.down />}

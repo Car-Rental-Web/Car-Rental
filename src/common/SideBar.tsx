@@ -30,18 +30,19 @@ const SideBarData: SideBarProps[] = [
     path: "/renterhistory",
     iconChildren: <icons.person />,
   },
+    {
+    label: "Vehicles",
+    url: "/vehicle",
+    path: "/vehicle",
+    iconChildren: <icons.vehicle/>,
+  },
   {
     label: "Maintenance",
     url: "/maintenance",
     path: "/maintenance",
     iconChildren: <icons.onMaintenance />,
   },
-  {
-    label: "Vehicles",
-    url: "/vehicle",
-    path: "/vehicle",
-    iconChildren: <icons.vehicle/>,
-  },
+
 ];
 
 const SideBar = () => {
