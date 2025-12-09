@@ -53,10 +53,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .bg-body {
-  background-color: #011a31;
+  background-color: #01182e;
 }
 .bg-sub {
   background-color: #011120;
+}
+.bg-sidebar {
+  background-color: #030d16;
+}
+.bg-header{
+  background-color: #030d16;
 }
 .bg-border {
   background-color: #032d44;

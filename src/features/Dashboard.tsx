@@ -9,7 +9,7 @@ const Dashboard = () => {
   return (
     <div className=" w-full py-12 px-2 xl:px-4 bg-body  ">
         <div className="flex flex-col items-start">
-          <p className="text-2xl xl:text-5xl font-semibold text-gray-600 tracking-wide ">
+          <p className="text-2xl xl:text-5xl font-semibold text-gray-200 tracking-wide ">
             Overview
           </p>
           <p className="text-gray-400 text-sm xl:text-xl">Monitor Monthly Status</p>

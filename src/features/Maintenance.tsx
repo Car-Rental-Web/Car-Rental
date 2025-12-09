@@ -182,7 +182,7 @@ const Maintenance = () => {
 
   return (
     <div className="px-6 pt-12 w-full relative  overflow-y-auto gap-2 bg-body">
-      <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
+      <p className=" text-5xl font-semibold text-gray-200 tracking-wide mb-5 ">
         Maintenance
       </p>
       <div className="flex flex-col gap-10 w-full">

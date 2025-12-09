@@ -129,7 +129,7 @@ const Vehicles = () => {
 
   return (
     <div className="w-full relative overflow-y-auto px-6 pt-12 bg-body">
-      <p className=" text-5xl font-extrabold txt-color tracking-wide mb-5 ">
+      <p className=" text-5xl font-extrabold txt-color tracking-wide mb-5 text-gray-200 ">
         Vehicles
       </p>
       <div className="flex flex-col gap-10">

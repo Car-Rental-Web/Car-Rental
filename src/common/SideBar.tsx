@@ -51,7 +51,7 @@ const SideBar = () => {
 
   return (
       <div
-        className={`bg-sub  min-h-screen relative ${
+        className={`bg-sidebar min-h-screen relative  border-r border-[#032d44]  ${
           toggleMenu ? "w-36 xl:min-w-96 " : " w-24"
         }`}
       >

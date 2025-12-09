@@ -22,9 +22,9 @@ const Header = () => {
   };
 
   return (
-    <div className=" p-6  flex justify-between items-center w-full bg-sub  ">
-      <p className="text-xl md:text-3xl font-bold pl-12 text-center jakarta txt-color">
-        Car-Rental
+    <div className=" p-6  flex justify-between items-center w-full bg-header border-b  border-[#023a58]  ">
+      <p className="text-xl md:text-4xl font-bold pl-12 text-center jakarta txt-color">
+        Emboss
       </p>
       <SearchBar
         onClear={() => setQuery("")}

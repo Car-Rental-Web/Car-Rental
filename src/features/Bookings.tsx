@@ -270,7 +270,7 @@ const Bookings = () => {
   return (
     <div className="w-full relative  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
-        <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
+        <p className="text-5xl font-semibold text-gray-200 tracking-wide mb-5">
           Bookings
         </p>
         <div className="flex flex-col xl:flex-row gap-2">
