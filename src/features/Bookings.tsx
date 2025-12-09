@@ -276,7 +276,7 @@ const Bookings = () => {
         <div className="flex flex-col xl:flex-row gap-2">
           <Card
             className="bg-border w-full"
-            title={<span className="text-md xl:text-3xl">On Service</span>}
+            title={<span className="text-md xl:text-2xl">On Service</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
             description="Total Booked On Service"
@@ -284,7 +284,7 @@ const Bookings = () => {
           />
           <Card
             className="bg-border w-full"
-            title={<span className="text-md xl:text-3xl">On Reservation</span>}
+            title={<span className="text-md xl:text-2xl">On Reservation</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
             description="Total Booked Reservation"
@@ -292,11 +292,19 @@ const Bookings = () => {
           />
           <Card
             className="bg-border w-full"
-            title={<span className="text-md xl:text-3xl">On Ended</span>}
+            title={<span className="text-md xl:text-2xl">On Ended</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
             description="Total Booked Ended"
             topIcon={<icons.onEnded className="text-white text-2xl" />}
+          />
+          <Card
+            className="bg-border w-full"
+            title={<span className="text-md xl:text-2xl">Total Bookings</span>}
+            url={""}
+            amount={<span className="text-6xl">200</span>}
+            description="Total Bookings"
+            topIcon={<icons.all className="text-white text-2xl" />}
           />
         </div>
       </div>

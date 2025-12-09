@@ -60,7 +60,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
         className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-sub"
       >
         <ModalButton onclick={onClose} />
-        <div className="flex flex-col mb-3">
+        <div className="flex flex-col gap-2 mb-3">
           <label htmlFor="" className="text-start text-white">
             Model
           </label>
@@ -71,7 +71,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             placeholder="Ex:Civic Lx"
           />
            {errors.brand && (
-            <p className="text-red-500 text-sm">{errors.brand.message}</p>
+            <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
@@ -84,8 +84,8 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             type="text"
             placeholder="Ex:Toyota"
           />
-          {errors.brand && (
-            <p className="text-red-500 text-sm">{errors.brand.message}</p>
+           {errors.brand && (
+            <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
@@ -98,8 +98,8 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             type="text"
             placeholder="Ex:Sedan"
           />
-          {errors.type && (
-            <p className="text-red-500 text-sm">{errors.type.message}</p>
+           {errors.brand && (
+            <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
@@ -112,8 +112,8 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             type="text"
             placeholder="Ex:Midnight Blue"
           />
-          {errors.color && (
-            <p className="text-red-500 text-sm">{errors.color.message}</p>
+         {errors.brand && (
+            <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
@@ -126,8 +126,8 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             type="text"
             placeholder="EX:ABC-1234"
           />
-          {errors.plate_no && (
-            <p className="text-red-500 text-sm">{errors.plate_no.message}</p>
+           {errors.brand && (
+            <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">

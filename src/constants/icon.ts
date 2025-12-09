@@ -25,6 +25,7 @@ import { IoIosCloseCircleOutline } from "react-icons/io";
 import { FiUpload } from "react-icons/fi";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { RiLayoutHorizontalLine } from "react-icons/ri";
 
 
 
@@ -57,6 +58,7 @@ const icons = {
     upload: FiUpload,
     openEye: FaEye,
     closeEye:FaEyeSlash ,
+    all: RiLayoutHorizontalLine,
 
 }
 

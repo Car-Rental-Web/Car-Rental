@@ -1,6 +1,6 @@
 export { default as Dashboard} from './Dashboard'
 export { default as Aavailability} from './Availability'
 export { default as Bookings} from './Bookings'
-export { default as AvailableVehicles} from './AvailableVehicles'
+export { default as Vehicles} from './Vehicles'
 export { default as Maintenance} from './Maintenance'
 export { default as RenterHistory} from './RenterHistory'

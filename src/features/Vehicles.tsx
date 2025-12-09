@@ -65,7 +65,7 @@ const columns = [
   },
 ];
 
-const AvailableVehicles = () => {
+const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
   const [allrecords, setAllRecords] = useState<DataVehicleProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -223,4 +223,4 @@ const AvailableVehicles = () => {
   );
 };
 
-export default AvailableVehicles;
+export default Vehicles;
