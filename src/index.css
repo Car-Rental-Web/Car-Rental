@@ -16,6 +16,11 @@ input[type="search"]::-webkit-search-results-decoration {
 input {
     outline: none;
 }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(68%) sepia(15%) saturate(720%) hue-rotate(155deg)
+          brightness(85%) contrast(90%);
+  opacity: 1;
+}
 
 .menu-bg {
   background-color: #696FC7;
@@ -45,4 +50,53 @@ input {
 
 .on-available {
   background-color: #5FBA3E;
+}
+
+.bg-body {
+  background-color: #011a31;
+}
+.bg-sub {
+  background-color: #011120;
+}
+.bg-border {
+  background-color: #032d44;
+}
+.button-color {
+  background-color: #4E8EA2;
+}
+.txt-color {
+  color: #4A5C6A
+}
+
+
+.myCalendar .fc-toolbar-title {
+  color: rgb(192, 190, 190);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.myCalendar .fc-button {
+  background: #4E8EA2;
+  border: none;
+  color: white;
+  border-radius: 6px;
+}
+
+.myCalendar .fc-button:hover {
+  background: #3b6f80;
+}
+
+.myCalendar .fc-daygrid-day-number {
+  color: white !important;
+  font-weight: 600;       
+}
+
+.myCalendar .fc-day-mon,
+.myCalendar .fc-day-tue,
+.myCalendar .fc-day-wed,
+.myCalendar .fc-day-thu,
+.myCalendar .fc-day-fri,
+.myCalendar .fc-day-sat,
+.myCalendar .fc-day-sun{
+  color: white;
 }

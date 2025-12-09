@@ -19,7 +19,28 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
+const options = {
+  responsive:true,
+  maintainAspectRaio:false,
+  plugins: {
+    legend: {
+      labels: {
+        color: '#032d44',         // Legend text color
+      },
+    },
+  
+  },
+  scales: {
+    x: {
+      ticks: { color: 'white' },   // X-axis labels color
+      grid: { color: 'gray' },    // X-axis grid lines
+    },
+    y: {
+      ticks: { color: 'white' },   // Y-axis labels color
+      grid: { color: 'gray' },    // Y-axis grid lines
+    },
+  },
+};
 const lineChartData = {
   labels: [
     "January",
@@ -39,21 +60,16 @@ const lineChartData = {
     {
       label: "2024",
       data: [100, 200, 300, 50, 150, 90, 120, 300, 400, 12, 20, 45],
-      borderColor: "red",
+      tension: 0.4, // ← THIS softens the line
+       borderColor: '#36A2EB',
+      backgroundColor: '#032d44',
+      
     },
-    {
-      label: "2024",
-      data: [50, 26, 275, 50, 70, 20, 85, 400, 200, 45, 80, 225],
-      borderColor: "blue",
-    },
+    
   ],
 };
 
 const ReactChartLine = () => {
-  const options = {
-    responsive:true,
-    maintainAspectRaio:false,
-  };
 
   return (
       <Line  options={options} data={lineChartData}></Line>

@@ -27,7 +27,7 @@ const Calendar: React.FC<CalendarProps> = ({ contentHeight, height, end }) => {
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <div ref={containerRef} className="h-full w-full myCalendar">
       <Fullcalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}

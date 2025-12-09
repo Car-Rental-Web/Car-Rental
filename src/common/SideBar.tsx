@@ -40,7 +40,7 @@ const SideBarData: SideBarProps[] = [
     label: "Vehicles",
     url: "/vehicle",
     path: "/vehicle",
-    iconChildren: <icons.onMaintenance />,
+    iconChildren: <icons.vehicle/>,
   },
 ];
 
@@ -50,12 +50,12 @@ const SideBar = () => {
 
   return (
       <div
-        className={` min-h-screen relative ${
+        className={`bg-sub  min-h-screen relative ${
           toggleMenu ? "w-36 xl:min-w-96 " : " w-24"
         }`}
       >
         <ul
-          className={`border-r-2 border-gray-300 h-full flex flex-col gap-2 pt-8 w-full  ${
+          className={`border-r border-[#253745] h-full flex flex-col gap-2 pt-8 w-full  ${
             toggleMenu ? "px-4 " : "px-8"
           }`}
         >
@@ -67,7 +67,7 @@ const SideBar = () => {
                   toggleMenu ? "p-2 gap-3 w-full" : "justify-center p-1 mt-1 "
                 } ${
                   location.pathname.includes(`${item.path}`)
-                    ? "menu-bg text-white rounded-md "
+                    ? "bg-body text-white rounded-md "
                     : "text-gray-400"
                 }`}
               >
@@ -78,7 +78,7 @@ const SideBar = () => {
           ))}
         </ul>
         <button
-          className={`cursor-pointer absolute  text-violet-500 text-3xl ${
+          className={`cursor-pointer absolute  text-[#4E8EA2] text-3xl z-1000 ${
             toggleMenu ? "-right-3 top-2" : "-right-3 top-2"
           }`}
           onClick={() => setIsToggleMenu((prev) => !prev)}

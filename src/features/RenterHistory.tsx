@@ -167,14 +167,14 @@ const RenterHistory = () => {
   }, [debounceSearchTerm]);
 
   return (
-    <div className="w-full  overflow-y-auto flex flex-col gap-5 rounded-lg mt-12 px-6">
+    <div className="w-full  overflow-y-auto flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Renter History
         </p>
         <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="menu-bg w-full"
+            className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">Renters</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
@@ -182,7 +182,7 @@ const RenterHistory = () => {
             topIcon={<icons.person className="text-white text-2xl" />}
           />
           <Card
-            className="on-service w-full"
+            className="bg-border w-full"
             title={
               <span className="text-md xl:text-2xl"> Active Renters</span>
             }
@@ -192,7 +192,7 @@ const RenterHistory = () => {
             topIcon={<icons.person className="text-white text-2xl" />}
           />
           <Card
-            className="on-ended w-full"
+            className="bg-border w-full"
             title={
               <span className="text-md xl:text-2xl">
                 Inactive Renters
@@ -205,7 +205,7 @@ const RenterHistory = () => {
           />
         </div>
       </div>
-      <div className="w-full flex flex-col px-6 border border-gray-400 py-4 rounded">
+      <div className="w-full flex flex-col px-6 border border-[#055783] py-4 rounded">
         <div className="justify-end flex">
           <SearchBar
             onClear={() => setSearchTerm("")}
@@ -218,7 +218,6 @@ const RenterHistory = () => {
         <div>
           <TableData
             progressPending={false}
-            highlightOnHover={true}
             title={<span className="font-bold">Renter History</span>}
             data={records}
             columns={columns}

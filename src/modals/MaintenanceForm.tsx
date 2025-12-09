@@ -88,7 +88,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
   if (!open) return null;
   return (
-    <div className="absolute inset-0 bg-gray-400/25 z-999 flex justify-center items-center">
+    <div className="absolute inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -96,16 +96,16 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
         }}
         onClick={(e) => e.stopPropagation()}
         action=""
-        className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-white"
+        className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-sub"
       >
         <ModalButton onclick={onClose} />
         <div className="flex flex-col mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Maintenance Date
           </label>
           <input
             {...register("date")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className=" text-white border py-4 px-4 border-gray-400 rounded"
             type="date"
             placeholder="Ex:Civic Lx"
           />
@@ -114,67 +114,67 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
           onClick={() => setSelectToggle(!selectToggle)}
           className="flex flex-col gap-2 mb-3 relative"
         >
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Registered Vehicles
           </label>
           <select
             {...register("car")}
-            className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded"
+            className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded text-white"
           >
-            <option value="">Select Vehicle</option>
+            <option value="" className="txt-color">Select Vehicle</option>
             {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={vehicle.id}>
+              <option className="txt-color" key={vehicle.id} value={vehicle.id}>
                 {vehicle.plate_no}
               </option>
             ))}
           </select>
           {selectToggle ? (
-            <icons.up className="absolute top-13 right-4 text-[#696FC7]" />
+            <icons.up className="absolute top-13 right-4 txt-color" />
           ) : (
-            <icons.down className="absolute top-13 right-4 text-[#696FC7]" />
+            <icons.down className="absolute top-13 right-4 txt-color" />
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Cost of Maintenance
           </label>
           <input
             {...register("costOfMaintenance")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Sedan"
           />
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Type of Maintenance
           </label>
           <input
             {...register("typeOfMaintenance")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             location
           </label>
 
           <input
             {...register("location")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Maintained By
           </label>
           <input
             {...register("maintainedBy")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -185,13 +185,14 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-           <label htmlFor="" className="text-start">
+           <label htmlFor="" className="text-start text-white">
             Status
           </label>
           <input
           defaultValue={"On Maintenance"}
             {...register("status")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            disabled
+            className="placeholder-white  text-white border py-4 px-4 border-gray-400 rounded"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -199,7 +200,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
         <div className="mt-15 mb-6">
           <button
             type="submit"
-            className="bg-[#696FC7] text-white w-full py-4 rounded cursor-pointer"
+            className="bg-border text-white w-full py-4 rounded cursor-pointer"
           >
             {loading ? "Adding..." : "Add Maintenance"}
           </button>

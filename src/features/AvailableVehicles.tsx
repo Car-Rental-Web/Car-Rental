@@ -47,11 +47,11 @@ const columns = [
           row.status === "On Service"
             ? "text-white on-service"
             : row.status === "On Reservation"
-            ? "text-white on-reservation"
+            ? "text-white bg-blue-900"
             : row.status === "On Maintenance"
-            ? "on-ended text-white"
+            ? "bg-red-900 text-white"
             : row.status === "Available"
-            ? "text-white on-available"
+            ? "text-white bg-green-800"
             : "text-gray-400"
         }`}
       >
@@ -128,14 +128,14 @@ const AvailableVehicles = () => {
   const onMaintenance = records.filter(item => item.status === "On Maintenance").length;
 
   return (
-    <div className="w-full relative overflow-y-auto px-6 pt-12">
-      <p className=" text-5xl font-semibold text-gray-600 tracking-wide mb-5 ">
+    <div className="w-full relative overflow-y-auto px-6 pt-12 bg-body">
+      <p className=" text-5xl font-extrabold txt-color tracking-wide mb-5 ">
         Vehicles
       </p>
       <div className="flex flex-col gap-10">
         <div className="flex flex-col xl:flex-row w-full gap-2">
           <Card
-            className="on-service w-full"
+            className="bg-border  w-full"
             title={<span className="text-md xl:text-2xl">On Service</span>}
             url={""}
             amount={<span className="text-6xl">{onService}</span>}
@@ -143,7 +143,7 @@ const AvailableVehicles = () => {
             topIcon={<icons.onService className="text-white text-2xl" />}
           />{" "}
           <Card
-            className="on-reservation w-full"
+            className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">On Reservation</span>}
             url={""}
             amount={<span className="text-6xl">{onReservation}</span>}
@@ -151,7 +151,7 @@ const AvailableVehicles = () => {
             topIcon={<icons.onReserve className="text-white text-2xl" />}
           />{" "}
           <Card
-            className="on-ended w-full"
+            className="bg-border  w-full"
             title={<span className="text-md xl:text-2xl">Maintenance</span>}
             url={""}
             amount={<span className="text-6xl">{onMaintenance}</span>}
@@ -159,7 +159,7 @@ const AvailableVehicles = () => {
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />{" "}
           <Card
-            className="on-service w-full"
+            className="bg-border  w-full"
             title={<span className="text-md xl:text-2xl">Available</span>}
             url={""}
             amount={<span className="text-6xl">{available}</span>}
@@ -172,32 +172,31 @@ const AvailableVehicles = () => {
 
             handleclick={() => setOpenModal(true)}
             children="Add Vehicle"
-            className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
+            className="py-2 px-4 rounded button-color text-white cursor-pointer"
           />
           <VehicleForm open={openModal} onClose={() => setOpenModal(false)} />
         </div>
       </div>
-      <div className="border border-gray-400 px-6 py-2 rounded ">
+      <div className="border border-[#055783] px-6 py-2 rounded ">
         <div className="mt-2 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
             className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
           >
             <select
-              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base "
+              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base  text-white"
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
               name=""
               id=""
             >
-              <option value="">All</option>
-              <option value="On Service">On Service</option>
-              <option value="On Reservation">On Reservation</option>
-              <option value="On Maintenance">On Maintenance</option>
-              <option value="Available">Available</option>
+              <option value="" className="txt-color">All</option>
+              <option value="On Service" className="txt-color">On Service</option>
+              <option value="On Reservation" className="txt-color">On Reservation</option>
+              <option value="On Maintenance" className="txt-color">On Maintenance</option>
+              <option value="Available" className="txt-color">Available</option>
             </select>
-            <div className="absolute top-2 xl:top-3 right-3">
-              {" "}
+            <div className="absolute top-2 xl:top-3 right-3 txt-color">
               {selectToggle ? <icons.up /> : <icons.down />}
             </div>
           </div>
@@ -206,7 +205,7 @@ const AvailableVehicles = () => {
               value={searchTerm}
               onClear={() => setSearchTerm("")}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-gray-100 rounded py-2 w-60 "
+              className="bg-border text-white rounded py-2 w-60 "
               placeholder="search"
             />
           </div>

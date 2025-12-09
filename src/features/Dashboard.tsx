@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   return (
-    <div className=" w-full py-12 px-2 xl:px-4  ">
+    <div className=" w-full py-12 px-2 xl:px-4 bg-body  ">
         <div className="flex flex-col items-start">
           <p className="text-2xl xl:text-5xl font-semibold text-gray-600 tracking-wide ">
             Overview
@@ -18,7 +18,7 @@ const Dashboard = () => {
             <div className="flex flex-col xl:w-8/12  ">
               <div className=" w-full  gap-2 flex flex-col xl:flex-row  ">
                 <Card
-                  className="w-full h-42 menu-bg"
+                  className="w-full h-42 bg-border"
                   title={<span className="text-md xl:text-3xl">Renters</span>}
                   linkText={<span className="text-md xl:text-xl">view</span>}
                   icon={
@@ -32,7 +32,7 @@ const Dashboard = () => {
                   description={<span>Monthly Renters</span>}
                 />
                 <Card
-                  className="secondary-box-bg w-full h-42"
+                  className="bg-border w-full h-42"
                   title={<span className="text-md xl:text-3xl">Bookings</span>}
                   linkText={<span className="text-md xl:text-xl">view</span>}
                   linkIcon={
@@ -54,13 +54,13 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex flex-col  justify-center  xl:w-2/6  gap-2 ">
-              <div className=" rounded border border-gray-400 px-2 py-2 flex flex-col ">
-                <Link to="/admin/availability" className=" pr-4 flex items-center justify-end"> View <icons.rightArrow className="text-2xl"/></Link>
+              <div className=" rounded border border-gray-600  px-2 py-2 flex flex-col ">
+                <Link to="/availability" className=" pr-4 flex items-center justify-end text-white"> View <icons.rightArrow className="text-2xl"/></Link>
                 <Calendar />
               </div>
               {/* w-full h-full  flex flex-col justify-around items-center tertiray-box-bg py-4 px-4 */}
                  <Card
-                className="w-full h-full  flex flex-col justify-around  tertiray-box-bg py-4 px-4"
+                className="w-full h-full bg-border  flex flex-col justify-around py-4 px-4"
                 title={<span className="text-md xl:text-3xl">Revenue</span>}
                 url={""}
                 topIcon={<icons.money className="text-4xl text-white text-start mt-1"/>}

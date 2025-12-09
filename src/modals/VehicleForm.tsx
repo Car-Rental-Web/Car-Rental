@@ -53,31 +53,34 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
   if (!open) return null;
   return (
-    <div className="absolute inset-0 bg-gray-400/25 z-999 flex justify-center items-center">
+    <div className="absolute inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center">
       <form
         onSubmit={handleSubmit(onAddVehicle)}
         action=""
-        className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-white"
+        className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-sub"
       >
         <ModalButton onclick={onClose} />
         <div className="flex flex-col mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Model
           </label>
           <input
             {...register("model")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white"
             type="text"
             placeholder="Ex:Civic Lx"
           />
+           {errors.brand && (
+            <p className="text-red-500 text-sm">{errors.brand.message}</p>
+          )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Brand
           </label>
           <input
             {...register("brand")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white"
             type="text"
             placeholder="Ex:Toyota"
           />
@@ -86,12 +89,12 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Type
           </label>
           <input
             {...register("type")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white"
             type="text"
             placeholder="Ex:Sedan"
           />
@@ -100,12 +103,12 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Color
           </label>
           <input
             {...register("color")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
@@ -114,12 +117,12 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor="" className="text-start">
+          <label htmlFor="" className="text-start text-white">
             Plate #
           </label>
           <input
             {...register("plate_no")}
-            className="border py-4 px-4 border-gray-400 rounded"
+            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white "
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -128,17 +131,18 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <label htmlFor=""  className="text-start">status</label>
+          <label htmlFor=""  className="text-start text-white">Status</label>
           <input 
           disabled
           defaultValue={"Available"}
-          type="text" className="border py-4 px-4 border-gray-400 rounded" {...register("status")} placeholder="Available" />
+          {...register("status")}
+          type="text" className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white"  placeholder="Available" />
         </div>
         <div className="mt-15 mb-6">
           <button
           disabled={loading}
             type="submit"
-            className="bg-[#696FC7] text-white w-full py-4 rounded cursor-pointer"
+            className="bg-border text-white w-full py-4 rounded cursor-pointer"
           >
             {loading ? "Adding..." : "Add"}
           </button>

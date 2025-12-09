@@ -221,11 +221,11 @@ const columns = [
       <span
         className={`text-[8px] xl:text-xs text-center px-4 py-1 ${
           row.status === "On Service"
-            ? "on-service text-white  rounded-full w-full text-center"
+            ? "bg-green-800 text-white  rounded-full w-full text-center"
             : row.status === "Reserved"
-            ? " on-reservation  rounded-full text-white w-full text-center"
+            ? " bg-blue-900   rounded-full text-white w-full text-center"
             : row.status === "Ended"
-            ? "on-ended text-white  rounded-full w-full text-center"
+            ? "bg-red-900 text-white  rounded-full w-full text-center"
             : "text-gray-400"
         }`}
       >
@@ -268,14 +268,14 @@ const Bookings = () => {
   }, [debounceSearchTerm, selectValue]);
 
   return (
-    <div className="w-full relative  overflow-y-auto  flex flex-col gap-5 rounded-lg pt-12 px-6">
+    <div className="w-full relative  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
         <p className="text-5xl font-semibold text-gray-600 tracking-wide mb-5">
           Bookings
         </p>
         <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="on-service w-full"
+            className="bg-border w-full"
             title={<span className="text-md xl:text-3xl">On Service</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
@@ -283,7 +283,7 @@ const Bookings = () => {
             topIcon={<icons.onService className="text-white text-2xl" />}
           />
           <Card
-            className="on-reservation w-full"
+            className="bg-border w-full"
             title={<span className="text-md xl:text-3xl">On Reservation</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
@@ -291,7 +291,7 @@ const Bookings = () => {
             topIcon={<icons.onReserve className="text-white text-2xl" />}
           />
           <Card
-            className="on-ended w-full"
+            className="bg-border w-full"
             title={<span className="text-md xl:text-3xl">On Ended</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
@@ -305,7 +305,7 @@ const Bookings = () => {
           <CustomButtons
           handleclick={() => setOpenModal(true)}
             children="Add Renter"
-            className="py-1 md:py-2 px-2 md:px-4  rounded menu-bg text-white cursor-pointer text-xs md:text-base "
+            className="py-1 md:py-2 px-2 md:px-4  rounded button-color menu-bg text-white cursor-pointer text-xs md:text-base "
           />
           <BookingForm open={openModal} onClose={() => setOpenModal(false)}/>
         </div>
@@ -318,20 +318,20 @@ const Bookings = () => {
                 <select
                   onChange={(e) => setSelectValue(e.target.value)}
                   value={selectValue}
-                  className=" w-full  rounded appearance-none outline-none  px-4 py-2 cursor-pointer text-xs xl:text-base"
+                  className=" w-full  rounded appearance-none outline-none  px-4 py-2 cursor-pointer text-xs xl:text-base text-white"
                 >
-                  <option value="" >All</option>
-                  <option value="On Service">On-Service</option>
-                  <option value="Reserved" > Reserved</option>
-                  <option value="Ended"> Ended</option>
+                  <option value=""  className="txt-color">All</option>
+                  <option value="On Service" className="txt-color">On-Service</option>
+                  <option value="Reserved"  className="txt-color"> Reserved</option>
+                  <option value="Ended" className="txt-color"> Ended</option>
                 </select>
-                <div className="absolute top-2 xl:top-3 right-3"> {toggle ? <icons.up/> : <icons.down/>}</div>
+                <div className="absolute top-2 xl:top-3 right-3 txt-color"> {toggle ? <icons.up/> : <icons.down/>}</div>
               </div>
             <div className="">
               <SearchBar
                 onClear={() => setSearchTerm("")}
                 value={searchTerm}
-                className="  bg-gray-100 rounded py-2 w-60 "
+                className="  bg-border text-white  rounded py-2 w-60 "
                 placeholder="Search"
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -340,7 +340,6 @@ const Bookings = () => {
           <div className=" rounded mt-2">
             <TableData
               progressPending={false}
-              highlightOnHover={true}
               pagination={true}
               title={<span className="font-bold">Bookings</span>}
               data={records}
