@@ -22,9 +22,10 @@ export const VehicleFormSchema = z.object({
   type: z.string(),
   color: z.string(),
   plate_no: z.string(),
+  status: z.string()
 });
-
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
+
 export const MaintenanceFormSchema = z.object({
   date: z
     .string()
@@ -39,10 +40,9 @@ export const MaintenanceFormSchema = z.object({
     .string()
     .min(1, "Cost is required")
     .transform(v => Number(v)),
-
   location: z.string().min(1),
-
   maintainedBy: z.string().min(1),
+  status: z.string().min(1)
 });
 
 export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;

@@ -88,7 +88,7 @@ export interface DataBookingProps {
     type:string;
     color:string;
     plateNumber:string;
-    status: "On Service" | "On Reservations" | "On Maintenance" | "Available"
+    status: string | null
     action:React.ReactNode
  }
 
@@ -101,10 +101,9 @@ export interface DataBookingProps {
     costOfMaintenance: React.ReactNode;
     location:string;
     maintainedBy:string;
-    status: "On Maintenance" | "Maintained"
-    action:React.ReactNode
+    status: string | null
+    action: React.ReactNode
  }
-
 
  export interface ModalProps {
   open: boolean;

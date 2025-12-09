@@ -10,12 +10,102 @@ import { MaintenanceForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { BsThreeDots } from "react-icons/bs";
+import { toast } from "react-toastify";
 
 
-const columns = [
+
+const Maintenance = () => {
+  const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
+  const [allrecords, setAllRecords] = useState<DataMaintenanceProps[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectValue, setSelectValue] = useState("");
+  const [selectToggle, setSelectToggle] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMaintenance = async () => {
+      const { data, error } = await supabase.from("maintenance").select("*");
+      if (!isMounted) return;
+
+      if (error) {
+        console.log("Error fetching maintenance:", error?.message);
+        return;
+      }
+
+      const row = data ?? [];
+      const rowsData = row.map((item) => ({
+        id: item.id,
+        date: item.date,
+        car: item.car,
+        typeOfMaintenance: item.type_of_maintenance,
+        costOfMaintenance: item.cost_of_maintenance,
+        location: item.location,
+        maintainedBy: item.maintained_by,
+        status: item.status,
+        action: <BsThreeDots />,
+      }));
+      setRecords(rowsData);
+      setAllRecords(rowsData);
+      console.log("Fetched vehicles:", data);
+    };
+    fetchMaintenance();
+    return () => {
+      isMounted = false;
+    };
+  }, [openModal]);
+
+
+  const handleUpdate = async (id:number, vehicleId: string) => {
+      const {data, error} = await supabase.from('maintenance').update({status: "Maintained"}).eq("id", id)
+
+      if(error){
+        console.log("Error Updating", error)
+      }
+      console.log('Update Successfully' , data)
+
+      const {data:vehicleStatus, error: errorStatus} = await supabase.from('vehicle').update({status: "Available"}).eq("id", vehicleId)
+      if(errorStatus) {
+        console.log("Vehicle Update Error" , errorStatus)
+        toast.error("Error Updating")
+      }
+      console.log(vehicleStatus)
+      toast.success("Update Successfully")
+      setRecords((prev) => prev.map((row) => row.id === id ? {...row, status: "Maintained"} : row))
+  }
+
+  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+
+  useEffect(() => {
+    let result = filterData(debounceSearchTerm, allrecords, [
+      "id",
+      "date",
+      "car",
+      "typeOfMaintenance",
+      "costOfMaintenance",
+      "location",
+      "maintainedBy",
+      "status",
+    ]);
+
+    if (selectValue !== "") {
+      result = result.filter((item) => item.status === selectValue);
+    }
+    setRecords(result);
+  }, [debounceSearchTerm, selectValue, allrecords]);
+
+  //TOTAL COUNT OF MAINTENANCE
+  const totalExpense = records.reduce(
+    (sum, row) => sum + Number(row.costOfMaintenance),
+    0
+  );
+  const ongoing = records.filter((r) => r.status === "On Maintenance").length;
+  const maintained = records.filter((r) => r.status === "Maintained").length;
+
+  const columns = [
   {
     name: "No.",
-    cell: (_row: DataMaintenanceProps, index:number) => <div>{index + 1}</div>,
+    cell: (_row: DataMaintenanceProps, index: number) => <div>{index + 1}</div>,
   },
   {
     name: "Date",
@@ -67,76 +157,13 @@ const columns = [
   },
   {
     name: "Action",
-    cell: (row: DataMaintenanceProps) => <div>{row.action}</div>,
+    cell: (row: DataMaintenanceProps) => (
+      <div>
+        <button className="cursor-pointer" onClick={() => handleUpdate(row.id, row.car)} > {row.action}</button>
+      </div>
+    ),
   },
 ];
-
-const Maintenance = () => {
-  const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
-  const [allrecords, setAllRecords] = useState<DataMaintenanceProps[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectValue, setSelectValue] = useState("");
-  const [selectToggle, setSelectToggle] = useState(false);
-  const [openModal, setOpenModal] = useState(false)
-
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchMaintenance = async () => {
-      const { data, error} = await supabase.from("maintenance").select('*');
-      if(!isMounted) return;
-
-      if(error ) {
-        console.log("Error fetching maintenance:", error?.message);
-        return
-      };
-
-      const row = data ?? []
-      const rowsData = row.map((item) => ({
-        id: item.id,
-        date: item.date,
-        car: item.car,
-        typeOfMaintenance: item.type_of_maintenance,
-        costOfMaintenance: item.cost_of_maintenance,
-        location: item.location,
-        maintainedBy: item.maintained_by,
-        status: item.status ?? "On Maintenance",
-        action:<BsThreeDots />,
-      }));
-      setRecords(rowsData);
-      setAllRecords(rowsData);
-      console.log("Fetched vehicles:", data);
-    }
-    fetchMaintenance()
-    return () => {
-      isMounted = false;
-    }
-  },[openModal])
-
-
-  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
-
-  useEffect(() => {
-    let result = filterData(debounceSearchTerm, allrecords, [
-      "id",
-      "date",
-      "car",
-      "typeOfMaintenance",
-      "costOfMaintenance",
-      "location",
-      "maintainedBy",
-      "status",
-    ]);
-
-    if (selectValue !== "") {
-      result = result.filter((item) => item.status === selectValue);
-    }
-    setRecords(result);
-  }, [debounceSearchTerm, selectValue, allrecords]);
-
-const totalExpense = records.reduce((sum, row) => sum + Number(row.costOfMaintenance),0)
-const ongoing = records.filter(r => r.status === "On Maintenance").length;
-const maintained = records.filter(r => r.status === "Maintained").length;
 
   return (
     <div className="px-6 pt-12 w-full relative  overflow-y-auto gap-2">
@@ -152,16 +179,22 @@ const maintained = records.filter(r => r.status === "Maintained").length;
             amount={<span className="text-6xl">{totalExpense}</span>}
             description="Total Maintenance Expense"
             topIcon={<icons.money className="text-white text-2xl" />}
-          /><Card
+          />
+          <Card
             className="menu-bg w-full"
-            title={<span className="text-md xl:text-2xl">Maintenance Count</span>}
+            title={
+              <span className="text-md xl:text-2xl">Maintenance Count</span>
+            }
             url={""}
             amount={<span className="text-6xl">{maintained}</span>}
             description="Total Maintenance Count"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
-          /><Card
+          />
+          <Card
             className="on-ended w-full"
-            title={<span className="text-md xl:text-2xl">Ongoing Maintenance</span>}
+            title={
+              <span className="text-md xl:text-2xl">Ongoing Maintenance</span>
+            }
             url={""}
             amount={<span className="text-6xl">{ongoing}</span>}
             description="Total Ongoing Maintenance"
@@ -170,11 +203,14 @@ const maintained = records.filter(r => r.status === "Maintained").length;
         </div>
         <div className="text-end mb-4">
           <CustomButtons
-          handleclick={() => setOpenModal(true)}
+            handleclick={() => setOpenModal(true)}
             children="Add Maintenance"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
           />
-          <MaintenanceForm open={openModal} onClose={() => setOpenModal(false)}/>
+          <MaintenanceForm
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+          />
         </div>
       </div>
 
@@ -195,7 +231,10 @@ const maintained = records.filter(r => r.status === "Maintained").length;
               <option value="On Maintenance">On Maintenance</option>
               <option value="Maintained">Maintained</option>
             </select>
-            <div className="absolute top-2 xl:top-3 right-3"> {selectToggle ? <icons.up/> : <icons.down/>}</div>
+            <div className="absolute top-2 xl:top-3 right-3">
+              {" "}
+              {selectToggle ? <icons.up /> : <icons.down />}
+            </div>
           </div>
           <div>
             <SearchBar
@@ -208,7 +247,7 @@ const maintained = records.filter(r => r.status === "Maintained").length;
           </div>
         </div>
         <TableData
-        title={<span className="font-bold">Maintenance</span>}
+          title={<span className="font-bold">Maintenance</span>}
           pagination={true}
           fixedHeader={true}
           fixedHeaderScrollHeight="350px"

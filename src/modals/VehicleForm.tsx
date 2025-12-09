@@ -31,6 +31,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
         type: data.type,
         color: data.color,
         plate_no: data.plate_no,
+        status: data.status
       })
       .select()
       .single();
@@ -126,8 +127,16 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             <p className="text-red-500 text-sm">{errors.plate_no.message}</p>
           )}
         </div>
+        <div className="flex flex-col gap-2 mb-3">
+          <label htmlFor=""  className="text-start">status</label>
+          <input 
+          disabled
+          defaultValue={"Available"}
+          type="text" className="border py-4 px-4 border-gray-400 rounded" {...register("status")} placeholder="Available" />
+        </div>
         <div className="mt-15 mb-6">
           <button
+          disabled={loading}
             type="submit"
             className="bg-[#696FC7] text-white w-full py-4 rounded cursor-pointer"
           >

@@ -13,7 +13,9 @@ import { supabase } from "../utils/supabase";
 
 const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [loading, setIsLoading] = useState(false);
-  const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>([]);
+  const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
+    []
+  );
   const [selectToggle, setSelectToggle] = useState(false);
   const {
     register,
@@ -23,6 +25,8 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
   } = useForm({
     resolver: zodResolver(MaintenanceFormSchema),
   });
+
+
   const onAddMaintenance = async (data: MaintenanceFormData) => {
     setIsLoading(true);
     console.log(data);
@@ -35,9 +39,11 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
         cost_of_maintenance: data.costOfMaintenance,
         location: data.location,
         maintained_by: data.maintainedBy,
+        status: data.status
       })
       .select()
       .single();
+      
 
     if (error) {
       setIsLoading(false);
@@ -45,11 +51,24 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
       toast.error("Error adding maintenance:" + error.message);
       return;
     }
+
+    const {data:updateVehicle, error: errorUpdate} = await supabase
+      .from("vehicle")
+      .update({status: "On Maintenance"})
+      .eq("id", data.car)
+
+      if(errorUpdate) {
+        setIsLoading(false)
+        console.log("Update error:", errorUpdate)
+      }
+      setIsLoading(true)
+      console.log("Update Succesfully:", updateVehicle)
+
     setIsLoading(false);
     console.log("Maintenance added successfully:", maintenance);
     toast.success("Maintenance added successfully");
     onClose();
-    reset()
+    reset();
   };
 
   useEffect(() => {
@@ -60,12 +79,12 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
       if (error) {
         console.log("Error fetching vehicles:", error.message);
-        return
+        return;
       }
-      setVehicles(data)
+      setVehicles(data);
     };
-    fetchVehicles()
-  },[]);
+    fetchVehicles();
+  }, []);
 
   if (!open) return null;
   return (
@@ -74,8 +93,7 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit(onAddMaintenance)(e);
-        }
-          }
+        }}
         onClick={(e) => e.stopPropagation()}
         action=""
         className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-white"
@@ -92,26 +110,29 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
             placeholder="Ex:Civic Lx"
           />
         </div>
-        <div 
-        onClick={() => setSelectToggle(!selectToggle)}
-        className="flex flex-col gap-2 mb-3 relative">
+        <div
+          onClick={() => setSelectToggle(!selectToggle)}
+          className="flex flex-col gap-2 mb-3 relative"
+        >
           <label htmlFor="" className="text-start">
             Registered Vehicles
           </label>
           <select
             {...register("car")}
             className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded"
-          > 
-          <option value="">Select Vehicle</option>
+          >
+            <option value="">Select Vehicle</option>
             {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={vehicle.plate_no}>
+              <option key={vehicle.id} value={vehicle.id}>
                 {vehicle.plate_no}
               </option>
             ))}
-
           </select>
-          {selectToggle ? (<icons.up className="absolute top-13 right-4 text-[#696FC7]" />) : (<icons.down className="absolute top-13 right-4 text-[#696FC7]" />)}
-          
+          {selectToggle ? (
+            <icons.up className="absolute top-13 right-4 text-[#696FC7]" />
+          ) : (
+            <icons.down className="absolute top-13 right-4 text-[#696FC7]" />
+          )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
           <label htmlFor="" className="text-start">
@@ -162,6 +183,18 @@ const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
               {errors.maintainedBy.message}
             </p>
           )}
+        </div>
+        <div className="flex flex-col gap-2 mb-3">
+           <label htmlFor="" className="text-start">
+            Status
+          </label>
+          <input
+          defaultValue={"On Maintenance"}
+            {...register("status")}
+            className="border py-4 px-4 border-gray-400 rounded"
+            type="text"
+            placeholder="EX:ABC-1234"
+          />
         </div>
         <div className="mt-15 mb-6">
           <button

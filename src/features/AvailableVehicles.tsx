@@ -46,12 +46,12 @@ const columns = [
         className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
           row.status === "On Service"
             ? "text-white on-service"
-            : row.status === "On Reservations"
+            : row.status === "On Reservation"
             ? "text-white on-reservation"
             : row.status === "On Maintenance"
             ? "on-ended text-white"
             : row.status === "Available"
-            ? "text-white on-service"
+            ? "text-white on-available"
             : "text-gray-400"
         }`}
       >
@@ -91,7 +91,7 @@ const AvailableVehicles = () => {
         type: item.type,
         color: item.color,
         plateNumber: item.plate_no,
-        status: item.status ?? "Available",
+        status: item.status ,
         action: <BsThreeDots />,
       }));
       setRecords(formattedData);
@@ -124,7 +124,7 @@ const AvailableVehicles = () => {
   
   const available = records.filter(item => item.status === "Available").length;
   const onService = records.filter(item => item.status === "On Service").length;
-  const onReservation = records.filter(item => item.status === "On Reservations").length;
+  const onReservation = records.filter(item => item.status === "On Reservation").length;
   const onMaintenance = records.filter(item => item.status === "On Maintenance").length;
 
   return (
@@ -169,6 +169,7 @@ const AvailableVehicles = () => {
         </div>
         <div className="text-end mb-4">
           <CustomButtons
+
             handleclick={() => setOpenModal(true)}
             children="Add Vehicle"
             className="py-2 px-4 rounded menu-bg text-white cursor-pointer"
@@ -191,7 +192,7 @@ const AvailableVehicles = () => {
             >
               <option value="">All</option>
               <option value="On Service">On Service</option>
-              <option value="On Reservations">On Reservation</option>
+              <option value="On Reservation">On Reservation</option>
               <option value="On Maintenance">On Maintenance</option>
               <option value="Available">Available</option>
             </select>

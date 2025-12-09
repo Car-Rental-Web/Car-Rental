@@ -42,3 +42,7 @@ input {
 .text-primary {
   color: #696FC7;
 }
+
+.on-available {
+  background-color: #5FBA3E;
+}

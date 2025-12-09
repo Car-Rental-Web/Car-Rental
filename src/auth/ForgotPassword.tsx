@@ -4,6 +4,8 @@ import { useState } from "react";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
 
+  
+
   return (
     <div className="bg-[url(assets/car.png)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
       <form className="w-96 border bg-black/75 border-gray-300 rounded py-4 px-6 flex flex-col gap-4">
@@ -17,7 +19,6 @@ const ForgotPassword = () => {
         <button
           type="button"
           className="w-full text-white py-3 cursor-pointer rounded bg-gray-800"
-          
         >
           Send Reset Email
         </button>
