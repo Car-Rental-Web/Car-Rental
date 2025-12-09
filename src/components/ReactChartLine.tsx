@@ -25,19 +25,18 @@ const options = {
   plugins: {
     legend: {
       labels: {
-        color: '#032d44',         // Legend text color
+        color: '#032d44',        
       },
     },
-  
   },
   scales: {
     x: {
-      ticks: { color: 'white' },   // X-axis labels color
-      grid: { color: 'gray' },    // X-axis grid lines
+      ticks: { color: 'white' },  
+      grid: { color: 'gray' },    
     },
     y: {
-      ticks: { color: 'white' },   // Y-axis labels color
-      grid: { color: 'gray' },    // Y-axis grid lines
+      ticks: { color: 'white' },   
+      grid: { color: 'gray' },    
     },
   },
 };

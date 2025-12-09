@@ -16,6 +16,7 @@ const ResetPassword = () => {
      e.preventDefault();
 
     if (password !== confirmPassword) {
+      toast.error("Passwords do not match")
       return alert("Passwords do not match");
     }
     const {data, error } = await supabase.auth.updateUser({password:password})

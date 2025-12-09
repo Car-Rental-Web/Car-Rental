@@ -3,15 +3,13 @@ import SeePassword from "../components/SeePassword";
 import { useForm } from "react-hook-form";
 import { LoginFormSchema, type LoginFormData } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore.ts";
-import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 
 const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const loading = useAuthStore((state) => state.loading)
 
   const {
     register,
@@ -21,28 +19,19 @@ const LoginForm = () => {
     resolver: zodResolver(LoginFormSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
+    const onSubmit = async (data:LoginFormData) => {
+      const {email, password } = data;
 
-    const email = data.email;
-    const password = data.password;
-    const { data: user, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setIsLoading(false);
+      const {error} = await login(email, password)
+      if(error){
+        toast.error(error.message)
+        return
+      }
 
-    if (error) {
-      toast.error(error.message);
-      return;
+      navigate('/dashboard')
+      toast.success('Login Successfully')
     }
-    if (user?.user) {
-      toast.success("Login Successfully");
-      login(user.user);
-      navigate("/dashboard");
-    }
-  };
-
+  
   return (
     <div className="h-screen bg-[url(assets/car.png)] bg-no-repeat bg-cover flex justify-center items-center w-full">
       <form
@@ -83,9 +72,9 @@ const LoginForm = () => {
         <button
           type="submit"
           className="w-full text-white py-3 rounded bg-gray-800 disabled:opacity-50 cursor-pointer"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? "Logging in..." : "Login"}
+          {loading? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

@@ -1,32 +1,31 @@
 import { useEffect } from "react";
 import { supabase } from "../utils/supabase";
-import { useAuthStore } from "../store/useAuthStore.ts";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const useRestoreSession = () => {
-  const login = useAuthStore((state) => state.login);
+  const setUser = useAuthStore((state) => state.setUser);
   const finishLoading = useAuthStore((state) => state.finishLoading);
 
   useEffect(() => {
-    const checkSession = async () => {
+    const initSession = async () => {
       const { data } = await supabase.auth.getSession();
-
       if (data.session?.user) {
-        login(data.session.user);
+        setUser(data.session.user); // ✅ now it's read
       } else {
-        finishLoading(); // No session, stop loading
+        finishLoading();
       }
-    }; 
+    };
 
-    checkSession();
+    initSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        login(session.user);
+        setUser(session.user); // ✅ now it's read
       } else {
         finishLoading();
       }
     });
 
     return () => listener.subscription.unsubscribe();
-  }, [login, finishLoading]);
+  }, [setUser, finishLoading]);
 };

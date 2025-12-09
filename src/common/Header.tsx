@@ -3,7 +3,6 @@ import { useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { useAuthStore } from "../store/useAuthStore.ts";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 // import path from "path";
 
@@ -14,14 +13,12 @@ const Header = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error(error.message);
+    const { error } = await logout();
+    if(error) {
+      toast.error(error.message)
     }
-    logout();
     toast.success('Logout Successfully')
-    navigate("/");
+    navigate('/login')
   };
 
   return (

@@ -1,33 +1,20 @@
 import { useState } from "react";
-import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
+import { useAuthStore } from "../store/useAuthStore";
 
 const RegisterForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const signUp = useAuthStore((state) => state.signUp)
 
   console.log(email);
   console.log(password);
   const handleSubmit = async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
-    if (!email.includes("@")) {
-        toast.error("Please enter a valid email address");
-        return;
-        }
-    if (error) {
-        toast.error("This email is already registered. Try logging in.");
-        toast.error(error.message);
-        return;
+    const {  error } = await signUp(email,password);
+    if(error) {
+      toast.error(error.message)
     }
-    console.log("Signup Successfully", data);
-    setEmail("");
-    setPassword("");
+    toast.success("Sign Up successfull!")
   };
 
   return (
