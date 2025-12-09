@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "../utils/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import SeePassword from "../components/SeePassword";
 
 
 const ResetPassword = () => {
@@ -9,9 +10,8 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const navigate = useNavigate()
   
-     console.log(password)
-     console.log(confirmPassword)
-
+  console.log(password)
+  console.log(confirmPassword)
   const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
 
@@ -27,26 +27,15 @@ const ResetPassword = () => {
     }
 
     console.log('Password Updated',data)
+    toast.success('Password Updated Successfully')
     navigate('/login')
   }
 
   return (
     <div className="bg-[url(assets/car.png)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
       <form  onSubmit={handleSubmit}className="w-96 border bg-black/75 border-gray-300 rounded py-4 px-6 flex flex-col gap-4">
-        <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          placeholder="New Password"
-          className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"
-        />
-        <input
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-          type="password"
-          placeholder="Confirm Password"
-          className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"
-        />
+       <SeePassword onChange={(e) => setPassword(e.target.value)} value={password}  label="New Password" className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"/>
+        <SeePassword onChange={(e) => setConfirmPassword(e.target.value) } value={confirmPassword} label="Confirm NewPassword" className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"/>
         <button
           type="submit"
           className="w-full text-white py-3 cursor-pointer rounded bg-gray-800"
