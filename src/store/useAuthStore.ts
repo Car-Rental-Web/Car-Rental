@@ -1,30 +1,35 @@
 import { create } from "zustand";
 import { supabase } from "../utils/supabase";
 
+interface SupabaseUser {
+  id: string;
+  email: string;
+}
 interface AuthStore {
   isAuthenticated: boolean;
-  user: unknown | null;
+  user: SupabaseUser | null;
   loading: boolean;
   signUp: (
     email: string,
     password: string
   ) => Promise<{ data?: any; error?: any }>;
-  login: (
+  signIn: (
     email: string,
     password: string
   ) => Promise<{ data?: any; error?: any }>;
-  logout: () => Promise<{ error: any | null }>;
+  signOut: () => Promise<{ error: any | null }>;
   finishLoading: () => void;
   setUser: (user: any) => void;
+  getDisplayName: () => string;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   isAuthenticated: false,
   user: null,
   loading: true,
   finishLoading: () => set({ loading: false }),
 
-  login: async (email: string, password: string) => {
+  signIn: async (email: string, password: string) => {
     set({ loading: true });
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -38,13 +43,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
     set({
       isAuthenticated: true,
-      user: data.user,
+      user: data.user as SupabaseUser,
       loading: false,
     });
     return { data };
   },
 
-  logout: async () => {
+  signOut: async () => {
     set({ loading: true });
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -76,12 +81,18 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
     set({
       isAuthenticated: true,
-      user: data.user,
+      user: data.user as SupabaseUser,
       loading: false,
     });
     return { data };
   },
+
   setUser: (user: any) => {
     set({ user, isAuthenticated: true, loading: false });
+  },
+
+  getDisplayName: () => {
+    const user = get().user;
+    return user?.email || "User"
   },
 }));

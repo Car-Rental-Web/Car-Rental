@@ -167,9 +167,9 @@ const RenterHistory = () => {
   }, [debounceSearchTerm]);
 
   return (
-    <div className="w-full  overflow-y-auto flex flex-col gap-5  pt-12 px-6 bg-body">
+    <div className="w-full h-screen  overflow-y-auto flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
-        <p className="text-5xl font-semibold text-gray-200 tracking-wide mb-5">
+        <p className="text-5xl font-semibold text-gray-300 tracking-wide mb-5">
           Renter History
         </p>
         <div className="flex flex-col xl:flex-row gap-2">
@@ -205,8 +205,8 @@ const RenterHistory = () => {
           />
         </div>
       </div>
-      <div className="w-full flex flex-col px-6 border border-[#055783] py-4 rounded">
-        <div className="justify-end flex">
+      <div className="w-full flex flex-col  px-6 border border-[#055783] py-4 rounded">
+        <div className="justify-end flex pb-4 pt-4">
           <SearchBar
             onClear={() => setSearchTerm("")}
             value={searchTerm}

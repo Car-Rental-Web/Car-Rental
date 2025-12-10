@@ -1,75 +1,47 @@
-import icons from "../constants/icon";
-import ReactChartLine from "../components/ReactChartLine";
-import Calendar from "../components/Calendar";
+import { ReactChartLine } from "../components";
 import Card from "../components/Card";
-import { Link } from "react-router-dom";
-
-
+import icons from "../constants/icon";
 const Dashboard = () => {
   return (
-    <div className=" w-full py-12 px-2 xl:px-4 bg-body  ">
-        <div className="flex flex-col items-start">
-          <p className="text-2xl xl:text-5xl font-semibold text-gray-200 tracking-wide ">
-            Overview
-          </p>
-          <p className="text-gray-400 text-sm xl:text-xl">Monitor Monthly Status</p>
+    <div className=" w-full bg-body max-w-[3000px]  py-2 pt-12 px-6">
+      <p className="text-5xl font-semibold text-gray-300 tracking-wide mb-5">Overview</p>
+      <div className="flex flex-col gap-2 ">
+        <div className="flex flex-col xl:flex-row   w-full gap-3 ">
+          <Card
+            className="bg-border w-full"
+            title="Renters"
+            linkText="view"
+            linkIcon={<icons.rightArrow className="text-2xl"/>}
+            url="/renterhistory"
+            amount="0"
+            description="Monthly Renters"
+          />
+          <Card
+            className="bg-border w-full"
+            title="Bookings"
+            linkText="view"
+            linkIcon={<icons.rightArrow className="text-2xl"/> }
+            url="/bookings"
+            amount="0"
+            description="Monthly Bookings"
+          />
+          <div className="w-full border border-gray-400 rounded px-3">
+              <p className="pl-2 pt-2 text-gray-200" >Monthly Bookings</p>
+              < ReactChartLine height={150} width={300}/>
+          </div>
+      </div>
+        <div className="flex flex-col xl:flex-row  gap-3  w-full">
+          <div className="w-full border border-gray-400 rounded px-3">
+              <p className="pl-2 pt-2 text-gray-200" >Monthly Renters</p>
+              <ReactChartLine height={250} width={400}/>
+          </div>
+          <div className="flex flex-col w-full gap-2 ">
+            <Card className="bg-border w-full h-1/2" title="Revenue" url={""} amount={<span className="text-6xl">20,000</span>} description={"Monthly Revenue"} linkIcon={<icons.money/>}/>
+            <Card className="bg-border w-full h-1/2 " title="On Service" url={""} amount={<span className="text-6xl">12</span>} description={"Currently On Service"} linkIcon={<icons.onService/>}/>
+          </div>
         </div>
-          <div className="w-full  gap-2 flex flex-col xl:flex-row pt-3 ">
-            <div className="flex flex-col xl:w-8/12  ">
-              <div className=" w-full  gap-2 flex flex-col xl:flex-row  ">
-                <Card
-                  className="w-full h-42 bg-border"
-                  title={<span className="text-md xl:text-3xl">Renters</span>}
-                  linkText={<span className="text-md xl:text-xl">view</span>}
-                  icon={
-                    <icons.person className="w-6 xl:w-12 h-6 xl:h-12 mt-2 -mb-12 text-white" />
-                  }
-                  linkIcon={
-                    <icons.rightArrow className="text-2xl text-start mt-1" />
-                  }
-                  url="/renterhistory"
-                  amount={<span className="text-6xl">200</span>}
-                  description={<span>Monthly Renters</span>}
-                />
-                <Card
-                  className="bg-border w-full h-42"
-                  title={<span className="text-md xl:text-3xl">Bookings</span>}
-                  linkText={<span className="text-md xl:text-xl">view</span>}
-                  linkIcon={
-                    <icons.rightArrow className="text-2xl text-start mt-1" />
-                  }
-                  icon={
-                    <icons.book className="w-12 h-12 mt-2 -mb-12 text-white" />
-                  }
-                  url="/bookings"
-                  amount={<span className="text-base xl:text-6xl">200</span>}
-                  description={<span>Monthly Bookings</span>}
-                />
-              </div>
-              <div className="pt-2">
-                <div className=" border border-gray-400 rounded p-4">
-                  <p className="text-gray-400">Monthly Renters</p>
-                  <ReactChartLine />
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col  justify-center  xl:w-2/6  gap-2 ">
-              <div className=" rounded border border-gray-600  px-2 py-2 flex flex-col ">
-                <Link to="/availability" className=" pr-4 flex items-center justify-end text-white"> View <icons.rightArrow className="text-2xl"/></Link>
-                <Calendar />
-              </div>
-              {/* w-full h-full  flex flex-col justify-around items-center tertiray-box-bg py-4 px-4 */}
-                 <Card
-                className="w-full h-full bg-border  flex flex-col justify-around py-4 px-4"
-                title={<span className="text-md xl:text-3xl">Revenue</span>}
-                url={""}
-                topIcon={<icons.money className="text-4xl text-white text-start mt-1"/>}
-                amount={<span className="text-6xl">200</span>}
-                amountIcon ={<icons.peso className="text-6xl text-center"/>}
-                description="Monthly Revenue"
-              />
-            </div>
-        </div>
+      </div>
+      
     </div>
   );
 };

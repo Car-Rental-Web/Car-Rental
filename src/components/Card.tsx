@@ -33,7 +33,7 @@ const Card: React.FC<CardProps> = ({ ...CardProps }) => {
           <p>{CardProps.topIcon}</p>
         </div>
       </div>
-      <p className="text-center  text-white pb-2 font-extrabold flex justify-center items-center">
+      <p className="text-center  text-white pb-2 font-extrabold flex justify-center items-center ">
         {CardProps.amountIcon}
         {CardProps.amount}
       </p>

@@ -26,6 +26,7 @@ import { FiUpload } from "react-icons/fi";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { RiLayoutHorizontalLine } from "react-icons/ri";
+import { IoCarSportSharp } from "react-icons/io5";
 
 
 
@@ -59,6 +60,7 @@ const icons = {
     openEye: FaEye,
     closeEye:FaEyeSlash ,
     all: RiLayoutHorizontalLine,
+    car:IoCarSportSharp,
 
 }
 

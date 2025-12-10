@@ -19,9 +19,15 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+interface SizeProps {
+  height:number;
+  width:number
+}
+
 const options = {
   responsive:true,
-  maintainAspectRaio:false,
+  maintainAspectRaio:true,
   plugins: {
     legend: {
       labels: {
@@ -68,10 +74,10 @@ const lineChartData = {
   ],
 };
 
-const ReactChartLine = () => {
+const ReactChartLine:React.FC<SizeProps> = ({height, width}) => {
 
   return (
-      <Line  options={options} data={lineChartData}></Line>
+  <Line data={lineChartData} options={options} height={height} width={width} />
   )
   
 };

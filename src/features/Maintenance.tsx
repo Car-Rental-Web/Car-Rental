@@ -181,8 +181,8 @@ const Maintenance = () => {
   ];
 
   return (
-    <div className="px-6 pt-12 w-full relative  overflow-y-auto gap-2 bg-body">
-      <p className=" text-5xl font-semibold text-gray-200 tracking-wide mb-5 ">
+    <div className="px-6 pt-12 w-full h-screen relative  overflow-y-auto gap-2 bg-body">
+      <p className=" text-5xl font-semibold text-gray-300 tracking-wide mb-5 ">
         Maintenance
       </p>
       <div className="flex flex-col gap-10 w-full">
@@ -230,7 +230,7 @@ const Maintenance = () => {
       </div>
 
       <div className="border border-[#055783] px-6 py-2 rounded ">
-        <div className="mt-2 flex justify-end items-center gap-3">
+        <div className="pb-4 pt-4 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
             className=" flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
@@ -239,8 +239,6 @@ const Maintenance = () => {
               className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base text-white "
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
-              name=""
-              id=""
             >
               <option value="" className="txt-color">
                 All

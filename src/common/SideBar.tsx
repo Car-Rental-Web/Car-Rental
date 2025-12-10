@@ -51,12 +51,20 @@ const SideBar = () => {
 
   return (
       <div
-        className={`bg-sidebar min-h-screen relative  border-r border-[#032d44]  ${
-          toggleMenu ? "w-36 xl:min-w-96 " : " w-24"
+        className={`bg-sidebar min-h-screen relative flex flex-col   border-r border-[#032d44]  ${
+          toggleMenu ? "w-36 xl:min-w-96 " : " w-22"
         }`}
       >
+        <div className="w-full  text-center pt-8">
+            <button
+          className="cursor-pointer    text-[#4E8EA2] text-3xl z-1000"
+            onClick={() => setIsToggleMenu((prev) => !prev)}
+          >
+            {toggleMenu ? <icons.car /> : <icons.car />}
+          </button>
+        </div>
         <ul
-          className={`border-r border-[#253745] h-full flex flex-col gap-2 pt-8 w-full  ${
+          className={` h-full flex flex-col gap-2 pt-8 w-full  ${
             toggleMenu ? "px-4 " : "px-8"
           }`}
         >
@@ -78,14 +86,14 @@ const SideBar = () => {
             </li>
           ))}
         </ul>
-        <button
+        {/* <button
           className={`cursor-pointer absolute  text-[#4E8EA2] text-3xl z-1000 ${
-            toggleMenu ? "-right-3 top-2" : "-right-3 top-2"
+            toggleMenu ? "-right-3 top-20" : "-right-3 top-20"
           }`}
           onClick={() => setIsToggleMenu((prev) => !prev)}
         >
           {toggleMenu ? <icons.toggleLeft /> : <icons.toggleRight />}
-        </button>
+        </button> */}
       </div>
   );
 };

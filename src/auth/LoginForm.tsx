@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const signIn= useAuthStore((state) => state.signIn);
   const loading = useAuthStore((state) => state.loading)
 
   const {
@@ -22,7 +22,7 @@ const LoginForm = () => {
     const onSubmit = async (data:LoginFormData) => {
       const {email, password } = data;
 
-      const {error} = await login(email, password)
+      const {error} = await signIn(email, password)
       if(error){
         toast.error(error.message)
         return

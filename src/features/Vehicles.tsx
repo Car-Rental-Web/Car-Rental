@@ -128,8 +128,8 @@ const Vehicles = () => {
   const onMaintenance = records.filter(item => item.status === "On Maintenance").length;
 
   return (
-    <div className="w-full relative overflow-y-auto px-6 pt-12 bg-body">
-      <p className=" text-5xl font-extrabold txt-color tracking-wide mb-5 text-gray-200 ">
+    <div className="w-full h-screen relative overflow-y-auto px-6 pt-12 bg-body">
+      <p className=" text-5xl font-extrabold  tracking-wide mb-5 text-gray-300">
         Vehicles
       </p>
       <div className="flex flex-col gap-10">
@@ -178,7 +178,7 @@ const Vehicles = () => {
         </div>
       </div>
       <div className="border border-[#055783] px-6 py-2 rounded ">
-        <div className="mt-2 flex justify-end items-center gap-3">
+        <div className="pb-4 pt-4 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
             className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"

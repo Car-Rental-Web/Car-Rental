@@ -268,9 +268,9 @@ const Bookings = () => {
   }, [debounceSearchTerm, selectValue]);
 
   return (
-    <div className="w-full relative  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
+    <div className="w-full relative h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
-        <p className="text-5xl font-semibold text-gray-200 tracking-wide mb-5">
+        <p className="text-5xl font-semibold text-gray-300 tracking-wide pb-5">
           Bookings
         </p>
         <div className="flex flex-col xl:flex-row gap-2">
@@ -318,7 +318,7 @@ const Bookings = () => {
           <BookingForm open={openModal} onClose={() => setOpenModal(false)}/>
         </div>
         <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
-          <div className="flex w-full justify-end gap-3">
+          <div className="flex pb-4 pt-4 w-full justify-end gap-3">
               <div
                 onClick={() => setToggle((t) => !t)}
                 className="flex relative border border-gray-200 rounded w-full  md:w-44"
