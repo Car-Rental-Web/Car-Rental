@@ -15,7 +15,7 @@ import { useModalStore } from "../store/useModalStore";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
-  const [allrecords, setAllRecords] = useState<DataMaintenanceProps[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataMaintenanceProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
@@ -45,14 +45,14 @@ const Maintenance = () => {
         action: <BsThreeDots />,
       }));
       setRecords(rowsData);
-      setAllRecords(rowsData);
+      setFilterRecords(rowsData);
       console.log("Fetched vehicles:", data);
     };
     fetchMaintenance();
     return () => {
       isMounted = false;
     };
-  }, [onOpen]);
+  }, []);
 
   const handleUpdate = async (id:number, vehicleId:string) => {
     const { data, error } = await supabase
@@ -65,7 +65,7 @@ const Maintenance = () => {
     }
       console.log("Update Successfully", data);
 
-    const { data: vehicleStatus, error: errorStatus } = await supabase
+    const { data: vehicleData, error: errorStatus } = await supabase
       .from("vehicle")
       .update({ status: "Available" })
       .eq("plate_no", vehicleId);
@@ -74,19 +74,22 @@ const Maintenance = () => {
       console.log("Vehicle Update Error", errorStatus);
       toast.error("Error Updating");
     }
-      console.log(vehicleStatus);
+      if (!vehicleData) {
+      console.log("Vehicle status already Available, skipping toast");
+    } else {
+      console.log("Vehicle Update Successfully", vehicleData);
       toast.success("Update Successfully");
+    }
       setRecords((prev) =>
       prev.map((row) =>
       row.id === id ? { ...row, status: "Maintained" } : row
       )
     );
   };
-
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    let result = filterData(debounceSearchTerm, allrecords, [
+    let result = filterData(debounceSearchTerm, filterRecords, [
       "id",
       "date",
       "car",
@@ -101,7 +104,7 @@ const Maintenance = () => {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
-  }, [debounceSearchTerm, selectValue, allrecords]);
+  }, [debounceSearchTerm, selectValue, filterRecords]);
 
   //TOTAL COUNT OF MAINTENANCE
   const totalExpense = records.reduce(

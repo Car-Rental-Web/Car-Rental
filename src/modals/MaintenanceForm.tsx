@@ -14,7 +14,7 @@ interface MaintenanceFormProps {
   onClose: () => void;
 }
 
-const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
+const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
   const [loading, setIsLoading] = useState(false);
   const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
     []
@@ -30,7 +30,6 @@ const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
     resolver: zodResolver(MaintenanceFormSchema),
   });
 
-
   const onAddMaintenance = async (data: MaintenanceFormData) => {
     setIsLoading(true);
     console.log(data);
@@ -43,11 +42,10 @@ const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
         cost_of_maintenance: data.costOfMaintenance,
         location: data.location,
         maintained_by: data.maintainedBy,
-        status: data.status
+        status: data.status,
       })
       .select()
       .single();
-      
 
     if (error) {
       setIsLoading(false);
@@ -56,17 +54,18 @@ const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
       return;
     }
 
-    const {data:updateVehicle, error: errorUpdate} = await supabase
+    const { data: updateVehicle, error: errorUpdate } = await supabase
       .from("vehicle")
-      .update({status: "On Maintenance"})
-      .eq("plate_no" , data.car)
+      .update({ status: "On Maintenance" })
+      .eq("plate_no", data.car);
 
-      if(errorUpdate) {
-        setIsLoading(false)
-        console.log("Update error:", errorUpdate)
-      }
-      setIsLoading(true)
-      console.log("Update Succesfully:", updateVehicle)
+    if (errorUpdate) {
+      setIsLoading(false);
+      console.log("Update error:", errorUpdate);
+      return
+    }
+    setIsLoading(true);
+    console.log("Update Succesfully:", updateVehicle);
 
     setIsLoading(false);
     console.log("Maintenance added successfully:", maintenance);
@@ -125,9 +124,15 @@ const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
             {...register("car")}
             className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded text-white"
           >
-            <option value="" className="txt-color">Select Vehicle</option>
+            <option value="" className="txt-color">
+              Select Vehicle
+            </option>
             {vehicles.map((vehicle) => (
-              <option className="txt-color" key={vehicle.id} value={vehicle.plate_no}>
+              <option
+                className="txt-color"
+                key={vehicle.id}
+                value={vehicle.plate_no}
+              >
                 {vehicle.plate_no}
               </option>
             ))}
@@ -189,11 +194,11 @@ const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
           )}
         </div>
         <div className="flex flex-col gap-2 mb-3">
-           <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-white">
             Status
           </label>
           <input
-          defaultValue={"On Maintenance"}
+            defaultValue={"On Maintenance"}
             {...register("status")}
             disabled
             className="placeholder-white  text-white border py-4 px-4 border-gray-400 rounded"

@@ -6,10 +6,13 @@ const PrivateRoutes = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const loading = useAuthStore((s) => s.loading);
 
-  // Prevent flicker & unwanted logout redirect
-  if (loading) return <div className="w-full min-h-screen flex justify-center items-center bg-body text-white">Loading....</div>; 
+  if (loading)
+    return (
+      <div className="w-full min-h-screen flex justify-center items-center bg-body text-white">
+        Loading....
+      </div>
+    );
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace/>;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
-
 export default PrivateRoutes;

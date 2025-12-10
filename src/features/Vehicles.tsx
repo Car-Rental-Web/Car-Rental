@@ -102,7 +102,7 @@ const Vehicles = () => {
     return () => {
       isMounted = false
     }
-  }, [onOpen]);
+  }, [open]);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 

@@ -6,7 +6,9 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
 
 const handleSubmit = async () => {
-  if(!email) return console.log("Please Enter your email")
+  
+    if(!email) return console.log("Please Enter your email")
+
     const {data, error} = await supabase.auth.resetPasswordForEmail(email , {
       redirectTo: `${window.location.origin}/reset-password`
     })
