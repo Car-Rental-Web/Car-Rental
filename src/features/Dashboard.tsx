@@ -13,8 +13,8 @@ const Dashboard = () => {
             linkText="view"
             linkIcon={<icons.rightArrow className="text-2xl"/>}
             url="/renterhistory"
-            amount="0"
-            description="Monthly Renters"
+            amount={<span className="text-6xl">20</span>}
+            description={<span className="text-3xl">Monthly Renters</span>}
           />
           <Card
             className="bg-border w-full"
@@ -22,8 +22,8 @@ const Dashboard = () => {
             linkText="view"
             linkIcon={<icons.rightArrow className="text-2xl"/> }
             url="/bookings"
-            amount="0"
-            description="Monthly Bookings"
+            amount={<span className="text-6xl">20</span>}
+            description={<span className="text-3xl">Monthly Bookings</span>}
           />
           <div className="w-full border border-gray-400 rounded px-3">
               <p className="pl-2 pt-2 text-gray-200" >Monthly Bookings</p>

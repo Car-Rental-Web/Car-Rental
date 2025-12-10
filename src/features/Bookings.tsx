@@ -9,6 +9,7 @@ import Card from "../components/Card";
 import icons from "../constants/icon";
 import { CustomButtons } from "../components/CustomButtons";
 import { BookingForm } from "../modals";
+import { useModalStore } from "../store/useModalStore";
 
 const staticData: DataBookingProps[] = [
   {
@@ -246,8 +247,8 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
-  const [openModal, setOpenModal] = useState(false)
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+  const {open, onOpen, onClose} = useModalStore()
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, staticData, [
@@ -311,11 +312,11 @@ const Bookings = () => {
       <div className="flex flex-col gap-6">
         <div className="text-end ">
           <CustomButtons
-          handleclick={() => setOpenModal(true)}
+          handleclick={onOpen}
             children="Add Renter"
             className="py-1 md:py-2 px-2 md:px-4  rounded button-color menu-bg text-white cursor-pointer text-xs md:text-base "
           />
-          <BookingForm open={openModal} onClose={() => setOpenModal(false)}/>
+          <BookingForm open={open} onClose={onClose}/>
         </div>
         <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
           <div className="flex pb-4 pt-4 w-full justify-end gap-3">

@@ -5,18 +5,22 @@ import {
   MaintenanceFormSchema,
   type MaintenanceFormData,
 } from "../schema/schema";
-import type { ModalProps } from "../types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../utils/supabase";
+interface MaintenanceFormProps {
+  open: boolean;
+  onClose: () => void;
+}
 
-const MaintenanceForm: React.FC<ModalProps> = ({ open, onClose }) => {
+const MaintenanceForm:React.FC<MaintenanceFormProps> = ({open, onClose}) => {
   const [loading, setIsLoading] = useState(false);
   const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
     []
   );
   const [selectToggle, setSelectToggle] = useState(false);
+
   const {
     register,
     handleSubmit,

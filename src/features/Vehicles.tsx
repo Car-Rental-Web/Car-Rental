@@ -10,6 +10,7 @@ import { filterData } from "../utils/FilterData";
 import { VehicleForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
+import { useModalStore } from "../store/useModalStore";
 
 
 const columns = [
@@ -71,8 +72,7 @@ const Vehicles = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-
+  const {open, onOpen, onClose} = useModalStore()
   useEffect(() => {
     let isMounted = true;
     const fetchVehicles = async () => {
@@ -102,7 +102,7 @@ const Vehicles = () => {
     return () => {
       isMounted = false
     }
-  }, [openModal]);
+  }, [onOpen]);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
@@ -170,11 +170,11 @@ const Vehicles = () => {
         <div className="text-end mb-4">
           <CustomButtons
 
-            handleclick={() => setOpenModal(true)}
+            handleclick={onOpen}
             children="Add Vehicle"
             className="py-2 px-4 rounded button-color text-white cursor-pointer"
           />
-          <VehicleForm open={openModal} onClose={() => setOpenModal(false)} />
+          <VehicleForm open={open} onClose={onClose} />
         </div>
       </div>
       <div className="border border-[#055783] px-6 py-2 rounded ">

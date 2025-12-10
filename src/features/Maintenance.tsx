@@ -11,6 +11,7 @@ import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
+import { useModalStore } from "../store/useModalStore";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -18,7 +19,7 @@ const Maintenance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+  const {open, onOpen, onClose} = useModalStore()
 
   useEffect(() => {
     let isMounted = true;
@@ -51,7 +52,7 @@ const Maintenance = () => {
     return () => {
       isMounted = false;
     };
-  }, [openModal]);
+  }, [onOpen]);
 
   const handleUpdate = async (id:number, vehicleId:string) => {
     const { data, error } = await supabase
@@ -218,14 +219,16 @@ const Maintenance = () => {
         </div>
         <div className="text-end mb-4">
           <CustomButtons
-            handleclick={() => setOpenModal(true)}
+            handleclick={onOpen}
             children="Add Maintenance"
             className="py-2 px-4 rounded button-color text-white cursor-pointer"
           />
+          {open &&
           <MaintenanceForm
-            open={openModal}
-            onClose={() => setOpenModal(false)}
-          />
+            open={open}
+            onClose={onClose}
+          />}
+          
         </div>
       </div>
 
