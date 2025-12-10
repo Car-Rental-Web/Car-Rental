@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import icons from "../constants/icon";
 import type { ModalProps } from "../types/types";
@@ -10,6 +10,8 @@ import { supabase } from "../utils/supabase";
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
   const [loading, setIsLoading] = useState(false);
+  const [vehicles, setVehicles] = useState<{id:string; plate_no:string}[]>([]);
+
   const {
     register,
     handleSubmit,
@@ -50,6 +52,8 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         down_payment: data.downPayment,
         start_date: data.startDate,
         end_date: data.endDate,
+        start_time: data.startTime,
+        end_time: data.endTime,
         type_of_rent: data.typeOfRent,
         location: data.location,
       });
@@ -83,44 +87,60 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     onClose();
   };
 
+
+  useEffect(() => {
+      const fetchVehicle = async () => {
+        const {data, error} = await supabase.from('vehicle').select('id, plate_no')
+
+        if(error) {
+          console.log('Error fetching Vehicles', error)
+          return
+        }
+
+        setVehicles(data)
+      }
+      fetchVehicle()
+  },[])
+
   if (!open) return null;
+
   return (
-    <div className="absolute  inset-0 bg-gray-400/25 z-999 flex justify-center items-center">
+    <div className="absolute  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center">
       <form
         onSubmit={handleSubmit(onSubmit)}
         onClick={(e) => e.stopPropagation()}
         action=""
-        className="h-4/5 overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-white px-8 py-4"
+        className="h-4/5 overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
           <div>
             <ModalButton onclick={onClose} />
-            <p className="text-start text-primary">Renter Information</p>
+            <p className=" text-start text-white text-primary">Renter Information</p>
           </div>
           <div className="flex w-full justify-around items-center gap-5 ">
             <div className="flex flex-col w-full gap-1 ">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Fullname
               </label>
               <input
                 {...register("fullName")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:John Doe"
               />
               {errors.fullName && (
-                <p className="text-red-500 text-start">
+                <p className="text-red-500  text-start ">
                   {errors.fullName.message}
                 </p>
               )}
             </div>
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Address
               </label>
               <input
                 {...register("address")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:110 Maligaya St."
               />
@@ -128,50 +148,50 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           </div>
           <div className="flex w-full gap-5 ">
             <div className="flex flex-col flex-1  gap-1 ">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 License id / Number
               </label>
               <input
                 {...register("licenseNumber")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
             </div>
             <div className="flex flex-col flex-1 gap-1  ">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Valid id
               </label>
-              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded">
+              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
                 <input
                   {...register("validId")}
                   className="text-gray-600 w-full"
                   type="file"
                 />
-                <icons.upload className="absolute right-3" />
+                <icons.upload className="absolute right-3 txt-color" />
               </div>
             </div>
           </div>
           <div className="flex w-full justify-around items-center gap-5">
             <div className="flex flex-col w-full gap-1 ">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Pagibig No.
                 <span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
                 {...register("pagIbigNumber")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
             </div>
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 SSS No.<span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
                 {...register("sssNumber")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -179,114 +199,144 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           </div>
           <div className="flex w-full justify-around items-center gap-5 ">
             <div className="flex flex-col w-full gap-1 ">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Tin No.<span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
                 {...register("tinNumber")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
             </div>
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className="text-start">
+              <label htmlFor="" className=" text-start text-white">
                 Philhealth No.
                 <span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
                 {...register("philHealthNumber")}
-                className="border py-4 px-4 border-gray-400 rounded"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
             </div>
           </div>
-          <div className="flex flex-col w-full gap-5">
-            <p className="text-start text-primary">Car Rented</p>
-            <div className="flex  justify-around w-full gap-5">
-              <div className="flex flex-col w-full">
-                <label htmlFor="" className="text-start">
-                  Plate #
-                </label>
-                <input
+          <div className="flex flex-col w-full gap-3">
+            <p className=" text-start text-white text-primary">Car Rented</p>
+            <div className="flex  justify-around items-center w-full gap-3">
+              <div onClick={() => setSelectToggle(!selectToggle)} className="flex flex-col w-full relative ">
+                <label htmlFor="" className="text-start text-white">Plate #</label>
+                <select
                   {...register("carPlateNumber")}
-                  type="text"
-                  placeholder="Ex:ABC-1234"
-                  className="border py-4 px-4 border-gray-400 rounded"
-                />
+                  className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+                >
+                  <option value="" className="txt-color">Select Vehicle</option>
+                  {vehicles.map((vehicle) => (
+                    <option className="txt-color" key={vehicle.id} value={vehicle.plate_no}>
+                      {vehicle.plate_no}
+                    </option>
+                  ))}
+                </select>
+                {selectToggle ? (
+                  <icons.up className="absolute bottom-5 right-4 txt-color" />
+                ) : (
+                  <icons.down className="absolute bottom-5 right-4 txt-color" />
+             )}
               </div>
               <div className="flex flex-col w-full">
-                <label htmlFor="" className="text-start">
+                <label htmlFor="" className=" text-start text-white">
                   Model
                 </label>
                 <input
                   {...register("carModel")}
                   type="text"
                   placeholder="Ex:Civic LX"
-                  className="border py-4 px-4 border-gray-400 rounded"
+                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 />
               </div>
               <div className="flex flex-col w-full">
-                <label htmlFor="" className="text-start">
+                <label htmlFor="" className=" text-start text-white">
                   Type
                 </label>
                 <input
                   {...register("carType")}
                   type="text"
                   placeholder="Ex: Sedan"
-                  className="border py-4 px-4 border-gray-400 rounded"
+                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                 />
               </div>
             </div>
           </div>
           <div className="flex flex-col w-full gap-5">
-            <p className="text-start text-primary">Location Visting</p>
+            <p className=" text-start text-white text-primary">Location Visting</p>
             <div>
               <div className="flex flex-col gap-5">
                 <div className="flex w-full justify-around gap-5">
                   <div className="flex flex-col w-full gap-1">
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       Total Price
                     </label>
                     <input
                       {...register("totalPriceRent")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                       placeholder="Ex: 2000"
                     />
                   </div>
                   <div className="flex flex-col w-full gap-1">
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       Downpayment
                     </label>
                     <input
                       {...register("downPayment")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                       placeholder="Ex:1000"
                     />
                   </div>
                 </div>
                 <div className="flex w-full justify-around gap-5">
                   <div className="flex flex-col w-full gap-1">
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       Start Date
                     </label>
                     <input
                       {...register("startDate")}
                       type="date"
-                      className="border py-4 px-4 border-gray-400 rounded"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
                   </div>
                   <div className="flex flex-col w-full gap-1">
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       End Date
                     </label>
                     <input
                       {...register("endDate")}
                       type="date"
-                      className="border py-4 px-4 border-gray-400 rounded"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                    />
+                  </div>
+                </div>
+                <div className="flex w-full justify-around gap-5">
+                  <div className="flex flex-col w-full gap-1">
+                    <label htmlFor="" className=" text-start text-white">
+                      Start Time
+                    </label>
+                    <input
+                      {...register("startTime")}
+                      type="time"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                    />
+                  </div>
+                  <div className="flex flex-col w-full gap-1">
+                    <label htmlFor="" className=" text-start text-white">
+                      End Time
+                    </label>
+                    <input
+                      {...register("endTime")}
+                      type="time"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
                   </div>
                 </div>
@@ -295,31 +345,31 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     onClick={() => setSelectToggle((t) => !t)}
                     className="flex relative flex-col w-full gap-1"
                   >
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       Type of Rent
                     </label>
                     <select
                       {...register("typeOfRent")}
                       name=""
                       id=""
-                      className="border py-4 px-4 border-gray-400 rounded appearance-none outline-none"
+                      className="border py-4 px-4 border-gray-400 rounded text-gray-400  appearance-none outline-none"
                     >
                       <option value="">Self Drive</option>
                       <option value="">With Driver</option>
                     </select>
                     <div className="absolute top-12 right-3">
                       {" "}
-                      {selectToggle ? <icons.up /> : <icons.down />}
+                      {selectToggle ? <icons.up className=" txt-color" /> : <icons.down className=" txt-color" />}
                     </div>
                   </div>
                   <div className="flex flex-col w-full gap-1">
-                    <label htmlFor="" className="text-start">
+                    <label htmlFor="" className=" text-start text-white">
                       Location
                     </label>
                     <input
                       {...register("location")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded"
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                       placeholder="Ex: Baguio"
                     />
                   </div>
@@ -327,83 +377,83 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </div>
 
               <div className="flex flex-col gap-5 w-full">
-                <p className="text-start text-primary">
+                <p className=" text-start text-white text-primary">
                   Vehicle left in the garage of renter
-                  <span className="text-sm text-gray-400 text-start text-primary">
+                  <span className="text-sm text-gray-400  text-start  text-primary">
                     (optional)
                   </span>
                 </p>
                 <div className="flex flex-col gap-5">
                   <div className="flex w-full gap-5">
                     <div className="flex flex-col w-full">
-                      <label htmlFor="" className="text-start">
+                      <label htmlFor="" className=" text-start text-white">
                         Plate #
                       </label>
                       <input
                         {...register("vehicleLeftPlateNumber")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded"
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                         placeholder="Ex:ABC-1234"
                       />
                     </div>
                     <div className="flex flex-col w-full">
-                      <label htmlFor="" className="text-start">
+                      <label htmlFor="" className=" text-start text-white">
                         Model
                       </label>
                       <input
                         {...register("vehicleLeftModel")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded"
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                         placeholder="Ex:Civic LX"
                       />
                     </div>
                   </div>
                   <div className="flex w-full gap-5 ">
                     <div className="flex flex-col flex-1  gap-1 ">
-                      <label htmlFor="" className="text-start">
+                      <label htmlFor="" className=" text-start text-white">
                         Type
                       </label>
                       <input
                         {...register("vehicleLeftType")}
-                        className="border py-4 px-4 border-gray-400 rounded"
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
                         type="text"
                         placeholder="Ex:N01-23-456789"
                       />
                     </div>
                     <div className="flex flex-col flex-1 gap-1  ">
-                      <label htmlFor="" className="text-start">
+                      <label htmlFor="" className=" text-start text-white">
                         Agreement <span>(photo)</span> signed documents
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded">
+                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
                         <input
                           {...register("agreementPhoto")}
                           className="text-gray-600 w-full"
                           type="file"
                         />
-                        <icons.upload className="absolute right-3" />
+                        <icons.upload className="absolute right-3 txt-color" />
                       </div>
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-5">
                     <div className="flex flex-col gap-1">
-                      <label htmlFor="" className="text-start">
+                      <label htmlFor="" className=" text-start text-white">
                         Notes
                       </label>
                       <textarea
                         name=""
                         id=""
-                        className="appearance-none outline-none border border-gray-400 rounded px-4 py-4"
+                        className="appearance-none outline-none border border-gray-400 rounded placeholder-gray-400  px-4 py-4"
                         placeholder="Ex: Renter is on time"
                       ></textarea>
                     </div>
-                    <div className="w-full text-start flex flex-col gap-1">
+                    <div className="w-full  text-start text-white flex flex-col gap-1">
                       <label htmlFor="" className="">
                         Uploaded pictures of proof the whole transactions{" "}
                         <span>(others)</span>
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded">
+                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
                         <input className="text-gray-600" type="file" />
-                        <icons.upload className="absolute right-3" />
+                        <icons.upload className="absolute right-3 txt-color" />
                       </div>
                     </div>
                   </div>
@@ -417,14 +467,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     </label>
                     <input
                       type="checkbox"
-                      className="appearance-none outline-none border border-blue-500 py-3 px-3 rounded cursor-pointer"
+                      className="border border-blue-500 py-3 px-3 rounded placeholder-gray-400  cursor-pointer"
                     />
                   </div>
                 </div>
                 <div className=" text-center pb-4">
                   <button
-                    type="button"
-                    className="w-full text-white py-4 cursor-pointer rounded  menu-bg"
+                    type="submit"
+                    className="w-full text-white py-4 cursor-pointer rounded placeholder-gray-400   button-color"
                   >
                     {loading ? "Adding" : "Add Renter"}
                   </button>

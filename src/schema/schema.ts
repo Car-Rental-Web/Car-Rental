@@ -107,6 +107,8 @@ export const RenterFormSchema = z.object({
   downPayment: z.number(),
   startDate: z.date(),
   endDate: z.date(),
+  startTime: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"), 
+  endTime: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"), 
   typeOfRent: z.string(),
   location: z.string(),
   vehicleLeftPlateNumber: z.string().optional(),

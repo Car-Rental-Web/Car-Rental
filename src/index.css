@@ -21,6 +21,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
           brightness(85%) contrast(90%);
   opacity: 1;
 }
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(68%) sepia(15%) saturate(720%) hue-rotate(155deg)
+          brightness(85%) contrast(90%);
+  opacity: 1;
+}
+input[type="file"]::-webkit-file-upload-button {
+  border-radius: 10%;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
 
 .menu-bg {
   background-color: #696FC7;
