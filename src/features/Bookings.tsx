@@ -157,98 +157,17 @@ const staticData: DataBookingProps[] = [
   },
 ];
 
-const columns = [
-  {
-    name: "No.",
-    cell: (row:DataBookingProps) => <div className="text-center font-semibold ">{row.id}</div>,
-  },
-  {
-    name: "Name",
-    cell: (row:DataBookingProps) => <div className="text-center font-semibold">{row.name}</div>,
-   
-  },
-  {
-    name: "License #",
-    cell: (row:DataBookingProps) => <div className="text-center font-semibold">{row.license}</div>,
-    
-  },
-  {
-    name: "Car",
-    cell: (row:DataBookingProps) => <div className="text-center font-semibold">{row.carType}</div>,
-    
-  },
-  {
-    name: "Model",
-    cell: (row:DataBookingProps) => <div className="text-center font-semibold">{row.model}</div>,
-    
-  },
-  {
-    name: "Start Date",
-     cell: (row: DataBookingProps) => (
-    <div className="text-center ">
-      {new Date(row.startDate).toLocaleString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })}
-    </div>
-  ),
-  },
-  {
-    name: "End Date",
-     cell: (row: DataBookingProps) => (
-    <div className="text-center ">
-      {new Date(row.endDate).toLocaleString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      })}
-    </div>
-  ),
-  },
-  {
-    name: "Location",
-    cell: (row: DataBookingProps) => <div className="text-center ">{row.location}</div>,
-  },
-  {
-    name: "Type of Rent",
-    cell: (row: DataBookingProps) => (
-        <div>{row.typeOfRent}</div>
-    )
-  },
-  {
-    name: "Status",
-    cell: (row: DataBookingProps) => (
-      <span
-        className={`text-[8px] xl:text-xs text-center px-4 py-1 ${
-          row.status === "On Service"
-            ? "bg-green-800 text-white  rounded-full w-full text-center"
-            : row.status === "Reserved"
-            ? " bg-blue-900   rounded-full text-white w-full text-center"
-            : row.status === "Ended"
-            ? "bg-red-900 text-white  rounded-full w-full text-center"
-            : "text-gray-400"
-        }`}
-      >
-        {row.status}
-      </span>
-    ),
-  
-  },
-  {
-    name: "Action",
-    cell: (row: DataBookingProps) => <div className="">{row.action}</div>
-   
-  },
-];
-
 const Bookings = () => {
   const [records, setRecords] = useState(staticData);
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
-  const {open, onOpen, onClose} = useModalStore()
+  const { open, onOpen, onClose } = useModalStore();
+
+  useEffect(() => {
+    onClose();
+  }, []);
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, staticData, [
@@ -262,12 +181,100 @@ const Bookings = () => {
       "status",
     ]);
 
-    if(selectValue !== "") {
-      result = result.filter((item) => item.status === selectValue)
+    if (selectValue !== "") {
+      result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
   }, [debounceSearchTerm, selectValue]);
 
+  const columns = [
+    {
+      name: "No.",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold ">{row.id}</div>
+      ),
+    },
+    {
+      name: "Name",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold">{row.name}</div>
+      ),
+    },
+    {
+      name: "License #",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold">{row.license}</div>
+      ),
+    },
+    {
+      name: "Car",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold">{row.carType}</div>
+      ),
+    },
+    {
+      name: "Model",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold">{row.model}</div>
+      ),
+    },
+    {
+      name: "Start Date",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center ">
+          {new Date(row.startDate).toLocaleString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+          })}
+        </div>
+      ),
+    },
+    {
+      name: "End Date",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center ">
+          {new Date(row.endDate).toLocaleString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+          })}
+        </div>
+      ),
+    },
+    {
+      name: "Location",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center ">{row.location}</div>
+      ),
+    },
+    {
+      name: "Type of Rent",
+      cell: (row: DataBookingProps) => <div>{row.typeOfRent}</div>,
+    },
+    {
+      name: "Status",
+      cell: (row: DataBookingProps) => (
+        <span
+          className={`text-[8px] xl:text-xs text-center px-4 py-1 ${
+            row.status === "On Service"
+              ? "bg-green-800 text-white  rounded-full w-full text-center"
+              : row.status === "Reserved"
+              ? " bg-blue-900   rounded-full text-white w-full text-center"
+              : row.status === "Ended"
+              ? "bg-red-900 text-white  rounded-full w-full text-center"
+              : "text-gray-400"
+          }`}
+        >
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      name: "Action",
+      cell: (row: DataBookingProps) => <div className="">{row.action}</div>,
+    },
+  ];
   return (
     <div className="w-full relative h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
@@ -312,30 +319,43 @@ const Bookings = () => {
       <div className="flex flex-col gap-6">
         <div className="text-end ">
           <CustomButtons
-          handleclick={onOpen}
+            handleclick={onOpen}
             children="Add Renter"
-            className="py-1 md:py-2 px-2 md:px-4  rounded button-color menu-bg text-white cursor-pointer text-xs md:text-base "
+            className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "
           />
-          <BookingForm open={open} onClose={onClose}/>
+          <BookingForm open={open} onClose={onClose} />
         </div>
         <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
           <div className="flex pb-4 pt-4 w-full justify-end gap-3">
-              <div
-                onClick={() => setToggle((t) => !t)}
-                className="flex relative border border-gray-200 rounded w-full  md:w-44"
+            <div
+              onClick={() => setToggle((t) => !t)}
+              className="flex relative border border-gray-200 rounded w-full  md:w-44"
+            >
+              <select
+                onChange={(e) => setSelectValue(e.target.value)}
+                value={selectValue}
+                className=" w-full  rounded appearance-none outline-none  px-4 py-2 cursor-pointer text-xs xl:text-base text-white"
               >
-                <select
-                  onChange={(e) => setSelectValue(e.target.value)}
-                  value={selectValue}
-                  className=" w-full  rounded appearance-none outline-none  px-4 py-2 cursor-pointer text-xs xl:text-base text-white"
-                >
-                  <option value=""  className="txt-color">All</option>
-                  <option value="On Service" className="txt-color">On-Service</option>
-                  <option value="Reserved"  className="txt-color"> Reserved</option>
-                  <option value="Ended" className="txt-color"> Ended</option>
-                </select>
-                <div className="absolute top-2 xl:top-3 right-3 txt-color"> {toggle ? <icons.up/> : <icons.down/>}</div>
+                <option value="" className="txt-color">
+                  All
+                </option>
+                <option value="On Service" className="txt-color">
+                  On-Service
+                </option>
+                <option value="Reserved" className="txt-color">
+                  {" "}
+                  Reserved
+                </option>
+                <option value="Ended" className="txt-color">
+                  {" "}
+                  Ended
+                </option>
+              </select>
+              <div className="absolute top-2 xl:top-3 right-3 txt-color">
+                {" "}
+                {toggle ? <icons.up /> : <icons.down />}
               </div>
+            </div>
             <div className="">
               <SearchBar
                 onClear={() => setSearchTerm("")}

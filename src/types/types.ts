@@ -82,7 +82,7 @@ export interface DataBookingProps {
 
 
  export interface DataVehicleProps {
-    id:number;
+    id:string;
     model:string;
     brand:string;
     type:string;

@@ -65,37 +65,7 @@ export const RenterFormSchema = z.object({
   fullName: z.string(),
   address: z.string(),
   licenseNumber: z.string(),
-  validId: z
-    .instanceof(File, {
-      message: "Please Select an image File",
-    })
-    .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
-        MAX_FILE_SIZE
-      )}`,
-    })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-      message: "Please upload a valid image file (JPED, PNG)",
-    })
-    .refine(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-              const meetsDimensions =
-                img.width >= MIN_DIMENSIONS.width &&
-                img.height >= MIN_DIMENSIONS.height &&
-                img.width <= MAX_DIMENSIONS.width &&
-                img.width <= MAX_DIMENSIONS.height;
-              resolve(meetsDimensions);
-            };
-            img.src = e.target?.result as string;
-          };
-          reader.readAsDataURL(file);
-        })
-    ),
+  validId: z.instanceof(FileList).optional(),
   pagIbigNumber: z.string().optional(),
   sssNumber: z.string().optional(),
   tinNumber: z.string().optional(),
@@ -115,75 +85,27 @@ export const RenterFormSchema = z.object({
   vehicleLeftModel: z.string().optional(),
   vehicleLeft: z.string().optional(),
   vehicleLeftType: z.string().optional(),
-  agreementPhoto: z
-    .instanceof(File, {
-      message: "Please Select an image File",
-    })
-    .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
-        MAX_FILE_SIZE
-      )}`,
-    })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-      message: "Please upload a valid image file (JPED, PNG)",
-    })
-    .refine(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-              const meetsDimensions =
-                img.width >= MIN_DIMENSIONS.width &&
-                img.height >= MIN_DIMENSIONS.height &&
-                img.width <= MAX_DIMENSIONS.width &&
-                img.width <= MAX_DIMENSIONS.height;
-              resolve(meetsDimensions);
-            };
-            img.src = e.target?.result as string;
-          };
-          reader.readAsDataURL(file);
-        })
-    ),
+  agreementPhoto:z.instanceof(FileList).optional(),
   notes: z.string().optional(),
-  uploadedProof: z
-    .instanceof(File, {
-      message: "Please Select an image File",
-    })
-    .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `The image is too Large. Please choose an image smaller than ${formatBytes(
-        MAX_FILE_SIZE
-      )}`,
-    })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-      message: "Please upload a valid image file (JPED, PNG)",
-    })
-    .refine(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-              const meetsDimensions =
-                img.width >= MIN_DIMENSIONS.width &&
-                img.height >= MIN_DIMENSIONS.height &&
-                img.width <= MAX_DIMENSIONS.width &&
-                img.width <= MAX_DIMENSIONS.height;
-              resolve(meetsDimensions);
-            };
-            img.src = e.target?.result as string;
-          };
-          reader.readAsDataURL(file);
-        })
-    ),
+  uploadedProof: z.instanceof(FileList).optional(),
     isReservation: z.boolean().optional(),
 });
 
 export type RenterFormData = z.infer<typeof RenterFormSchema>;
 
+
+export const TestFormSchema = z.object({
+  full_name: z.string(),
+  valid_id: z.instanceof(FileList),
+  plate_no: z.string(),
+  car_model: z.string(),
+  car_type: z.string(),
+})
+
+export type TestFormData = z.infer<typeof TestFormSchema>;
+
 export default {
+  TestFormSchema,
   LoginFormSchema,
   ForgotPassword,
   VehicleFormSchema,

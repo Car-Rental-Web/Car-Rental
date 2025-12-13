@@ -101,53 +101,6 @@ const staticData: DataRenterProps[] = [
   },
 ];
 
-const columns = [
-  {
-    name: "No.",
-    cell: (row: DataRenterProps) => <div className="text-center">{row.id}</div>,
-  },
-  {
-    name: "Name",
-    cell: (row: DataRenterProps) => (
-      <div className="text-center">{row.name}</div>
-    ),
-  },
-  {
-    name: "License #",
-    cell: (row: DataRenterProps) => (
-      <div className="text-center">{row.license}</div>
-    ),
-  },
-  {
-    name: "Last Date Rented",
-    cell: (row: DataRenterProps) => (
-      <div className=" w-full text-center">
-        {new Date(row.lastDateRented).toLocaleString("en-US", {
-          month: "2-digit",
-          day: "2-digit",
-          year: "numeric",
-        })}
-      </div>
-    ),
-  },
-  {
-    name: "Times Rented",
-    cell: (row: DataRenterProps) => (
-      <div className="text-center w-full">{row.timesRented}</div>
-    ),
-  },
-  {
-    name: "Feedback",
-    cell: (row: DataRenterProps) => (
-      <div className="text-center  w-full">{row.feedBack}</div>
-    ),
-  },
-  {
-    name: "Action",
-    cell: (row: DataRenterProps) => <div className=" ">{row.action}</div>,
-  },
-];
-
 const RenterHistory = () => {
   const [records, setRecords] = useState(staticData);
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,6 +119,55 @@ const RenterHistory = () => {
     setRecords(result);
   }, [debounceSearchTerm]);
 
+  const columns = [
+    {
+      name: "No.",
+      cell: (row: DataRenterProps) => (
+        <div className="text-center">{row.id}</div>
+      ),
+    },
+    {
+      name: "Name",
+      cell: (row: DataRenterProps) => (
+        <div className="text-center">{row.name}</div>
+      ),
+    },
+    {
+      name: "License #",
+      cell: (row: DataRenterProps) => (
+        <div className="text-center">{row.license}</div>
+      ),
+    },
+    {
+      name: "Last Date Rented",
+      cell: (row: DataRenterProps) => (
+        <div className=" w-full text-center">
+          {new Date(row.lastDateRented).toLocaleString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+          })}
+        </div>
+      ),
+    },
+    {
+      name: "Times Rented",
+      cell: (row: DataRenterProps) => (
+        <div className="text-center w-full">{row.timesRented}</div>
+      ),
+    },
+    {
+      name: "Feedback",
+      cell: (row: DataRenterProps) => (
+        <div className="text-center  w-full">{row.feedBack}</div>
+      ),
+    },
+    {
+      name: "Action",
+      cell: (row: DataRenterProps) => <div className=" ">{row.action}</div>,
+    },
+  ];
+
   return (
     <div className="w-full h-screen  overflow-y-auto flex flex-col gap-5  pt-12 px-6 bg-body">
       <div className="">
@@ -183,9 +185,7 @@ const RenterHistory = () => {
           />
           <Card
             className="bg-border w-full"
-            title={
-              <span className="text-md xl:text-2xl"> Active Renters</span>
-            }
+            title={<span className="text-md xl:text-2xl"> Active Renters</span>}
             url={""}
             amount={<span className="text-6xl">200</span>}
             description="Total Active Renters"
@@ -194,9 +194,7 @@ const RenterHistory = () => {
           <Card
             className="bg-border w-full"
             title={
-              <span className="text-md xl:text-2xl">
-                Inactive Renters
-              </span>
+              <span className="text-md xl:text-2xl">Inactive Renters</span>
             }
             url={""}
             amount={<span className="text-6xl">200</span>}

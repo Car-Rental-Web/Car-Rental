@@ -10,15 +10,19 @@ import { supabase } from "../utils/supabase";
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
   const [loading, setIsLoading] = useState(false);
-  const [vehicles, setVehicles] = useState<{id:string; plate_no:string}[]>([]);
+  const [vehicles, setVehicles] = useState<{id:string; plate_no:string; model:string; type:string}[]>([]);
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(RenterFormSchema),
   });
+
+    const selectedPlate= watch("carPlateNumber")
 
   const onSubmit = async (data: RenterFormData) => {
     const { data: renter, error: renterError } = await supabase
@@ -90,17 +94,32 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
   useEffect(() => {
       const fetchVehicle = async () => {
-        const {data, error} = await supabase.from('vehicle').select('id, plate_no')
+        const {data, error} = await supabase.from('vehicle').select('id, plate_no ,model, type')
 
         if(error) {
           console.log('Error fetching Vehicles', error)
           return
         }
-
         setVehicles(data)
       }
       fetchVehicle()
   },[])
+
+
+  useEffect(() => {
+
+    if(!selectedPlate) {
+      setValue("carModel", "")
+      setValue("carType", "")
+    }
+    const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate)
+
+    if(selectedVehicle) {
+      setValue("carModel", selectedVehicle.model)
+      setValue("carType", selectedVehicle.type)
+    }
+  },[selectedPlate,vehicles,setValue])
+
 
   if (!open) return null;
 
@@ -249,10 +268,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   Model
                 </label>
                 <input
+                disabled
                   {...register("carModel")}
                   type="text"
                   placeholder="Ex:Civic LX"
-                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 />
               </div>
               <div className="flex flex-col w-full">
@@ -260,10 +280,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   Type
                 </label>
                 <input
+                disabled
                   {...register("carType")}
                   type="text"
                   placeholder="Ex: Sedan"
-                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 />
               </div>
             </div>
@@ -440,8 +461,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Notes
                       </label>
                       <textarea
-                        name=""
-                        id=""
+                      {...register("notes")}
                         className="appearance-none outline-none border border-gray-400 rounded placeholder-gray-400  px-4 py-4"
                         placeholder="Ex: Renter is on time"
                       ></textarea>
@@ -466,6 +486,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </span>
                     </label>
                     <input
+                    {...register("isReservation")}
                       type="checkbox"
                       className="border border-blue-500 py-3 px-3 rounded placeholder-gray-400  cursor-pointer"
                     />

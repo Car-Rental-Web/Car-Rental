@@ -12,75 +12,26 @@ import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { useModalStore } from "../store/useModalStore";
 
-
-const columns = [
-  {
-    name: "No.",
-    cell: (_row: DataVehicleProps, index:number) => <div>{index + 1}</div>,
-  },
-  {
-    name: "Model",
-    cell: (row: DataVehicleProps) => <div>{row.model}</div>,
-  },
-  {
-    name: "Brand",
-    cell: (row: DataVehicleProps) => <div>{row.brand}</div>,
-  },
-  {
-    name: "Type",
-    cell: (row: DataVehicleProps) => <div>{row.type}</div>,
-  },
-  {
-    name: "Color",
-    cell: (row: DataVehicleProps) => <div>{row.color}</div>,
-  },
-  {
-    name: "Plate #",
-    cell: (row: DataVehicleProps) => <div>{row.plateNumber}</div>,
-  },
-  {
-    name: "Status",
-    cell: (row: DataVehicleProps) => 
-    { 
-      return (
-         <div
-        className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
-          row.status === "On Service"
-            ? "text-white on-service"
-            : row.status === "On Reservation"
-            ? "text-white bg-blue-900"
-            : row.status === "On Maintenance"
-            ? "bg-red-900 text-white"
-            : row.status === "Available"
-            ? "text-white bg-green-800"
-            : "text-gray-400"
-        }`}
-      >
-        {row.status}
-      </div>
-    )}
-  },
-  {
-    name: "Action",
-    cell: (row: DataVehicleProps) => <div>{row.action}</div>,
-  },
-];
-
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
   const [allrecords, setAllRecords] = useState<DataVehicleProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
-  const {open, onOpen, onClose} = useModalStore()
+  const { open, onOpen, onClose } = useModalStore();
+
+  useEffect(() => {
+    onClose();
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     const fetchVehicles = async () => {
       const { data, error } = await supabase.from("vehicle").select("*");
 
-      if(!isMounted) return;
+      if (!isMounted) return;
 
-      if (error ) {
+      if (error) {
         console.log("Error fetching vehicles:", error.message);
       }
       const rows = data ?? [];
@@ -91,7 +42,7 @@ const Vehicles = () => {
         type: item.type,
         color: item.color,
         plateNumber: item.plate_no,
-        status: item.status ,
+        status: item.status,
         action: <BsThreeDots />,
       }));
       setRecords(formattedData);
@@ -100,14 +51,14 @@ const Vehicles = () => {
     };
     fetchVehicles();
     return () => {
-      isMounted = false
-    }
+      isMounted = false;
+    };
   }, [open]);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    let result = filterData(debounceValue,allrecords, [
+    let result = filterData(debounceValue, allrecords, [
       "model",
       "brand",
       "type",
@@ -121,11 +72,72 @@ const Vehicles = () => {
     }
     setRecords(result);
   }, [debounceValue, selectValue, allrecords]);
-  
-  const available = records.filter(item => item.status === "Available").length;
-  const onService = records.filter(item => item.status === "On Service").length;
-  const onReservation = records.filter(item => item.status === "On Reservation").length;
-  const onMaintenance = records.filter(item => item.status === "On Maintenance").length;
+
+  const available = records.filter(
+    (item) => item.status === "Available"
+  ).length;
+  const onService = records.filter(
+    (item) => item.status === "On Service"
+  ).length;
+  const onReservation = records.filter(
+    (item) => item.status === "On Reservation"
+  ).length;
+  const onMaintenance = records.filter(
+    (item) => item.status === "On Maintenance"
+  ).length;
+
+  const columns = [
+    {
+      name: "No.",
+      cell: (_row: DataVehicleProps, index: number) => <div>{index + 1}</div>,
+    },
+    {
+      name: "Model",
+      cell: (row: DataVehicleProps) => <div>{row.model}</div>,
+    },
+    {
+      name: "Brand",
+      cell: (row: DataVehicleProps) => <div>{row.brand}</div>,
+    },
+    {
+      name: "Type",
+      cell: (row: DataVehicleProps) => <div>{row.type}</div>,
+    },
+    {
+      name: "Color",
+      cell: (row: DataVehicleProps) => <div>{row.color}</div>,
+    },
+    {
+      name: "Plate #",
+      cell: (row: DataVehicleProps) => <div>{row.plateNumber}</div>,
+    },
+    {
+      name: "Status",
+      cell: (row: DataVehicleProps) => {
+        return (
+          <div
+            className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
+              row.status === "On Service"
+                ? "text-white on-service"
+                : row.status === "On Reservation"
+                ? "text-white bg-blue-900"
+                : row.status === "On Maintenance"
+                ? "bg-red-900 text-white"
+                : row.status === "Available"
+                ? "text-white bg-green-800"
+                : "text-gray-400"
+            }`}
+          >
+            {row.status}
+          </div>
+        );
+      },
+    },
+    {
+      name: "Action",
+      cell: (row: DataVehicleProps) => <div>{row.action}</div>,
+    },
+  ];
 
   return (
     <div className="w-full h-screen relative overflow-y-auto px-6 pt-12 bg-body">
@@ -169,10 +181,9 @@ const Vehicles = () => {
         </div>
         <div className="text-end mb-4">
           <CustomButtons
-
             handleclick={onOpen}
             children="Add Vehicle"
-            className="py-2 px-4 rounded button-color text-white cursor-pointer"
+            className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer"
           />
           <VehicleForm open={open} onClose={onClose} />
         </div>
@@ -190,11 +201,21 @@ const Vehicles = () => {
               name=""
               id=""
             >
-              <option value="" className="txt-color">All</option>
-              <option value="On Service" className="txt-color">On Service</option>
-              <option value="On Reservation" className="txt-color">On Reservation</option>
-              <option value="On Maintenance" className="txt-color">On Maintenance</option>
-              <option value="Available" className="txt-color">Available</option>
+              <option value="" className="txt-color">
+                All
+              </option>
+              <option value="On Service" className="txt-color">
+                On Service
+              </option>
+              <option value="On Reservation" className="txt-color">
+                On Reservation
+              </option>
+              <option value="On Maintenance" className="txt-color">
+                On Maintenance
+              </option>
+              <option value="Available" className="txt-color">
+                Available
+              </option>
             </select>
             <div className="absolute top-2 xl:top-3 right-3 txt-color">
               {selectToggle ? <icons.up /> : <icons.down />}

@@ -209,7 +209,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
         <div className="mt-15 mb-6">
           <button
             type="submit"
-            className="bg-border text-white w-full py-4 rounded cursor-pointer"
+            className="hover:bg-[#4E8EA2] bg-[#1d596b] text-white w-full py-4 rounded cursor-pointer"
           >
             {loading ? "Adding..." : "Add Maintenance"}
           </button>

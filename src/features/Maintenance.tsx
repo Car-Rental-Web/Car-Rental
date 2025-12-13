@@ -15,15 +15,22 @@ import { useModalStore } from "../store/useModalStore";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
-  const [filterRecords, setFilterRecords] = useState<DataMaintenanceProps[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataMaintenanceProps[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
-  const {open, onOpen, onClose} = useModalStore()
+  const { open, onOpen, onClose } = useModalStore();
+
+
+  useEffect(() => {
+    onClose();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
-      const fetchMaintenance = async () => {
+    const fetchMaintenance = async () => {
       const { data, error } = await supabase.from("maintenance").select("*");
       if (!isMounted) return;
 
@@ -54,7 +61,7 @@ const Maintenance = () => {
     };
   }, []);
 
-  const handleUpdate = async (id:number, vehicleId:string) => {
+  const handleUpdate = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
       .from("maintenance")
       .update({ status: "Maintained" })
@@ -63,7 +70,7 @@ const Maintenance = () => {
     if (error) {
       console.log("Error Updating", error);
     }
-      console.log("Update Successfully", data);
+    console.log("Update Successfully", data);
 
     const { data: vehicleData, error: errorStatus } = await supabase
       .from("vehicle")
@@ -74,15 +81,15 @@ const Maintenance = () => {
       console.log("Vehicle Update Error", errorStatus);
       toast.error("Error Updating");
     }
-      if (!vehicleData) {
+    if (!vehicleData) {
       console.log("Vehicle status already Available, skipping toast");
     } else {
       console.log("Vehicle Update Successfully", vehicleData);
       toast.success("Update Successfully");
     }
-      setRecords((prev) =>
+    setRecords((prev) =>
       prev.map((row) =>
-      row.id === id ? { ...row, status: "Maintained" } : row
+        row.id === id ? { ...row, status: "Maintained" } : row
       )
     );
   };
@@ -226,12 +233,7 @@ const Maintenance = () => {
             children="Add Maintenance"
             className="py-2 px-4 rounded button-color text-white cursor-pointer"
           />
-          {open &&
-          <MaintenanceForm
-            open={open}
-            onClose={onClose}
-          />}
-          
+          {open && <MaintenanceForm open={open} onClose={onClose} />}
         </div>
       </div>
 
