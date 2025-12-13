@@ -26,7 +26,7 @@ const Maintenance = () => {
 
   useEffect(() => {
     onClose();
-  }, []);
+  }, [onClose]);
 
   useEffect(() => {
     let isMounted = true;
@@ -192,7 +192,7 @@ const Maintenance = () => {
   ];
 
   return (
-    <div className="px-6 pt-12 w-full h-screen relative  overflow-y-auto gap-2 bg-body">
+    <div className="px-6 pt-12 w-full relative min-h-screen  overflow-y-auto gap-2 bg-body">
       <p className=" text-5xl font-semibold text-gray-300 tracking-wide mb-5 ">
         Maintenance
       </p>

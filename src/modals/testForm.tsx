@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TestFormSchema, type TestFormData } from "../schema/schema";
 
-const testForm = () => {
+const TestForm = () => {
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
@@ -135,4 +135,4 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
   );
 };
 
-export default testForm;
+export default TestForm;

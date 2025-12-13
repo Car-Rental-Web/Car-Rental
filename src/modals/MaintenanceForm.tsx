@@ -91,7 +91,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
 
   if (!open) return null;
   return (
-    <div className="absolute inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center">
+    <div className="absolute  inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -102,27 +102,27 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
         className="border border-gray-400 rounded-xl py-4 px-8 w-2/5 bg-sub"
       >
         <ModalButton onclick={onClose} />
-        <div className="flex flex-col mb-3">
+        <div className="flex flex-col mb-3 w-full">
           <label htmlFor="" className="text-start text-white">
             Maintenance Date
           </label>
           <input
             {...register("date")}
-            className=" text-white border py-4 px-4 border-gray-400 rounded"
+            className=" text-white border py-2 md:py-4 px-2 md:px-4 border-gray-400 rounded"
             type="date"
             placeholder="Ex:Civic Lx"
           />
         </div>
         <div
           onClick={() => setSelectToggle(!selectToggle)}
-          className="flex flex-col gap-2 mb-3 relative"
+          className="flex flex-col gap-1 mb-3 relative"
         >
           <label htmlFor="" className="text-start text-white">
             Registered Vehicles
           </label>
           <select
             {...register("car")}
-            className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded text-white"
+            className="appearance-none outline-none border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded text-white"
           >
             <option value="" className="txt-color">
               Select Vehicle
@@ -143,47 +143,47 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             <icons.down className="absolute top-13 right-4 txt-color" />
           )}
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex flex-col gap-1 mb-3">
           <label htmlFor="" className="text-start text-white">
             Cost of Maintenance
           </label>
           <input
             {...register("costOfMaintenance")}
-            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
+            className="placeholder-white border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Sedan"
           />
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex flex-col gap-1 mb-3">
           <label htmlFor="" className="text-start text-white">
             Type of Maintenance
           </label>
           <input
             {...register("typeOfMaintenance")}
-            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
+            className="placeholder-white border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex flex-col gap-1 mb-3">
           <label htmlFor="" className="text-start text-white">
             location
           </label>
 
           <input
             {...register("location")}
-            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
+            className="placeholder-white border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex flex-col gap-1 mb-3">
           <label htmlFor="" className="text-start text-white">
             Maintained By
           </label>
           <input
             {...register("maintainedBy")}
-            className="placeholder-white border py-4 px-4 border-gray-400 rounded text-white"
+            className="placeholder-white border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -193,7 +193,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-2 mb-3">
+        <div className="flex flex-col gap-1 mb-3">
           <label htmlFor="" className="text-start text-white">
             Status
           </label>
@@ -201,7 +201,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             defaultValue={"On Maintenance"}
             {...register("status")}
             disabled
-            className="placeholder-white  text-white border py-4 px-4 border-gray-400 rounded"
+            className="placeholder-white  text-white border py-2 xl:py-4 px-2 xl:px-4 border-gray-400 rounded"
             type="text"
             placeholder="EX:ABC-1234"
           />
