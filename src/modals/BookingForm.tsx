@@ -22,16 +22,34 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     resolver: zodResolver(RenterFormSchema),
   });
 
-    const selectedPlate= watch("carPlateNumber")
+  const selectedPlate= watch("carPlateNumber")
+  const uploadFile = async (file: File, bucket: string, folder?:string) => {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${crypto.randomUUID()}.${fileExt}`;
+  const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+  const { error } = await supabase.storage.from(bucket).upload(filePath, file);
+  if (error) throw error;
+  const {data} = supabase.storage.from(bucket).getPublicUrl(filePath);
+  return data.publicUrl
+}
+
 
   const onSubmit = async (data: RenterFormData) => {
+    
+    const validIdUrl = data.validId?.[0] ? await uploadFile(data.validId[0], "valid_id") : null
+    const agreementPhotoUrl = data.agreementPhoto?.[0] ? await uploadFile(data.agreementPhoto[0], "agreement_photo") : null
+    const uploadedProofUrls = data.uploadedProof ? await Promise.all(
+      Array.from(data.uploadedProof).map((file) => uploadFile(file, "uploaded_proof"))
+    ) : null;
+
     const { data: renter, error: renterError } = await supabase
       .from("renters")
       .insert({
         fullName: data.fullName,
         address: data.address,
         license_id_number: data.licenseNumber,
-        valid_id_photo: data.validId,
+        valid_id_photo: validIdUrl,
         pagibig_no: data.pagIbigNumber,
         sss_no: data.sssNumber,
         tin_no: data.tinNumber,
@@ -67,9 +85,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         plate_no: data.vehicleLeftPlateNumber,
         model: data.vehicleLeftModel,
         type_no: data.vehicleLeftType,
-        agreement_photo: data.agreementPhoto,
+        agreement_photo: agreementPhotoUrl,
         notes: data.notes,
-        uploaded_proof: data.uploadedProof,
+        uploaded_proof: uploadedProofUrls,
         is_reservation: data.isReservation,
       });
 
@@ -143,7 +161,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("fullName")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:John Doe"
               />
@@ -159,7 +177,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("address")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:110 Maligaya St."
               />
@@ -172,7 +190,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("licenseNumber")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -181,11 +199,13 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               <label htmlFor="" className=" text-start text-white">
                 Valid id
               </label>
-              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
+              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                 <input
-                  {...register("validId")}
+                  {...register("validId", 
+                  )}
                   className="text-gray-600 w-full"
                   type="file"
+                  accept="image/*"
                 />
                 <icons.upload className="absolute right-3 txt-color" />
               </div>
@@ -199,7 +219,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("pagIbigNumber")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -210,7 +230,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("sssNumber")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -223,7 +243,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("tinNumber")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -235,7 +255,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("philHealthNumber")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -252,7 +272,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 >
                   <option value="" className="txt-color">Select Vehicle</option>
                   {vehicles.map((vehicle) => (
-                    <option className="txt-color" key={vehicle.id} value={vehicle.plate_no}>
+                    <option className="text-white" key={vehicle.id} value={vehicle.plate_no}>
                       {vehicle.plate_no}
                     </option>
                   ))}
@@ -301,7 +321,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("totalPriceRent")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: 2000"
                     />
                   </div>
@@ -312,7 +332,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("downPayment")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex:1000"
                     />
                   </div>
@@ -400,7 +420,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               <div className="flex flex-col gap-5 w-full">
                 <p className=" text-start text-white text-primary">
                   Vehicle left in the garage of renter
-                  <span className="text-sm text-gray-400  text-start  text-primary">
+                  <span className="text-sm   text-start  text-white">
                     (optional)
                   </span>
                 </p>
@@ -413,7 +433,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <input
                         {...register("vehicleLeftPlateNumber")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         placeholder="Ex:ABC-1234"
                       />
                     </div>
@@ -424,7 +444,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <input
                         {...register("vehicleLeftModel")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         placeholder="Ex:Civic LX"
                       />
                     </div>
@@ -436,7 +456,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </label>
                       <input
                         {...register("vehicleLeftType")}
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         type="text"
                         placeholder="Ex:N01-23-456789"
                       />
@@ -445,11 +465,12 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <label htmlFor="" className=" text-start text-white">
                         Agreement <span>(photo)</span> signed documents
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
+                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                         <input
                           {...register("agreementPhoto")}
                           className="text-gray-600 w-full"
                           type="file"
+                          accept="image/*"
                         />
                         <icons.upload className="absolute right-3 txt-color" />
                       </div>
@@ -462,7 +483,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </label>
                       <textarea
                       {...register("notes")}
-                        className="appearance-none outline-none border border-gray-400 rounded placeholder-gray-400  px-4 py-4"
+                        className="appearance-none outline-none border border-gray-400 rounded placeholder-gray-400  px-4 py-4 text-white"
                         placeholder="Ex: Renter is on time"
                       ></textarea>
                     </div>
@@ -471,8 +492,8 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Uploaded pictures of proof the whole transactions{" "}
                         <span>(others)</span>
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 ">
-                        <input className="text-gray-600" type="file" />
+                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
+                        <input {...register("uploadedProof")} className="text-gray-600" type="file" accept="image/*" multiple />
                         <icons.upload className="absolute right-3 txt-color" />
                       </div>
                     </div>

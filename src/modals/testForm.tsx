@@ -8,6 +8,7 @@ const TestForm = () => {
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
+  const [selectedImage, setSelectedImage] = useState<string[]>([])
   const {
     register,
     handleSubmit,
@@ -17,6 +18,25 @@ const TestForm = () => {
   } = useForm({
     resolver: zodResolver(TestFormSchema),
   });
+
+
+
+  const fileChange = (event:React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    if(!files.length) return;
+    const imageUrl = files.map((file) => URL.createObjectURL(file))
+    setSelectedImage(prev => {
+      prev.forEach(url => URL.revokeObjectURL(url))
+      return imageUrl
+    })
+  } 
+
+
+  useEffect(() => {
+    return () => {
+      selectedImage.forEach(url => URL.revokeObjectURL(url))
+    }
+  },[selectedImage])
 
 const selectedPlate = watch("plate_no")
 const uploadFile = async (file: File, bucket: string, folder?:string) => {
@@ -32,7 +52,15 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
 
   const onSubmit = async (data:TestFormData) => {
     try {
-      const validIdUrl = data.valid_id?.[0] ? await uploadFile(data.valid_id[0], "valid_id") : null
+      const files = data.valid_id
+
+      if(!files || files.length === 0){
+        console.log('No Selected Images')
+      }
+
+      const validIdUrl = await Promise.all(
+        Array.from(files).map(file => uploadFile(file, "valid_id"))
+      )
 
       const {data: renter, error} = await supabase.from("test").insert({
         full_name: data.full_name,
@@ -98,11 +126,20 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
         <div>
           <label htmlFor="">Valid Id</label>
           <input
-          {...register("valid_id")}
+          {...register("valid_id",{
+            onChange:fileChange
+          })
+          }
             type="file"
+            multiple
             placeholder="fullname"
             className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
           />
+          <div className="flex">
+              {selectedImage.map((url,index) => (
+          <img  key={index} alt=""  src={url} width={200} height={200}/>
+          ))}
+          </div>
         </div>
 
         <div>

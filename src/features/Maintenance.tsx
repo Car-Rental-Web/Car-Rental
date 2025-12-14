@@ -59,7 +59,7 @@ const Maintenance = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [open]);
 
   const handleUpdate = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
