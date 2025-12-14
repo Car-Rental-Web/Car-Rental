@@ -6,11 +6,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RenterFormSchema, type RenterFormData } from "../schema/schema";
 import { supabase } from "../utils/supabase";
+import { toast } from "react-toastify";
 
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
   const [loading, setIsLoading] = useState(false);
-  const [vehicles, setVehicles] = useState<{id:string; plate_no:string; model:string; type:string}[]>([]);
+  const [vehicles, setVehicles] = useState<
+    { id: string; plate_no: string; model: string; type: string }[]
+  >([]);
 
   const {
     register,
@@ -22,77 +25,137 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     resolver: zodResolver(RenterFormSchema),
   });
 
-  
-  const uploadFile = async (file: File, bucket: string, folder?:string) => {
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${fileExt}`;
-  const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-  const { error } = await supabase.storage.from(bucket).upload(filePath, file);
-  if (error) throw error;
-  
-  const {data} = supabase.storage.from(bucket).getPublicUrl(filePath);
-  return data.publicUrl
-}
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      const { data, error } = await supabase
+        .from("vehicle")
+        .select("id, plate_no ,model, type");
 
+      if (error) {
+        console.log("Error fetching Vehicles", error);
+        return;
+      }
+      setVehicles(data);
+    };
+    fetchVehicle();
+  }, []);
 
-  const onSubmit = async (data: RenterFormData) => {
-    
-    // const validIdUrl = data.valid_id?.[0] ? await uploadFile(data.valid_id[0], "valid_id") : null
-    // const agreementPhotoUrl = data.agreement_photo?.[0] ? await uploadFile(data.agreement_photo[0], "agreement_photo") : null
-    // const uploadedProofUrls = data.uploaded_proof ? await Promise.all(
-    //   Array.from(data.uploaded_proof).map((file) => uploadFile(file, "uploaded_proof"))
-    // ) : null;
+   const selectedPlate = watch("car_plate_number");
+  useEffect(() => {
+    if (!selectedPlate) {
+      setValue("car_model", "");
+      setValue("car_type", "");
+    }
+    const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate);
+
+    if (selectedVehicle) {
+      setValue("car_model", selectedVehicle.model);
+      setValue("car_type", selectedVehicle.type);
+    }
+  }, [selectedPlate, vehicles, setValue]);
+
+  const uploadFile = async (file: File, bucket: string, folder?: string) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+    if (error) throw error;
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return data.publicUrl;
   };
 
-  useEffect(() => {
-      const fetchVehicle = async () => {
-        const {data, error} = await supabase.from('vehicle').select('id, plate_no ,model, type')
+  const onSubmit = async (data: RenterFormData) => {
+    try {
+      setIsLoading(true);
+      const validIdUrl = data.valid_id?.[0]
+        ? await uploadFile(data.valid_id[0], "valid_id")
+        : null;
+      const agreementPhotoUrl = data.agreement_photo?.[0]
+        ? await uploadFile(data.agreement_photo[0], "agreement_photo")
+        : null;
+      const uploadedProofUrls = data.uploaded_proof
+        ? await Promise.all(
+            Array.from(data.uploaded_proof).map((file) =>
+              uploadFile(file, "uploaded_proof")
+            )
+          )
+        : null;
+      console.log(data);
+      const { data: bookings, error } = await supabase.from("booking").insert({
+        full_name: data.full_name,
+        address: data.address,
+        license_number: data.license_number,
+        valid_id: validIdUrl,
+        pagibig_number: data.pagibig_number,
+        sss_number: data.sss_number,
+        tin_number: data.tin_number,
+        philhealth_number: data.philhealth_number,
+        car_plate_number: data.car_plate_number,
+        car_model: data.car_model,
+        car_type: data.car_type,
+        total_price_rent: data.total_price_rent,
+        downpayment: data.downpayment,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        type_of_rent: data.type_of_rent,
+        location: data.location,
+        vehicle_left_plate_number: data.vehicle_left_plate_number,
+        vehicle_left_model: data.vehicle_left_model,
+        vehicle_left_type: data.vehicle_left_type,
+        agreement_photo: agreementPhotoUrl,
+        notes: data.notes,
+        uploaded_proof: uploadedProofUrls,
+        is_reservation: data.is_reservation,
+      });
 
-        if(error) {
-          console.log('Error fetching Vehicles', error)
-          return
-        }
-        setVehicles(data)
+      if (error) {
+        console.log("Error adding renter:", error);
+        toast.error("Error adding renter:" + error.message);
+        return;
       }
-      fetchVehicle()
-  },[])
-
-
-  const selectedPlate= watch("car_plate_number")
-  useEffect(() => {
-
-    if(!selectedPlate) {
-      setValue("car_model", "")
-      setValue("car_type", "")
+      console.log("Renter added successfully:", bookings);
+      toast.success("Renter added successfully");
+    } catch (error) {
+      console.log("Error adding renter:", error);
+      toast.error("Error adding renter");
+    } finally {
+      setIsLoading(false);
+      onClose();
     }
-    const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate)
+  };
 
-    if(selectedVehicle) {
-      setValue("car_model", selectedVehicle.model)
-      setValue("car_type", selectedVehicle.type)
-    }
-  },[selectedPlate,vehicles,setValue])
 
+ 
 
   if (!open) return null;
 
   return (
     <div className="absolute  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center">
       <form
-        onSubmit={handleSubmit(onSubmit)}
-        onClick={(e) => e.stopPropagation()}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onSubmit)(e);
+        }}
         action=""
         className="h-4/5 overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
           <div>
             <ModalButton onclick={onClose} />
-            <p className=" text-start text-white text-primary">Renter Information</p>
+            <p className=" text-start text-white text-primary">
+              Renter Information
+            </p>
           </div>
           <div className="flex w-full justify-around items-center gap-5 ">
             <div className="flex flex-col w-full gap-1 ">
-              <label htmlFor="" className=" text-start text-white">
+              <label className=" text-start text-white">
                 Fullname
               </label>
               <input
@@ -137,8 +200,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                 <input
-                  {...register("valid_id", 
-                  )}
+                  {...register("valid_id")}
                   className="text-gray-600 w-full"
                   type="file"
                   accept="image/*"
@@ -154,7 +216,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 <span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
-                {...register("pagIbigNumber")}
+                {...register("pagibig_number")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
@@ -165,7 +227,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 SSS No.<span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
-                {...register("sssNumber")}
+                {...register("sss_number")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
@@ -178,7 +240,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 Tin No.<span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
-                {...register("tinNumber")}
+                {...register("tin_number")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
@@ -190,7 +252,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 <span className="text-sm text-gray-400">(optional)</span>
               </label>
               <input
-                {...register("philHealthNumber")}
+                {...register("philhealth_number")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
@@ -200,15 +262,26 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           <div className="flex flex-col w-full gap-3">
             <p className=" text-start text-white text-primary">Car Rented</p>
             <div className="flex  justify-around items-center w-full gap-3">
-              <div onClick={() => setSelectToggle(!selectToggle)} className="flex flex-col w-full relative ">
-                <label htmlFor="" className="text-start text-white">Plate #</label>
+              <div
+                onClick={() => setSelectToggle(!selectToggle)}
+                className="flex flex-col w-full relative "
+              >
+                <label htmlFor="" className="text-start text-white">
+                  Plate #
+                </label>
                 <select
-                  {...register("carPlateNumber")}
+                  {...register("car_plate_number")}
                   className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
                 >
-                  <option value="" className="txt-color">Select Vehicle</option>
+                  <option value="" className="txt-color">
+                    Select Vehicle
+                  </option>
                   {vehicles.map((vehicle) => (
-                    <option className="text-white" key={vehicle.id} value={vehicle.plate_no}>
+                    <option
+                      className="text-white"
+                      key={vehicle.id}
+                      value={vehicle.plate_no}
+                    >
                       {vehicle.plate_no}
                     </option>
                   ))}
@@ -217,15 +290,15 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   <icons.up className="absolute bottom-5 right-4 txt-color" />
                 ) : (
                   <icons.down className="absolute bottom-5 right-4 txt-color" />
-             )}
+                )}
               </div>
               <div className="flex flex-col w-full">
                 <label htmlFor="" className=" text-start text-white">
                   Model
                 </label>
                 <input
-                disabled
-                  {...register("carModel")}
+                  readOnly
+                  {...register("car_model")}
                   type="text"
                   placeholder="Ex:Civic LX"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -236,8 +309,8 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   Type
                 </label>
                 <input
-                disabled
-                  {...register("carType")}
+                  readOnly
+                  {...register("car_type")}
                   type="text"
                   placeholder="Ex: Sedan"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -246,7 +319,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
             </div>
           </div>
           <div className="flex flex-col w-full gap-5">
-            <p className=" text-start text-white text-primary">Location Visting</p>
+            <p className=" text-start text-white text-primary">
+              Location Visting
+            </p>
             <div>
               <div className="flex flex-col gap-5">
                 <div className="flex w-full justify-around gap-5">
@@ -255,7 +330,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Total Price
                     </label>
                     <input
-                      {...register("totalPriceRent")}
+                      {...register("total_price_rent")}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: 2000"
@@ -266,7 +341,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Downpayment
                     </label>
                     <input
-                      {...register("downPayment")}
+                      {...register("downpayment")}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex:1000"
@@ -279,7 +354,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Date
                     </label>
                     <input
-                      {...register("startDate")}
+                      {...register("start_date")}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -289,7 +364,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Date
                     </label>
                     <input
-                      {...register("endDate")}
+                      {...register("end_date")}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -301,7 +376,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Time
                     </label>
                     <input
-                      {...register("startTime")}
+                      {...register("start_time")}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -311,7 +386,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Time
                     </label>
                     <input
-                      {...register("endTime")}
+                      {...register("end_time")}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -326,17 +401,21 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Type of Rent
                     </label>
                     <select
-                      {...register("typeOfRent")}
+                      {...register("type_of_rent")}
                       name=""
                       id=""
                       className="border py-4 px-4 border-gray-400 rounded text-gray-400  appearance-none outline-none"
                     >
-                      <option value="">Self Drive</option>
-                      <option value="">With Driver</option>
+                      <option value="self_drive">Self Drive</option>
+                      <option value="with_driver">With Driver</option>
                     </select>
                     <div className="absolute top-12 right-3">
                       {" "}
-                      {selectToggle ? <icons.up className=" txt-color" /> : <icons.down className=" txt-color" />}
+                      {selectToggle ? (
+                        <icons.up className=" txt-color" />
+                      ) : (
+                        <icons.down className=" txt-color" />
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col w-full gap-1">
@@ -346,7 +425,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("location")}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: Baguio"
                     />
                   </div>
@@ -367,7 +446,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Plate #
                       </label>
                       <input
-                        {...register("vehicleLeftPlateNumber")}
+                        {...register("vehicle_left_plate_number")}
                         type="text"
                         className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         placeholder="Ex:ABC-1234"
@@ -378,7 +457,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Model
                       </label>
                       <input
-                        {...register("vehicleLeftModel")}
+                        {...register("vehicle_left_model")}
                         type="text"
                         className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         placeholder="Ex:Civic LX"
@@ -391,7 +470,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Type
                       </label>
                       <input
-                        {...register("vehicleLeftType")}
+                        {...register("vehicle_left_type")}
                         className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                         type="text"
                         placeholder="Ex:N01-23-456789"
@@ -403,7 +482,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </label>
                       <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                         <input
-                          {...register("agreementPhoto")}
+                          {...register("agreement_photo")}
                           className="text-gray-600 w-full"
                           type="file"
                           accept="image/*"
@@ -418,7 +497,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         Notes
                       </label>
                       <textarea
-                      {...register("notes")}
+                        {...register("notes")}
                         className="appearance-none outline-none border border-gray-400 rounded placeholder-gray-400  px-4 py-4 text-white"
                         placeholder="Ex: Renter is on time"
                       ></textarea>
@@ -429,24 +508,28 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         <span>(others)</span>
                       </label>
                       <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
-                        <input {...register("uploadedProof")} className="text-gray-600" type="file" accept="image/*" multiple />
+                        <input
+                          {...register("uploaded_proof")}
+                          className="text-gray-600"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                        />
                         <icons.upload className="absolute right-3 txt-color" />
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col items-start">
-                    <label htmlFor="">
-                      Add as reservation{" "}
-                      <span className="text-primary">
-                        (Note: if checked this will add the record as a
-                        reservation)
-                      </span>
+                  <div onClick={() => setSelectToggle((t) => !t)} className=" flex relative flex-col w-full gap-1">
+                    <label htmlFor="" className="text-white text-start">
+                        Status
                     </label>
-                    <input
-                    {...register("isReservation")}
-                      type="checkbox"
-                      className="border border-blue-500 py-3 px-3 rounded placeholder-gray-400  cursor-pointer"
-                    />
+                    <select name="" id="" className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
+                      <option value="on_service" className="txt-color">On Service</option>
+                      <option value="on_reservation" className="txt-color">On Reservation</option>
+                    </select>
+                     <div className="absolute top-12 right-3 txt-color">
+                {selectToggle? <icons.up /> : <icons.down />}
+                      </div>
                   </div>
                 </div>
                 <div className=" text-center pb-4">

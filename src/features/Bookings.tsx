@@ -10,155 +10,15 @@ import icons from "../constants/icon";
 import { CustomButtons } from "../components/CustomButtons";
 import { BookingForm } from "../modals";
 import { useModalStore } from "../store/useModalStore";
+import { supabase } from "../utils/supabase";
 
-const staticData: DataBookingProps[] = [
-  {
-    id: 1,
-    name: "Vince",
-    license: "D12-34-567890",
-    carType: "Honda",
-    model: "Cr-V",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 2,
-    name: "Martin Bautista",
-    license: "D12-34-567890",
-    carType: "Toyota",
-    model: "Vios",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "Ended",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 3,
-    name: "Marthy Gomez",
-    license: "D12-34-567890",
-    carType: "Ford",
-    model: "Raptor",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "with Driver",
-    status: "Reserved",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 4,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 5,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "with Driver",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 6,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "with Driver",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 7,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 8,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 9,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "Reserved",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 10,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 11,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    carType: "Hyundai",
-    model: "Santa Fe",
-    startDate: new Date(),
-    endDate: new Date(),
-    location: "Angeles",
-    typeOfRent: "self-drive",
-    status: "On Service",
-    action: <BsThreeDots />,
-  },
-];
+
 
 const Bookings = () => {
-  const [records, setRecords] = useState(staticData);
+  const [records, setRecords] = useState<DataBookingProps[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataBookingProps[]>(
+      []
+    );
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
@@ -170,7 +30,14 @@ const Bookings = () => {
   }, [onClose]);
 
   useEffect(() => {
-    let result = filterData(debounceSearchTerm, staticData, [
+      const fetchBookingData = async () => {
+        const {data, error} = await supabase.from('booking').select('fullname,license_number,car_model, car_type,start_date,end_date,start_time,end_time,location,type_of_rent,')
+      }
+  })
+
+
+  useEffect(() => {
+    let result = filterData(debounceSearchTerm, filterRecords, [
       "carType",
       "model",
       "startDate",
@@ -185,7 +52,7 @@ const Bookings = () => {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
-  }, [debounceSearchTerm, selectValue]);
+  }, [debounceSearchTerm, selectValue, filterRecords]);
 
   const columns = [
     {

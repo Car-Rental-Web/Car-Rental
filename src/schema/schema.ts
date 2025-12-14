@@ -29,7 +29,6 @@ export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 export const MaintenanceFormSchema = z.object({
   date: z
     .string()
-    .min(1, "Date is required")
     .transform((v) => new Date(v)),
 
   car: z.string().min(1, "Vehicle is required"),
@@ -38,7 +37,6 @@ export const MaintenanceFormSchema = z.object({
 
   costOfMaintenance: z
     .string()
-    .min(1, "Cost is required")
     .transform((v) => Number(v)),
   location: z.string().min(1),
   maintainedBy: z.string().min(1),
@@ -73,10 +71,12 @@ export const RenterFormSchema = z.object({
   car_plate_number: z.string(),
   car_model: z.string(),
   car_type: z.string(),
-  total_price_rent: z.number(),
-  downpayment: z.number(),
-  start_date: z.date(),
-  end_date: z.date(),
+  total_price_rent: z.string().transform((v) => Number(v)),
+  downpayment: z.z.string().transform((v) => Number(v)),
+  start_date:  z.string()
+    .transform((v) => new Date(v)),
+  end_date:  z.string()
+    .transform((v) => new Date(v)),
   start_time: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"),
   end_time: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"),
   type_of_rent: z.string(),
@@ -87,7 +87,7 @@ export const RenterFormSchema = z.object({
   agreement_photo: z.instanceof(FileList).optional(),
   notes: z.string().optional(),
   uploaded_proof: z.instanceof(FileList).optional(),
-  is_reservation: z.boolean().optional(),
+  status: z.string().min(1),
 });
 
 export type RenterFormData = z.infer<typeof RenterFormSchema>;

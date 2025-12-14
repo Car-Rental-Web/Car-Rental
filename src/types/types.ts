@@ -64,9 +64,11 @@ export interface DataBookingProps {
   model:string
   startDate: Date
   endDate:Date
+  startTime:string;
+  endTime:string;
   location:string
   typeOfRent: "self-drive" | "with Driver"
-  status: "On Service" | "Ended" | "Reserved"
+  status: string | null
   action: React.ReactNode
  }
 
