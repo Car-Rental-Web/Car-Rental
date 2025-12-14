@@ -169,7 +169,7 @@ const RenterHistory = () => {
   ];
 
   return (
-    <div className="w-full h-screen  overflow-y-auto flex flex-col gap-5  pt-12 px-6 bg-body">
+    <div className="w-full h-screen  overflow-y-auto flex flex-col gap-5 pb-2  pt-12 px-6 bg-body">
       <div className="">
         <p className="text-5xl font-semibold text-gray-300 tracking-wide mb-5">
           Renter History

@@ -27,6 +27,7 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { RiLayoutHorizontalLine } from "react-icons/ri";
 import { IoCarSportSharp } from "react-icons/io5";
+import { IoCheckmarkDoneCircleSharp } from "react-icons/io5";
 
 
 
@@ -61,6 +62,8 @@ const icons = {
     closeEye:FaEyeSlash ,
     all: RiLayoutHorizontalLine,
     car:IoCarSportSharp,
+    completed:IoCheckmarkDoneCircleSharp,
+    
 
 }
 

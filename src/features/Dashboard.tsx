@@ -3,12 +3,12 @@ import Card from "../components/Card";
 import icons from "../constants/icon";
 const Dashboard = () => {
   return (
-    <div className=" w-full bg-body  min-h-screen  py-2 pt-12 px-2 2xl:px-3">
+    <div className=" w-full bg-body  min-h-screen  pb-2 pt-12 px-2 2xl:px-3">
       <p className="text-5xl font-semibold text-gray-300 tracking-wide mb-5">
         Overview
       </p>
       <div className="flex flex-col gap-2 ">
-        <div className="flex flex-col 2xl:flex-row w-full gap-3 ">
+        <div className="flex flex-col sm:flex-row w-full gap-3 ">
           <Card
             className="bg-border w-full"
             title="Renters"
@@ -32,7 +32,7 @@ const Dashboard = () => {
             <ReactChartLine height={150} width={300} />
           </div>
         </div>
-        <div className="flex flex-col 2xl:flex-row  gap-3  w-full">
+        <div className="flex flex-col sm:flex-row  gap-3  w-full">
           <div className="w-full border border-gray-400 rounded px-3">
             <p className="pl-2 pt-2 text-gray-200">Monthly Renters</p>
             <ReactChartLine height={250} width={400} />

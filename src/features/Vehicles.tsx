@@ -140,7 +140,7 @@ const Vehicles = () => {
   ];
 
   return (
-    <div className="w-full relative min-h-screen overflow-y-auto px-6 pt-12 bg-body">
+    <div className="w-full relative min-h-screen overflow-y-auto px-6 pt-12 pb-2 bg-body">
       <p className=" text-5xl font-extrabold  tracking-wide mb-5 text-gray-300">
         Vehicles
       </p>

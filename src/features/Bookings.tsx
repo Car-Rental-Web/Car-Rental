@@ -167,7 +167,7 @@ const Bookings = () => {
 
   useEffect(() => {
     onClose();
-  }, []);
+  }, [onClose]);
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, staticData, [
@@ -256,7 +256,7 @@ const Bookings = () => {
       name: "Status",
       cell: (row: DataBookingProps) => (
         <span
-          className={`text-[8px] xl:text-xs text-center px-4 py-1 ${
+          className={` rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
             row.status === "On Service"
               ? "bg-green-800 text-white  rounded-full w-full text-center"
               : row.status === "Reserved"
@@ -276,7 +276,7 @@ const Bookings = () => {
     },
   ];
   return (
-    <div className="w-full relative min-h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 px-6 bg-body">
+    <div className="w-full relative min-h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 pb-2 px-6 bg-body">
       <div className="">
         <p className="text-5xl font-semibold text-gray-300 tracking-wide pb-5">
           Bookings

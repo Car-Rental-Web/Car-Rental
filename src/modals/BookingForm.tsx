@@ -22,7 +22,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     resolver: zodResolver(RenterFormSchema),
   });
 
-  const selectedPlate= watch("carPlateNumber")
+  
   const uploadFile = async (file: File, bucket: string, folder?:string) => {
   const fileExt = file.name.split(".").pop();
   const fileName = `${crypto.randomUUID()}.${fileExt}`;
@@ -30,6 +30,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
   const { error } = await supabase.storage.from(bucket).upload(filePath, file);
   if (error) throw error;
+  
   const {data} = supabase.storage.from(bucket).getPublicUrl(filePath);
   return data.publicUrl
 }
@@ -37,78 +38,12 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
   const onSubmit = async (data: RenterFormData) => {
     
-    const validIdUrl = data.validId?.[0] ? await uploadFile(data.validId[0], "valid_id") : null
-    const agreementPhotoUrl = data.agreementPhoto?.[0] ? await uploadFile(data.agreementPhoto[0], "agreement_photo") : null
-    const uploadedProofUrls = data.uploadedProof ? await Promise.all(
-      Array.from(data.uploadedProof).map((file) => uploadFile(file, "uploaded_proof"))
-    ) : null;
-
-    const { data: renter, error: renterError } = await supabase
-      .from("renters")
-      .insert({
-        fullName: data.fullName,
-        address: data.address,
-        license_id_number: data.licenseNumber,
-        valid_id_photo: validIdUrl,
-        pagibig_no: data.pagIbigNumber,
-        sss_no: data.sssNumber,
-        tin_no: data.tinNumber,
-        philhealth_no: data.philHealthNumber,
-      })
-      .select()
-      .single();
-
-    const { data: carRented, error: carRentedError } = await supabase
-      .from("car_rented")
-      .insert({
-        plate_no: data.carPlateNumber,
-        model: data.carModel,
-        type: data.carType,
-      })
-      .select()
-      .single();
-    const { data: renterLocation, error: renterLocationError } = await supabase
-      .from("renter_location_visiting")
-      .insert({
-        total_price: data.totalPriceRent,
-        down_payment: data.downPayment,
-        start_date: data.startDate,
-        end_date: data.endDate,
-        start_time: data.startTime,
-        end_time: data.endTime,
-        type_of_rent: data.typeOfRent,
-        location: data.location,
-      });
-
-    const { data: garageLeftVehicle, error: garageLeftVehicleError } =
-      await supabase.from("garage_renter").insert({
-        plate_no: data.vehicleLeftPlateNumber,
-        model: data.vehicleLeftModel,
-        type_no: data.vehicleLeftType,
-        agreement_photo: agreementPhotoUrl,
-        notes: data.notes,
-        uploaded_proof: uploadedProofUrls,
-        is_reservation: data.isReservation,
-      });
-
-    if (
-      renterError ||
-      carRentedError ||
-      renterLocationError ||
-      garageLeftVehicleError
-    ) {
-      setIsLoading(false);
-      console.log("Error adding renter:", renterError || carRentedError);
-      return;
-    }
-    console.log("Renter added successfully:", renter);
-    console.log("Renter added successfully:", carRented);
-    console.log("Renter added successfully:", renterLocation);
-    console.log("Renter added successfully:", garageLeftVehicle);
-    setIsLoading(false);
-    onClose();
+    // const validIdUrl = data.valid_id?.[0] ? await uploadFile(data.valid_id[0], "valid_id") : null
+    // const agreementPhotoUrl = data.agreement_photo?.[0] ? await uploadFile(data.agreement_photo[0], "agreement_photo") : null
+    // const uploadedProofUrls = data.uploaded_proof ? await Promise.all(
+    //   Array.from(data.uploaded_proof).map((file) => uploadFile(file, "uploaded_proof"))
+    // ) : null;
   };
-
 
   useEffect(() => {
       const fetchVehicle = async () => {
@@ -124,17 +59,18 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   },[])
 
 
+  const selectedPlate= watch("car_plate_number")
   useEffect(() => {
 
     if(!selectedPlate) {
-      setValue("carModel", "")
-      setValue("carType", "")
+      setValue("car_model", "")
+      setValue("car_type", "")
     }
     const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate)
 
     if(selectedVehicle) {
-      setValue("carModel", selectedVehicle.model)
-      setValue("carType", selectedVehicle.type)
+      setValue("car_model", selectedVehicle.model)
+      setValue("car_type", selectedVehicle.type)
     }
   },[selectedPlate,vehicles,setValue])
 
@@ -160,14 +96,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 Fullname
               </label>
               <input
-                {...register("fullName")}
+                {...register("full_name")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:John Doe"
               />
-              {errors.fullName && (
+              {errors.full_name && (
                 <p className="text-red-500  text-start ">
-                  {errors.fullName.message}
+                  {errors.full_name.message}
                 </p>
               )}
             </div>
@@ -189,7 +125,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 License id / Number
               </label>
               <input
-                {...register("licenseNumber")}
+                {...register("license_number")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 type="text"
                 placeholder="Ex:N01-23-456789"
@@ -201,7 +137,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                 <input
-                  {...register("validId", 
+                  {...register("valid_id", 
                   )}
                   className="text-gray-600 w-full"
                   type="file"
