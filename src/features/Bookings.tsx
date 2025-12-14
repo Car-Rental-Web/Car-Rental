@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import TableData from "../components/TableData";
 import type { DataBookingProps } from "../types/types";
-import { BsThreeDots } from "react-icons/bs";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import SearchBar from "../components/SearchBar";
@@ -128,7 +127,7 @@ const Bookings = () => {
               ? "bg-green-800 text-white  rounded-full w-full text-center"
               : row.status === "Reserved"
               ? " bg-blue-900   rounded-full text-white w-full text-center"
-              : row.status === "Ended"
+              : row.status === "Completed"
               ? "bg-red-900 text-white  rounded-full w-full text-center"
               : "text-gray-400"
           }`}
