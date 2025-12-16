@@ -68,7 +68,7 @@ export const RenterFormSchema = z.object({
   sss_number: z.string().optional(),
   tin_number: z.string().optional(),
   philhealth_number: z.string().optional(),
-  car_plate_number: z.string(),
+  car_plate_number: z.string().min(1, "Please Select A Vehicle"),
   car_model: z.string(),
   car_type: z.string(),
   total_price_rent: z.string().transform((v) => Number(v)),

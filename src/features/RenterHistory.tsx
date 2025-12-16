@@ -8,13 +8,33 @@ import TableData from "../components/TableData";
 import SearchBar from "../components/SearchBar";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
+import { useModalStore } from "../store/useModalStore";
+import DeleteModal from "../modals/DeleteModal";
 
 const RenterHistory = () => {
   const [records, setRecords] = useState<DataRenterProps[]>([]);
   const [filterRecords, setFilterRecords] = useState<DataRenterProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const {open, onOpen, onClose} = useModalStore()
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+
+
+  const handleDelete = async (id:number) => {
+      const {data, error} = await supabase.from('renter').delete().eq("id", id)
+
+      if(error){
+        console.log('Failed to delete', error)
+        toast.error('Failed to delete')
+      }
+      console.log('Delete Successfully', data)
+      toast.success('Deleted Successfully')
+      setRecords((records) => records.filter((row) => row.id !== id))
+      setFilterRecords((records) => records.filter((row) => row.id !== id))
+      onClose()
+  }
+
+
 
   useEffect(() => {
     let mounted = true;
@@ -108,20 +128,13 @@ const RenterHistory = () => {
     },
     {
       name: "Action",
-      cell: (_row: DataRenterProps) => (
+      cell: (row: DataRenterProps) => (
         <div className="flex gap-2">
-          <icons.openEye
-            className="cursor-pointer text-blue-400"
-            // onClick={() => handleView(row)}
-          />
-          <icons.edit
-            className="cursor-pointer text-green-400"
-            // onClick={() => handleUpdate(row.id, row.car)}
-          />
           <icons.trash
             className="cursor-pointer text-red-400"
-            // onClick={() => handleDelete(row.id)}
+            onClick={onOpen}
           />
+          <DeleteModal open={open} onClose={onClose} onClick={() => handleDelete(row.id)}/>
         </div>
       ),
     },

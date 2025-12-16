@@ -453,7 +453,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Location
                     </label>
                     <input
-                      {...register("location")}
+                      {...register("location", {required:true})}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: Baguio"
