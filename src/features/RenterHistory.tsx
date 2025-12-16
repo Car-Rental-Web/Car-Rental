@@ -164,7 +164,7 @@ const RenterHistory = () => {
     },
     {
       name: "Action",
-      cell: (row: DataRenterProps) => (
+      cell: (_row: DataRenterProps) => (
               <div className="flex gap-2">
             <icons.openEye
               className="cursor-pointer text-blue-400"

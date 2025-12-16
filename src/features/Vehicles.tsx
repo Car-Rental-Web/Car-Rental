@@ -135,7 +135,7 @@ const Vehicles = () => {
     },
     {
       name: "Action",
-      cell: (row: DataVehicleProps) => (
+      cell: (_row: DataVehicleProps) => (
               <div className="flex gap-2">
             <icons.openEye
               className="cursor-pointer text-blue-400"

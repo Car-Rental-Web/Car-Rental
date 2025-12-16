@@ -22,6 +22,7 @@ const Bookings = () => {
   const { open, onOpen, onClose } = useModalStore();
   const [loading, setLoading] = useState(false);
 
+  console.log(loading)
   useEffect(() => {
     onClose();
   }, [onClose]);
@@ -187,7 +188,7 @@ const Bookings = () => {
     },
     {
       name: "Action",
-      cell: (row: DataBookingProps) => (
+      cell: (_row: DataBookingProps) => (
         <div className="flex gap-2">
       <icons.openEye
         className="cursor-pointer text-blue-400"
