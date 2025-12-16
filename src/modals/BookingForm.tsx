@@ -124,6 +124,25 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       console.log("Renter added successfully:", bookings);
       toast.success("Renter added successfully");
 
+      const {data:renter, error:renterError} = await supabase.from('renter').select("id, times_rented")
+      .eq("license_number", data.license_number).maybeSingle()
+
+      if(renterError) {
+        console.log('Error', error)
+        toast.error('Error')
+      }
+      if(!renter){
+        await supabase.from('renter').insert({
+          full_name: data.full_name,
+          license_number: data.license_number,
+          times_rented:1,
+          notes: data.notes
+        })
+      } else {
+        await supabase.from('renter').update({times_rented: renter.times_rented +1}).eq("id", renter.id)
+      }
+
+
       const bookingStatus = data.status as "On Service" | "On Reservation" 
       const {data:vehicleData, error:vehicleError} = await supabase.from('vehicle').update({status:bookingStatus}).eq("plate_no", data.car_plate_number)
 
@@ -282,7 +301,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   Plate #
                 </label>
                 <select
-                  {...register("car_plate_number")}
+                  {...register("car_plate_number", {required:true})}
                   className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
                 >
                   <option value="" className="txt-color">
@@ -310,7 +329,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 </label>
                 <input
                   readOnly
-                  {...register("car_model")}
+                  {...register("car_model" , {required:true})}
                   type="text"
                   placeholder="Ex:Civic LX"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -322,7 +341,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 </label>
                 <input
                   readOnly
-                  {...register("car_type")}
+                  {...register("car_type", {required:true})}
                   type="text"
                   placeholder="Ex: Sedan"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -342,7 +361,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Total Price
                     </label>
                     <input
-                      {...register("total_price_rent")}
+                      {...register("total_price_rent", {required:true})}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: 2000"
@@ -353,7 +372,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Downpayment
                     </label>
                     <input
-                      {...register("downpayment")}
+                      {...register("downpayment", {required:true})}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex:1000"
@@ -366,7 +385,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Date
                     </label>
                     <input
-                      {...register("start_date")}
+                      {...register("start_date", {required:true})}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -376,7 +395,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Date
                     </label>
                     <input
-                      {...register("end_date")}
+                      {...register("end_date", {required:true})}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -388,7 +407,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Time
                     </label>
                     <input
-                      {...register("start_time")}
+                      {...register("start_time", {required:true})}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -398,7 +417,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Time
                     </label>
                     <input
-                      {...register("end_time")}
+                      {...register("end_time", {required:true})}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -413,7 +432,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Type of Rent
                     </label>
                     <select
-                      {...register("type_of_rent")}
+                      {...register("type_of_rent", {required:true})}
                       className="border py-4 px-4 border-gray-400 rounded text-gray-400  appearance-none outline-none"
                     >
                       <option value="" >Select Type of Rent</option>
@@ -534,7 +553,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <label htmlFor="" className="text-white text-start">
                         Status
                     </label>
-                    <select {...register("status")} className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
+                    <select {...register("status", {required:true})} className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
                       <option value="">Select Status</option>
                       <option value="On Service" className="txt-color">On Service</option>
                       <option value="On Reservation" className="txt-color">On Reservation</option>

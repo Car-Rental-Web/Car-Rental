@@ -74,11 +74,11 @@ export interface DataBookingProps {
 
  export interface  DataRenterProps {
   id:number;
-  name:string;
-  license:string;
-  lastDateRented:Date;
-  timesRented:string;
-  feedBack:string;
+  full_name:string;
+  license_number:string;
+  // lastDateRented?:Date;
+  times_rented?:number;
+  notes:string;
   action?:React.ReactNode 
  }
 

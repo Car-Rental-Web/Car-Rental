@@ -54,18 +54,18 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
       return;
     }
 
-    const { data: updateVehicle, error: errorUpdate } = await supabase
-      .from("vehicle")
-      .update({ status: "On Maintenance" })
-      .eq("plate_no", data.car);
+    // const { data: updateVehicle, error: errorUpdate } = await supabase
+    //   .from("vehicle")
+    //   .update({ status: "On Maintenance" })
+    //   .eq("plate_no", data.car);
 
-    if (errorUpdate) {
-      setIsLoading(false);
-      console.log("Update error:", errorUpdate);
-      return
-    }
-    setIsLoading(true);
-    console.log("Update Succesfully:", updateVehicle);
+    // if (errorUpdate) {
+    //   setIsLoading(false);
+    //   console.log("Update error:", errorUpdate);
+    //   return
+    // }
+    // setIsLoading(true);
+    // console.log("Update Succesfully:", updateVehicle);
 
     setIsLoading(false);
     console.log("Maintenance added successfully:", maintenance);
@@ -73,12 +73,12 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     onClose();
     reset();
   };
-
+// to fix
   useEffect(() => {
     const fetchVehicles = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no").neq("status", ["On Service", 'On Reservation'])
+        .select("id, plate_no")
 
       if (error) {
         console.log("Error fetching vehicles:", error.message);

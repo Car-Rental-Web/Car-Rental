@@ -1,4 +1,3 @@
-import { BsThreeDots } from "react-icons/bs";
 import Card from "../components/Card";
 import icons from "../constants/icon";
 import type { DataRenterProps } from "../types/types";
@@ -7,182 +6,128 @@ import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import TableData from "../components/TableData";
 import SearchBar from "../components/SearchBar";
-
-const staticData: DataRenterProps[] = [
-  {
-    id: 1,
-    name: "Vince David",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 2,
-    name: "Marvin",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "2",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 3,
-    name: "Martin",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 4,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 5,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "1",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 6,
-    name: "Em Boss",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 7,
-    name: "Marthy Gomez",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 8,
-    name: "Marthy Gomez",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "8",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 9,
-    name: "Marthy Gomez",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "4",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-  {
-    id: 10,
-    name: "Marthy Gomez",
-    license: "D12-34-567890",
-    lastDateRented: new Date(),
-    timesRented: "2",
-    feedBack: "This Driver is on time, makes a good customer",
-    action: <BsThreeDots />,
-  },
-];
+import { supabase } from "../utils/supabase";
+import { toast } from "react-toastify";
 
 const RenterHistory = () => {
-  const [records, setRecords] = useState(staticData);
+  const [records, setRecords] = useState<DataRenterProps[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataRenterProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    const result = filterData(debounceSearchTerm, staticData, [
+    let mounted = true;
+    const fetchRenter = async () => {
+      const { data, error } = await supabase
+        .from("renter")
+        .select("id, full_name, license_number, times_rented,  notes");
+
+      if (!mounted) return;
+
+      const row = data ?? [];
+      const rowData = row.map((item) => ({
+        id: item.id,
+        full_name: item.full_name,
+        times_rented: item.times_rented,
+        license_number: item.license_number,
+        notes: item.notes,
+      }));
+
+      if (error) {
+        toast.error('Error Fetching Data')
+        console.log("Error Fetching Data", error);
+        return;
+      }
+      console.log("Fetch Renters", data);
+      setFilterRecords(rowData);
+      setRecords(rowData);
+    };
+    fetchRenter();
+    return () => {
+      mounted = false;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const result = filterData(debounceSearchTerm, filterRecords, [
       "id",
-      "name",
-      "license",
-      "lastDateRented",
-      "timesRented",
-      "feedBack",
+      "full_name",
+      "license_number",
+      // "lastDateRented",
+      "times_rented",
+      "notes",
     ]);
     setRecords(result);
-  }, [debounceSearchTerm]);
+  }, [debounceSearchTerm, filterRecords]);
+
+
 
   const columns = [
     {
       name: "No.",
-      cell: (row: DataRenterProps) => (
-        <div className="text-center">{row.id}</div>
+      cell: (_row: DataRenterProps, index:number) => (
+        <div className="text-center">{index + 1}</div>
       ),
     },
     {
       name: "Name",
       cell: (row: DataRenterProps) => (
-        <div className="text-center">{row.name}</div>
+        <div className="text-center">{row.full_name}</div>
       ),
     },
     {
       name: "License #",
       cell: (row: DataRenterProps) => (
-        <div className="text-center">{row.license}</div>
+        <div className="text-center">{row.license_number}</div>
       ),
     },
-    {
-      name: "Last Date Rented",
-      cell: (row: DataRenterProps) => (
-        <div className=" w-full text-center">
-          {new Date(row.lastDateRented).toLocaleString("en-US", {
-            month: "2-digit",
-            day: "2-digit",
-            year: "numeric",
-          })}
-        </div>
-      ),
-    },
+    // {
+    //   name: "Last Date Rented",
+    //   cell: (row: DataRenterProps) => (
+    //     <div className=" w-full text-center">
+    //       {new Date(row.lastDateRented).toLocaleString("en-US", {
+    //         month: "2-digit",
+    //         day: "2-digit",
+    //         year: "numeric",
+    //       })}
+    //     </div>
+    //   ),
+    // },
     {
       name: "Times Rented",
       cell: (row: DataRenterProps) => (
-        <div className="text-center w-full">{row.timesRented}</div>
+        <div className="text-center w-full">{row.times_rented}</div>
       ),
     },
     {
       name: "Feedback",
       cell: (row: DataRenterProps) => (
-        <div className="text-center  w-full">{row.feedBack}</div>
+        <div className="text-center  w-full">{row.notes}</div>
       ),
     },
     {
       name: "Action",
       cell: (_row: DataRenterProps) => (
-              <div className="flex gap-2">
-            <icons.openEye
-              className="cursor-pointer text-blue-400"
-              // onClick={() => handleView(row)}
-            />
-            <icons.edit
-              className="cursor-pointer text-green-400"
-              // onClick={() => handleUpdate(row.id, row.car)}
-            />
-            <icons.trash
-              className="cursor-pointer text-red-400"
-              // onClick={() => handleDelete(row.id)}
-            />
-          </div>
-            ),
+        <div className="flex gap-2">
+          <icons.openEye
+            className="cursor-pointer text-blue-400"
+            // onClick={() => handleView(row)}
+          />
+          <icons.edit
+            className="cursor-pointer text-green-400"
+            // onClick={() => handleUpdate(row.id, row.car)}
+          />
+          <icons.trash
+            className="cursor-pointer text-red-400"
+            // onClick={() => handleDelete(row.id)}
+          />
+        </div>
+      ),
     },
   ];
 
+const totalRenter = records.length
   return (
     <div className="w-full h-screen  overflow-y-auto flex flex-col gap-5 pb-2  pt-12 px-6 bg-body">
       <div className="">
@@ -194,7 +139,7 @@ const RenterHistory = () => {
             className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">Renters</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{totalRenter}</span>}
             description="Total Renters"
             topIcon={<icons.person className="text-white text-2xl" />}
           />
@@ -206,7 +151,7 @@ const RenterHistory = () => {
             description="Total Active Renters"
             topIcon={<icons.person className="text-white text-2xl" />}
           />
-          <Card
+          {/* <Card
             className="bg-border w-full"
             title={
               <span className="text-md xl:text-2xl">Inactive Renters</span>
@@ -215,7 +160,7 @@ const RenterHistory = () => {
             amount={<span className="text-6xl">200</span>}
             description="Total Inactive Service"
             topIcon={<icons.person className="text-white text-2xl" />}
-          />
+          /> */}
         </div>
       </div>
       <div className="w-full flex flex-col  px-6 border border-[#055783] py-4 rounded">
