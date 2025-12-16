@@ -11,6 +11,7 @@ import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
+import DeleteModal from "../modals/DeleteModal";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -20,12 +21,79 @@ const Maintenance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
-
 
   useEffect(() => {
     onClose();
   }, [onClose]);
+
+  const handleDelete = async (id: number, vehicleId: string) => {
+    const { data, error } = await supabase
+      .from("maintenance")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.log("Failed to delete", error);
+      toast.error("Failed to delete");
+      return;
+    }
+    setRecords((prev) => prev.filter((row) => row.id !== id));
+    setFilterRecords((prev) => prev.filter((row) => row.id !== id));
+    console.log("Deleted Successfully", data);
+    toast.success("Deleted Successfully");
+    
+    const { data: vehicleData, error: errorStatus } = await supabase
+      .from("vehicle")
+      .update({ status: "Available" })
+      .eq("plate_no", vehicleId);
+
+    if (errorStatus) {
+      console.log("Vehicle Update Error", errorStatus);
+      toast.error("Error Updating");
+    }
+    if (!vehicleData) {
+      console.log("Vehicle status already Available, skipping toast");
+    } else {
+      console.log("Vehicle Update Successfully", vehicleData);
+      toast.success("Update Successfully");
+    }
+    setOpenDelete(false)
+  };
+
+  // const handleUpdate = async (id: number, vehicleId: string) => {
+  //   const { data, error } = await supabase
+  //     .from("maintenance")
+  //     .update({ status: "Maintained" })
+  //     .eq("id", id);
+
+  //   if (error) {
+  //     console.log("Error Updating", error);
+  //   }
+  //   console.log("Update Successfully", data);
+
+  //   const { data: vehicleData, error: errorStatus } = await supabase
+  //     .from("vehicle")
+  //     .update({ status: "Available" })
+  //     .eq("plate_no", vehicleId);
+
+  //   if (errorStatus) {
+  //     console.log("Vehicle Update Error", errorStatus);
+  //     toast.error("Error Updating");
+  //   }
+  //   if (!vehicleData) {
+  //     console.log("Vehicle status already Available, skipping toast");
+  //   } else {
+  //     console.log("Vehicle Update Successfully", vehicleData);
+  //     toast.success("Update Successfully");
+  //   }
+  //   setRecords((prev) =>
+  //     prev.map((row) =>
+  //       row.id === id ? { ...row, status: "Maintained" } : row
+  //     )
+  //   );
+  // };
 
   useEffect(() => {
     let isMounted = true;
@@ -59,39 +127,6 @@ const Maintenance = () => {
     };
   }, [open]);
 
-
-  const handleUpdate = async (id: number, vehicleId: string) => {
-    const { data, error } = await supabase
-      .from("maintenance")
-      .update({ status: "Maintained" })
-      .eq("id", id);
-
-    if (error) {
-      console.log("Error Updating", error);
-    }
-    console.log("Update Successfully", data);
-
-    const { data: vehicleData, error: errorStatus } = await supabase
-      .from("vehicle")
-      .update({ status: "Available" })
-      .eq("plate_no", vehicleId);
-
-    if (errorStatus) {
-      console.log("Vehicle Update Error", errorStatus);
-      toast.error("Error Updating");
-    }
-    if (!vehicleData) {
-      console.log("Vehicle status already Available, skipping toast");
-    } else {
-      console.log("Vehicle Update Successfully", vehicleData);
-      toast.success("Update Successfully");
-    }
-    setRecords((prev) =>
-      prev.map((row) =>
-        row.id === id ? { ...row, status: "Maintained" } : row
-      )
-    );
-  };
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
@@ -179,19 +214,21 @@ const Maintenance = () => {
       name: "Action",
       cell: (row: DataMaintenanceProps) => (
         <div className="flex gap-2">
-      <icons.openEye
-        className="cursor-pointer text-blue-400"
-        // onClick={() => handleView(row)}
-      />
-      <icons.edit
-        className="cursor-pointer text-green-400"
-        onClick={() => handleUpdate(row.id, row.car)}
-      />
-      <icons.trash
-        className="cursor-pointer text-red-400"
-        // onClick={() => handleDelete(row.id)}
-      />
-    </div>
+          <icons.openEye
+            className="cursor-pointer text-blue-400"
+            // onClick={() => handleView(row)}
+          />
+          <icons.edit className="cursor-pointer text-green-400" />
+          <icons.trash
+            className="cursor-pointer text-red-400"
+            onClick={() => setOpenDelete(true)}
+          />
+          <DeleteModal
+            onClose={() => setOpenDelete(false)}
+            onClick={() => handleDelete(row.id, row.car)}
+            open={openDelete}
+          />
+        </div>
       ),
     },
   ];

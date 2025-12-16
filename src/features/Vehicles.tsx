@@ -11,18 +11,60 @@ import { VehicleForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { useModalStore } from "../store/useModalStore";
+import DeleteModal from "../modals/DeleteModal";
+import { toast } from "react-toastify";
 
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
-  const [allrecords, setAllRecords] = useState<DataVehicleProps[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataVehicleProps[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
+    null
+  );
+  const [selectedPlate, setSelectedPlate] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
 
   useEffect(() => {
     onClose();
   }, [onClose]);
+
+  const handleDelete = async (vehicleId: number, plateNumber: string) => {
+    const { data, error } = await supabase
+      .from("vehicle")
+      .delete()
+      .eq("id", vehicleId);
+    if (error) {
+      console.log("Failed to delete");
+      toast.error("Failed to delete");
+      return;
+    }
+
+    console.log("Deleted Successfully", data);
+    toast.success("Delete Successfully");
+    setOpenDelete(false);
+// for deleting maintenance data also
+    const { data: maintenanceData, error: maintenanceError } = await supabase
+      .from("maintenance")
+      .delete()
+      .eq("car", plateNumber);
+
+    if (maintenanceError) {
+      console.log("Error Deleting data in Maintenance");
+      toast.error("Error Deleting data in Maintenance");
+      return;
+    }
+    console.log("Deleted Successfully in Maintenance", maintenanceData);
+    setRecords((records) => records.filter((row) => row.id !== vehicleId));
+    setFilterRecords((records) =>
+      records.filter((row) => row.id !== vehicleId)
+    );
+    setOpenDelete(false);
+    setSelectedVehicleId(null);
+    setSelectedPlate(null);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -46,19 +88,19 @@ const Vehicles = () => {
         action: <BsThreeDots />,
       }));
       setRecords(formattedData);
-      setAllRecords(formattedData);
+      setFilterRecords(formattedData);
       console.log("Fetched vehicles:", data);
     };
     fetchVehicles();
     return () => {
       isMounted = false;
     };
-  }, [open]);
+  }, [open, openDelete]);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
-    let result = filterData(debounceValue, allrecords, [
+    let result = filterData(debounceValue, filterRecords, [
       "model",
       "brand",
       "type",
@@ -71,7 +113,7 @@ const Vehicles = () => {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
-  }, [debounceValue, selectValue, allrecords]);
+  }, [debounceValue, selectValue, filterRecords]);
 
   const available = records.filter(
     (item) => item.status === "Available"
@@ -135,22 +177,35 @@ const Vehicles = () => {
     },
     {
       name: "Action",
-      cell: (_row: DataVehicleProps) => (
-              <div className="flex gap-2">
-            <icons.openEye
-              className="cursor-pointer text-blue-400"
-              // onClick={() => handleView(row)}
-            />
-            <icons.edit
-              className="cursor-pointer text-green-400"
-              // onClick={() => handleUpdate(row.id, row.car)}
-            />
-            <icons.trash
-              className="cursor-pointer text-red-400"
-              // onClick={() => handleDelete(row.id)}
-            />
-          </div>
-            ),
+      cell: (row: DataVehicleProps) => (
+        <div className="flex gap-2">
+          <icons.openEye
+            className="cursor-pointer text-blue-400"
+            // onClick={() => handleView(row)}
+          />
+          <icons.edit
+            className="cursor-pointer text-green-400"
+            // onClick={() => handleUpdate(row.id, row.car)}
+          />
+          <icons.trash
+            className="cursor-pointer text-red-400"
+            onClick={() => {
+              setSelectedVehicleId(row.id);
+              setSelectedPlate(row.plateNumber);
+              setOpenDelete(true);
+            }}
+          />
+          {openDelete &&
+            selectedVehicleId !== null &&
+            selectedPlate !== null && (
+              <DeleteModal
+                open={openDelete}
+                onClose={() => setOpenDelete(false)}
+                onClick={() => handleDelete(selectedVehicleId, selectedPlate)}
+              />
+            )}
+        </div>
+      ),
     },
   ];
 

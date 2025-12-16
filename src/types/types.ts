@@ -24,7 +24,6 @@ export interface CustomButtonTypes {
   className?: string;
   children: React.ReactNode;
   handleclick?: () => void;
-
 }
 
 export interface SideBarProps {
@@ -85,7 +84,7 @@ export interface DataBookingProps {
 
 
  export interface DataVehicleProps {
-    id:string;
+    id:number;
     model:string;
     brand:string;
     type:string;

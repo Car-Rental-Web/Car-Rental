@@ -78,7 +78,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     const fetchVehicles = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no");
+        .select("id, plate_no").neq("status", ["On Service", 'On Reservation'])
 
       if (error) {
         console.log("Error fetching vehicles:", error.message);
@@ -99,7 +99,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
         }}
         onClick={(e) => e.stopPropagation()}
         action=""
-        className="border border-gray-400 rounded-xl py-6 px-8 w-2/5 bg-sub overflow-y-auto h-full  "
+        className="border border-gray-400 rounded-xl py-6 px-8 w-2/5 bg-sub overflow-y-auto   "
       >
         <ModalButton onclick={onClose} />
         <div className="flex flex-col mb-3 w-full">
@@ -108,7 +108,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <input
             {...register("date")}
-            className=" text-white border py-2 px-2 border-gray-400 rounded"
+            className=" text-white border py-4 px-2 border-gray-400 rounded"
             type="date"
             placeholder="Ex:Civic Lx"
           />
@@ -122,7 +122,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <select
             {...register("car")}
-            className="appearance-none outline-none border py-2 px-2 border-gray-400 rounded text-white"
+            className="appearance-none outline-none border py-4 px-2 border-gray-400 rounded text-white"
           >
             <option value="" className="txt-color">
               Select Vehicle
@@ -149,7 +149,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <input
             {...register("cost_of_maintenance")}
-            className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
+            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Sedan"
           />
@@ -160,7 +160,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <input
             {...register("type_of_maintenance")}
-            className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
+            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
@@ -172,7 +172,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
 
           <input
             {...register("location")}
-            className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
+            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -183,7 +183,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <input
             {...register("maintained_by")}
-            className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
+            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -201,7 +201,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             defaultValue={"On Maintenance"}
             {...register("status")}
             disabled
-            className="placeholder-white  text-white border py-2 px-2 border-gray-400 rounded"
+            className="placeholder-white  text-white border py-4 px-2 border-gray-400 rounded"
             type="text"
             placeholder="EX:ABC-1234"
           />

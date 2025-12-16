@@ -11,6 +11,8 @@ import { BookingForm } from "../modals";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
 import { BsThreeDots } from "react-icons/bs";
+import { toast } from "react-toastify";
+import DeleteModal from "../modals/DeleteModal";
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
@@ -19,18 +21,32 @@ const Bookings = () => {
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+  const [openDelete, setOpenDelete] = useState(false)
   const { open, onOpen, onClose } = useModalStore();
-  const [loading, setLoading] = useState(false);
 
-  console.log(loading)
   useEffect(() => {
     onClose();
   }, [onClose]);
 
+
+const handleDelete = async (id:number) => {
+  const {data,error} = await supabase.from('booking').delete().eq('id', id)
+  if(error){
+    console.log('Failed to Delete',error)
+    toast.error('Failed to Delete')
+    return
+  }
+  console.log('Deleted Successfully',data)
+  toast.success('Deleted Succesfully')
+  setOpenDelete(false)
+  setRecords((records) => records.filter((row) => row.id !== id))
+  setFilterRecords((records) => records.filter((row) => row.id !== id))
+}
+
+
   useEffect(() => {
     let isMounted = true;
     const fetchBookingData = async () => {
-      setLoading(true);
       try {
         const { data, error } = await supabase
           .from("booking")
@@ -188,7 +204,7 @@ const Bookings = () => {
     },
     {
       name: "Action",
-      cell: (_row: DataBookingProps) => (
+      cell: (row: DataBookingProps) => (
         <div className="flex gap-2">
       <icons.openEye
         className="cursor-pointer text-blue-400"
@@ -200,8 +216,9 @@ const Bookings = () => {
       />
       <icons.trash
         className="cursor-pointer text-red-400"
-        // onClick={() => handleDelete(row.id)}
+        onClick={() => setOpenDelete(true)}
       />
+      <DeleteModal open={openDelete} onClose={() => setOpenDelete(false)} onClick={() => handleDelete(row.id)}/>
     </div>
       ),
     },

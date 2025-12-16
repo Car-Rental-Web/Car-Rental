@@ -30,7 +30,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     const fetchVehicle = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no ,model, type");
+        .select("id, plate_no ,model, type").neq('status', 'On Maintenance')
 
       if (error) {
         console.log("Error fetching Vehicles", error);
@@ -54,6 +54,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       setValue("car_type", selectedVehicle.type);
     }
   }, [selectedPlate, vehicles, setValue]);
+
 
     const uploadFile = async (file: File, bucket: string, folder?: string) => {
     const fileExt = file.name.split(".").pop();
@@ -122,6 +123,18 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       }
       console.log("Renter added successfully:", bookings);
       toast.success("Renter added successfully");
+
+      const bookingStatus = data.status as "On Service" | "On Reservation" 
+      const {data:vehicleData, error:vehicleError} = await supabase.from('vehicle').update({status:bookingStatus}).eq("plate_no", data.car_plate_number)
+
+      if(vehicleError){
+        console.log('Error Updating In Vehicle',error)
+        toast.error('Error Updating In Vehicle')
+        return
+      }
+      console.log('Successfully Updated In Vehicle')
+      toast.success('Successfully Updated In Vehicle',vehicleData || undefined)
+
     } catch (error) {
       console.log("Error adding renter:", error);
       toast.error("Error adding renter");
