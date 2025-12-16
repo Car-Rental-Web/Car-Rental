@@ -51,7 +51,7 @@ const SideBar = () => {
 
   return (
       <div
-        className={`bg-sidebar  flex flex-col   border-r border-[#032d44]  ${
+        className={`bg-sidebar  flex flex-col min-h-screen  border-r border-[#032d44]  ${
           toggleMenu ? "w-36 xl:min-w-96 " : " w-22"
         }`}
       >
