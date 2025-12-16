@@ -151,8 +151,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         toast.error('Error Updating In Vehicle')
         return
       }
-      console.log('Successfully Updated In Vehicle')
-      toast.success('Successfully Updated In Vehicle',vehicleData || undefined)
+      console.log('Successfully Updated In Vehicle',vehicleData)
 
     } catch (error) {
       console.log("Error adding renter:", error);
@@ -162,7 +161,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       onClose();
     }
   };
-
 
 
   if (!open) return null;
