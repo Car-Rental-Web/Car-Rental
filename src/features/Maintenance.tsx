@@ -9,7 +9,6 @@ import SearchBar from "../components/SearchBar";
 import { MaintenanceForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
-import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 
@@ -44,12 +43,11 @@ const Maintenance = () => {
         id: item.id,
         date: item.date,
         car: item.car,
-        typeOfMaintenance: item.type_of_maintenance,
-        costOfMaintenance: item.cost_of_maintenance,
+        type_of_maintenance: item.type_of_maintenance,
+        cost_of_maintenance: item.cost_of_maintenance,
         location: item.location,
-        maintainedBy: item.maintained_by,
+        maintained_by: item.maintained_by,
         status: item.status,
-        action: <BsThreeDots />,
       }));
       setRecords(rowsData);
       setFilterRecords(rowsData);
@@ -60,6 +58,7 @@ const Maintenance = () => {
       isMounted = false;
     };
   }, [open]);
+
 
   const handleUpdate = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
@@ -100,10 +99,10 @@ const Maintenance = () => {
       "id",
       "date",
       "car",
-      "typeOfMaintenance",
-      "costOfMaintenance",
+      "type_of_maintenance",
+      "cost_of_maintenance",
       "location",
-      "maintainedBy",
+      "maintained_by",
       "status",
     ]);
 
@@ -115,7 +114,7 @@ const Maintenance = () => {
 
   //TOTAL COUNT OF MAINTENANCE
   const totalExpense = records.reduce(
-    (sum, row) => sum + Number(row.costOfMaintenance),
+    (sum, row) => sum + Number(row.cost_of_maintenance),
     0
   );
   const ongoing = records.filter((r) => r.status === "On Maintenance").length;
@@ -146,11 +145,11 @@ const Maintenance = () => {
     },
     {
       name: "Type of Maintenance",
-      cell: (row: DataMaintenanceProps) => <div>{row.typeOfMaintenance}</div>,
+      cell: (row: DataMaintenanceProps) => <div>{row.type_of_maintenance}</div>,
     },
     {
       name: "Cost of Maintenance",
-      cell: (row: DataMaintenanceProps) => <div>{row.costOfMaintenance}</div>,
+      cell: (row: DataMaintenanceProps) => <div>{row.cost_of_maintenance}</div>,
     },
     {
       name: "Location",
@@ -158,7 +157,7 @@ const Maintenance = () => {
     },
     {
       name: "Maintained By",
-      cell: (row: DataMaintenanceProps) => <div>{row.maintainedBy}</div>,
+      cell: (row: DataMaintenanceProps) => <div>{row.maintained_by}</div>,
     },
     {
       name: "Status",
@@ -179,14 +178,20 @@ const Maintenance = () => {
     {
       name: "Action",
       cell: (row: DataMaintenanceProps) => (
-        <div>
-          <button
-            className="cursor-pointer"
-            onClick={() => handleUpdate(row.id, row.car)}
-          >
-            {row.action}
-          </button>
-        </div>
+        <div className="flex gap-2">
+      <icons.openEye
+        className="cursor-pointer text-blue-400"
+        // onClick={() => handleView(row)}
+      />
+      <icons.edit
+        className="cursor-pointer text-green-400"
+        onClick={() => handleUpdate(row.id, row.car)}
+      />
+      <icons.trash
+        className="cursor-pointer text-red-400"
+        // onClick={() => handleDelete(row.id)}
+      />
+    </div>
       ),
     },
   ];

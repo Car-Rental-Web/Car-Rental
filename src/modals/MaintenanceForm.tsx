@@ -38,10 +38,10 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
       .insert({
         date: data.date,
         car: data.car,
-        type_of_maintenance: data.typeOfMaintenance,
-        cost_of_maintenance: data.costOfMaintenance,
+        type_of_maintenance: data.type_of_maintenance,
+        cost_of_maintenance: data.cost_of_maintenance,
         location: data.location,
-        maintained_by: data.maintainedBy,
+        maintained_by: data.maintained_by,
         status: data.status,
       })
       .select()
@@ -148,7 +148,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             Cost of Maintenance
           </label>
           <input
-            {...register("costOfMaintenance")}
+            {...register("cost_of_maintenance")}
             className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Sedan"
@@ -159,7 +159,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             Type of Maintenance
           </label>
           <input
-            {...register("typeOfMaintenance")}
+            {...register("type_of_maintenance")}
             className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
@@ -182,14 +182,14 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             Maintained By
           </label>
           <input
-            {...register("maintainedBy")}
+            {...register("maintained_by")}
             className="placeholder-white border py-2 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="EX:ABC-1234"
           />
-          {errors.maintainedBy && (
+          {errors.maintained_by && (
             <p className="text-red-500 text-sm">
-              {errors.maintainedBy.message}
+              {errors.maintained_by.message}
             </p>
           )}
         </div>

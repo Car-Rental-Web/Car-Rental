@@ -135,7 +135,22 @@ const Vehicles = () => {
     },
     {
       name: "Action",
-      cell: (row: DataVehicleProps) => <div>{row.action}</div>,
+      cell: (row: DataVehicleProps) => (
+              <div className="flex gap-2">
+            <icons.openEye
+              className="cursor-pointer text-blue-400"
+              // onClick={() => handleView(row)}
+            />
+            <icons.edit
+              className="cursor-pointer text-green-400"
+              // onClick={() => handleUpdate(row.id, row.car)}
+            />
+            <icons.trash
+              className="cursor-pointer text-red-400"
+              // onClick={() => handleDelete(row.id)}
+            />
+          </div>
+            ),
     },
   ];
 

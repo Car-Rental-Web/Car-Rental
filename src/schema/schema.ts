@@ -33,13 +33,13 @@ export const MaintenanceFormSchema = z.object({
 
   car: z.string().min(1, "Vehicle is required"),
 
-  typeOfMaintenance: z.string().min(1),
+  type_of_maintenance: z.string().min(1),
 
-  costOfMaintenance: z
+  cost_of_maintenance: z
     .string()
     .transform((v) => Number(v)),
   location: z.string().min(1),
-  maintainedBy: z.string().min(1),
+  maintained_by: z.string().min(1),
   status: z.string().min(1),
 });
 

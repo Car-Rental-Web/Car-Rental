@@ -55,7 +55,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     }
   }, [selectedPlate, vehicles, setValue]);
 
-  const uploadFile = async (file: File, bucket: string, folder?: string) => {
+    const uploadFile = async (file: File, bucket: string, folder?: string) => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = folder ? `${folder}/${fileName}` : fileName;
@@ -112,7 +112,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         agreement_photo: agreementPhotoUrl,
         notes: data.notes,
         uploaded_proof: uploadedProofUrls,
-        is_reservation: data.is_reservation,
+        status: data.status,
       });
 
       if (error) {
@@ -132,7 +132,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   };
 
 
- 
 
   if (!open) return null;
 
@@ -278,7 +277,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   </option>
                   {vehicles.map((vehicle) => (
                     <option
-                      className="text-white"
+                      className="txt-color"
                       key={vehicle.id}
                       value={vehicle.plate_no}
                     >
@@ -402,12 +401,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     </label>
                     <select
                       {...register("type_of_rent")}
-                      name=""
-                      id=""
                       className="border py-4 px-4 border-gray-400 rounded text-gray-400  appearance-none outline-none"
                     >
-                      <option value="self_drive">Self Drive</option>
-                      <option value="with_driver">With Driver</option>
+                      <option value="" >Select Type of Rent</option>
+                      <option value="Self Drive">Self Drive</option>
+                      <option value="With Driver">With Driver</option>
                     </select>
                     <div className="absolute top-12 right-3">
                       {" "}
@@ -523,9 +521,10 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <label htmlFor="" className="text-white text-start">
                         Status
                     </label>
-                    <select name="" id="" className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
-                      <option value="on_service" className="txt-color">On Service</option>
-                      <option value="on_reservation" className="txt-color">On Reservation</option>
+                    <select {...register("status")} className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
+                      <option value="">Select Status</option>
+                      <option value="On Service" className="txt-color">On Service</option>
+                      <option value="On Reservation" className="txt-color">On Reservation</option>
                     </select>
                      <div className="absolute top-12 right-3 txt-color">
                 {selectToggle? <icons.up /> : <icons.down />}

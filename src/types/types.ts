@@ -58,19 +58,20 @@ export interface CustomTableProps<T> {
 
 export interface DataBookingProps {
   id:number
-  name:string
-  license:string
-  carType:string
-  model:string
-  startDate: Date
-  endDate:Date
-  startTime:string;
-  endTime:string;
+  full_name:string
+  license_number:string
+  car_type:string
+  car_model:string
+  start_date: Date
+  end_date:Date
+  start_time:string;
+  end_time:string;
   location:string
-  typeOfRent: "self-drive" | "with Driver"
+  type_of_rent: string | null
   status: string | null
-  action: React.ReactNode
+  action?: React.ReactNode
  }
+
 
  export interface  DataRenterProps {
   id:number;
@@ -79,7 +80,7 @@ export interface DataBookingProps {
   lastDateRented:Date;
   timesRented:string;
   feedBack:string;
-  action:React.ReactNode 
+  action?:React.ReactNode 
  }
 
 
@@ -91,7 +92,7 @@ export interface DataBookingProps {
     color:string;
     plateNumber:string;
     status: string | null
-    action:React.ReactNode
+    action?:React.ReactNode
  }
 
 
@@ -99,12 +100,12 @@ export interface DataBookingProps {
     id:number;
     date: Date;
     car:string;
-    typeOfMaintenance: string;
-    costOfMaintenance: React.ReactNode;
+    type_of_maintenance: string;
+    cost_of_maintenance: number;
     location:string;
-    maintainedBy:string;
+    maintained_by:string;
     status: string | null
-    action: React.ReactNode
+    action?: React.ReactNode
  }
 
  export interface ModalProps {

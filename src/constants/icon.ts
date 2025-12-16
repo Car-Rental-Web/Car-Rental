@@ -28,6 +28,8 @@ import { FaEyeSlash } from "react-icons/fa";
 import { RiLayoutHorizontalLine } from "react-icons/ri";
 import { IoCarSportSharp } from "react-icons/io5";
 import { IoCheckmarkDoneCircleSharp } from "react-icons/io5";
+import { FaRegTrashAlt } from "react-icons/fa";
+import { CiEdit } from "react-icons/ci";
 
 
 
@@ -63,7 +65,9 @@ const icons = {
     all: RiLayoutHorizontalLine,
     car:IoCarSportSharp,
     completed:IoCheckmarkDoneCircleSharp,
-    
+    trash:FaRegTrashAlt,
+    edit:CiEdit,
+
 
 }
 

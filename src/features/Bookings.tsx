@@ -10,40 +10,77 @@ import { CustomButtons } from "../components/CustomButtons";
 import { BookingForm } from "../modals";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
-
-
+import { BsThreeDots } from "react-icons/bs";
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
-  const [filterRecords, setFilterRecords] = useState<DataBookingProps[]>(
-      []
-    );
+  const [filterRecords, setFilterRecords] = useState<DataBookingProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
   const { open, onOpen, onClose } = useModalStore();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     onClose();
   }, [onClose]);
 
   useEffect(() => {
-      const fetchBookingData = async () => {
-        const {data, error} = await supabase.from('booking').select('fullname,license_number,car_model, car_type,start_date,end_date,start_time,end_time,location,type_of_rent,')
-      }
-  })
+    let isMounted = true;
+    const fetchBookingData = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("booking")
+          .select(
+            "id, full_name, license_number, car_model, car_type, start_date, end_date, start_time, end_time, location, type_of_rent, status"
+          );
+          if(!isMounted) return
 
+        const row = data ?? [];
+        const rowData = row.map((item) => ({
+          id: item.id,
+          full_name: item.full_name,
+          license_number: item.license_number,
+          car_model: item.car_model,
+          car_type: item.car_type,
+          start_date: item.start_date,
+          end_date: item.end_date,
+          start_time: item.start_time,
+          end_time: item.end_time,
+          location: item.location,
+          type_of_rent: item.type_of_rent,
+          status: item.status,
+          action: <BsThreeDots />,
+        }));
+        setFilterRecords(rowData);
+        setRecords(rowData);
+        if (error) {
+          console.log("Error Fetching Data", error);
+          return;
+        }
+        console.log("Sucessful fetch data", data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchBookingData();
+    return () => {
+      isMounted = false
+    }
+  },[open]);
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
-      "carType",
-      "model",
-      "startDate",
-      "license",
-      "endDate",
+      "car_type",
+      "car_model",
+      "start_date",
+      "license_number",
+      "end_date",
       "location",
-      "name",
+      "full_name",
       "status",
     ]);
 
@@ -53,42 +90,54 @@ const Bookings = () => {
     setRecords(result);
   }, [debounceSearchTerm, selectValue, filterRecords]);
 
+  const onService = records.filter(
+    (item) => item.status === "On Service").length;
+
+  const onReservation = records.filter(
+    (item) => item.status === "On Reservation").length;
+
+  const onComplete = records.filter(
+    (item) => item.status === "Completed").length;
+
+
+  const totalBookings = records.length;
+
   const columns = [
     {
       name: "No.",
-      cell: (row: DataBookingProps) => (
-        <div className="text-center font-semibold ">{row.id}</div>
+      cell: (_row: DataBookingProps, index: number) => (
+        <div className="text-center font-semibold ">{index + 1}</div>
       ),
     },
     {
       name: "Name",
       cell: (row: DataBookingProps) => (
-        <div className="text-center font-semibold">{row.name}</div>
+        <div className="text-center font-semibold">{row.full_name}</div>
       ),
     },
     {
       name: "License #",
       cell: (row: DataBookingProps) => (
-        <div className="text-center font-semibold">{row.license}</div>
+        <div className="text-center font-semibold">{row.license_number}</div>
       ),
     },
     {
       name: "Car",
       cell: (row: DataBookingProps) => (
-        <div className="text-center font-semibold">{row.carType}</div>
+        <div className="text-center font-semibold">{row.car_type}</div>
       ),
     },
     {
       name: "Model",
       cell: (row: DataBookingProps) => (
-        <div className="text-center font-semibold">{row.model}</div>
+        <div className="text-center font-semibold">{row.car_model}</div>
       ),
     },
     {
       name: "Start Date",
       cell: (row: DataBookingProps) => (
         <div className="text-center ">
-          {new Date(row.startDate).toLocaleString("en-US", {
+          {new Date(row.start_date).toLocaleString("en-US", {
             month: "2-digit",
             day: "2-digit",
             year: "numeric",
@@ -100,7 +149,7 @@ const Bookings = () => {
       name: "End Date",
       cell: (row: DataBookingProps) => (
         <div className="text-center ">
-          {new Date(row.endDate).toLocaleString("en-US", {
+          {new Date(row.end_date).toLocaleString("en-US", {
             month: "2-digit",
             day: "2-digit",
             year: "numeric",
@@ -116,7 +165,7 @@ const Bookings = () => {
     },
     {
       name: "Type of Rent",
-      cell: (row: DataBookingProps) => <div>{row.typeOfRent}</div>,
+      cell: (row: DataBookingProps) => <div>{row.type_of_rent}</div>,
     },
     {
       name: "Status",
@@ -125,7 +174,7 @@ const Bookings = () => {
           className={` rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
             row.status === "On Service"
               ? "bg-green-800 text-white  rounded-full w-full text-center"
-              : row.status === "Reserved"
+              : row.status === "On Reservation"
               ? " bg-blue-900   rounded-full text-white w-full text-center"
               : row.status === "Completed"
               ? "bg-red-900 text-white  rounded-full w-full text-center"
@@ -138,9 +187,25 @@ const Bookings = () => {
     },
     {
       name: "Action",
-      cell: (row: DataBookingProps) => <div className="">{row.action}</div>,
+      cell: (row: DataBookingProps) => (
+        <div className="flex gap-2">
+      <icons.openEye
+        className="cursor-pointer text-blue-400"
+        // onClick={() => handleView(row)}
+      />
+      <icons.edit
+        className="cursor-pointer text-green-400"
+        // onClick={() => handleUpdate(row.id, row.car)}
+      />
+      <icons.trash
+        className="cursor-pointer text-red-400"
+        // onClick={() => handleDelete(row.id)}
+      />
+    </div>
+      ),
     },
   ];
+
   return (
     <div className="w-full relative min-h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 pb-2 px-6 bg-body">
       <div className="">
@@ -152,7 +217,7 @@ const Bookings = () => {
             className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">On Service</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onService}</span>}
             description="Total Booked On Service"
             topIcon={<icons.onService className="text-white text-2xl" />}
           />
@@ -160,15 +225,15 @@ const Bookings = () => {
             className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">On Reservation</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onReservation}</span>}
             description="Total Booked Reservation"
             topIcon={<icons.onReserve className="text-white text-2xl" />}
           />
           <Card
             className="bg-border w-full"
-            title={<span className="text-md xl:text-2xl">On Ended</span>}
+            title={<span className="text-md xl:text-2xl">Completed</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{onComplete}</span>}
             description="Total Booked Ended"
             topIcon={<icons.onEnded className="text-white text-2xl" />}
           />
@@ -176,7 +241,7 @@ const Bookings = () => {
             className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">Total Bookings</span>}
             url={""}
-            amount={<span className="text-6xl">200</span>}
+            amount={<span className="text-6xl">{totalBookings}</span>}
             description="Total Bookings"
             topIcon={<icons.all className="text-white text-2xl" />}
           />
@@ -208,13 +273,11 @@ const Bookings = () => {
                 <option value="On Service" className="txt-color">
                   On-Service
                 </option>
-                <option value="Reserved" className="txt-color">
-                  {" "}
+                <option value="On Reservation" className="txt-color">
                   Reserved
                 </option>
-                <option value="Ended" className="txt-color">
-                  {" "}
-                  Ended
+                <option value="Completed" className="txt-color">
+                  Completed
                 </option>
               </select>
               <div className="absolute top-2 xl:top-3 right-3 txt-color">
