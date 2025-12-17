@@ -19,6 +19,7 @@ const handleSubmit = async () => {
       console.log('Error Sending Email', error)
       return
     }
+    setIsLoading(false)
       toast.success('Reset Email Sent')
       console.log("Reset Email Sent:", data);
 }

@@ -15,13 +15,19 @@ interface AuthStore {
   finishLoading: () => void;
   setUser: (user: any) => void;
   getDisplayName: () => string;
+  isRecoveringPassword: boolean;
+  setRecoveringPassword: (value: boolean) => void; 
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set, get,) => ({
   isAuthenticated: false,
   user: null,
   loading: true,
+  isRecoveringPassword: false,
   finishLoading: () => set({ loading: false }),
+  setRecoveringPassword: (value) =>
+    set({ isRecoveringPassword: value }),
+
 
   //sign in
   signIn: async (email: string, password: string) => {

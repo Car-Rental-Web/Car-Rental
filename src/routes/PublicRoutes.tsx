@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 const PublicRoutes = () => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const {isAuthenticated, isRecoveringPassword} = useAuthStore()
   const loading = useAuthStore((state) => state.loading);
 
   if (loading)
@@ -12,7 +12,7 @@ const PublicRoutes = () => {
       </div>
     );
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  return isAuthenticated && !isRecoveringPassword ? <Navigate to="/dashboard" replace /> : <Outlet />;
 };
 
 export default PublicRoutes;

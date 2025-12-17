@@ -3,6 +3,7 @@ import { supabase } from "../utils/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import SeePassword from "../components/SeePassword";
+import { useAuthStore } from "../store/useAuthStore";
 
 
 const ResetPassword = () => {
@@ -19,6 +20,9 @@ const ResetPassword = () => {
       return alert("Passwords do not match");
     }
     const {data, error } = await supabase.auth.updateUser({password:password})
+
+    useAuthStore.getState().setRecoveringPassword(false)
+    await supabase.auth.signOut()
 
     if(error) {
       console.log('Error Changing Password' , error)

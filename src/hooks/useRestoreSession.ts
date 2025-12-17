@@ -18,9 +18,14 @@ export const useRestoreSession = () => {
 
     initSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user); // ✅ now it's read
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+
+      if(event === "PASSWORD_RECOVERY"){
+        useAuthStore.getState().setRecoveringPassword(true);
+        return;
+      }
+      if(session?.user){
+        setUser(session.user)
       } else {
         finishLoading();
       }
