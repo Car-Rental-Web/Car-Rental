@@ -180,15 +180,15 @@ const Vehicles = () => {
       cell: (row: DataVehicleProps) => (
         <div className="flex gap-2">
           <icons.openEye
-            className="cursor-pointer text-blue-400"
+            className="cursor-pointer text-blue-400 text-xl"
             // onClick={() => handleView(row)}
           />
           <icons.edit
-            className="cursor-pointer text-green-400"
+            className="cursor-pointer text-green-400 text-xl"
             // onClick={() => handleUpdate(row.id, row.car)}
           />
           <icons.trash
-            className="cursor-pointer text-red-400"
+            className="cursor-pointer text-red-400 text-xl"
             onClick={() => {
               setSelectedVehicleId(row.id);
               setSelectedPlate(row.plateNumber);
@@ -249,12 +249,11 @@ const Vehicles = () => {
             topIcon={<icons.onAvailable className="text-white text-2xl" />}
           />
         </div>
-        <div className="text-end mb-4">
+        <div className="text-end mb-4 flex justify-end">
           <CustomButtons
             handleclick={onOpen}
             children="Add Vehicle"
-            className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer"
-          />
+            className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer" icons={<icons.add className="text-white text-xl"/>}          />
           <VehicleForm open={open} onClose={onClose} />
         </div>
       </div>

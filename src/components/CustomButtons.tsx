@@ -7,13 +7,14 @@ interface ModalButtonProps {
 }
 
 export const CustomButtons:React.FC<CustomButtonTypes> = ({
-  className,children,handleclick
+  className,children,handleclick, icons
 }) => {
   return (
     <button
     onClick={handleclick}
-     className={className}
-    >
+     className={`flex items-center gap-1 ${className}`}
+    > 
+    <span>{icons}</span>
       {children}
     </button> 
   )

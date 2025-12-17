@@ -1,4 +1,5 @@
 import type { Alignment, Direction, TableColumn } from "react-data-table-component";
+import type { IconType } from "react-icons/lib";
 
 export interface LinksPath {
   className?: string;
@@ -24,6 +25,7 @@ export interface CustomButtonTypes {
   className?: string;
   children: React.ReactNode;
   handleclick?: () => void;
+  icons: React.ReactNode
 }
 
 export interface SideBarProps {

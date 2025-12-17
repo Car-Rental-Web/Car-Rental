@@ -131,7 +131,7 @@ const RenterHistory = () => {
       cell: (row: DataRenterProps) => (
         <div className="flex gap-2">
           <icons.trash
-            className="cursor-pointer text-red-400"
+            className="cursor-pointer text-red-400 text-xl"
             onClick={onOpen}
           />
           <DeleteModal open={open} onClose={onClose} onClick={() => handleDelete(row.id)}/>

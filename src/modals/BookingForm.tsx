@@ -554,6 +554,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <option value="">Select Status</option>
                       <option value="On Service" className="txt-color">On Service</option>
                       <option value="On Reservation" className="txt-color">On Reservation</option>
+                      <option value="Completed" className="txt-color">Completed</option>
                     </select>
                      <div className="absolute top-12 right-3 txt-color">
                 {selectToggle? <icons.up /> : <icons.down />}

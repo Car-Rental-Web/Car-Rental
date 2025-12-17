@@ -215,12 +215,12 @@ const Maintenance = () => {
       cell: (row: DataMaintenanceProps) => (
         <div className="flex gap-2">
           <icons.openEye
-            className="cursor-pointer text-blue-400"
+            className="cursor-pointer text-blue-400 text-xl"
             // onClick={() => handleView(row)}
           />
-          <icons.edit className="cursor-pointer text-green-400" />
+          <icons.edit className="cursor-pointer text-green-400 text-xl" />
           <icons.trash
-            className="cursor-pointer text-red-400"
+            className="cursor-pointer text-red-400 text-xl"
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
@@ -269,11 +269,12 @@ const Maintenance = () => {
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />
         </div>
-        <div className="text-end mb-4">
+        <div className="text-end mb-4 w-full flex justify-end">
           <CustomButtons
+            icons= {<icons.add className="text-white text-xl "/>}
             handleclick={onOpen}
             children="Add Maintenance"
-            className="py-2 px-4 rounded button-color text-white cursor-pointer"
+            className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer "
           />
           {open && <MaintenanceForm open={open} onClose={onClose} />}
         </div>
