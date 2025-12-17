@@ -13,7 +13,8 @@ const Availability = () => {
         </div>
       
       </div>
-      <Calendar height={1200} end="today prevYear nextYear prev next"/>
+      
+      <Calendar height={700} end="today prevYear nextYear prev next"/>
     </div>
   )
 }

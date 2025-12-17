@@ -47,7 +47,7 @@ const RegisterForm = () => {
           />
         </div>
         <button type="submit" className="">
-          Submit
+          Register
         </button>
       </form>
     </div>

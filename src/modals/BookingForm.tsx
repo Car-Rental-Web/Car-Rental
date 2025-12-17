@@ -142,7 +142,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         await supabase.from('renter').update({times_rented: renter.times_rented +1}).eq("id", renter.id)
       }
 
-
       const bookingStatus = data.status as "On Service" | "On Reservation" 
       const {data:vehicleData, error:vehicleError} = await supabase.from('vehicle').update({status:bookingStatus}).eq("plate_no", data.car_plate_number)
 
