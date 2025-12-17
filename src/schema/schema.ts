@@ -77,10 +77,10 @@ export const RenterFormSchema = z.object({
     .transform((v) => new Date(v)),
   end_date:  z.string()
     .transform((v) => new Date(v)),
-  start_time: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"),
-  end_time: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Invalid time"),
+  start_time: z.string().regex( /^((0[1-9]|1[0-2]):[0-5][0-9] ?([AaPp][Mm]))$/, "Invalid time"),
+  end_time: z.string().regex( /^((0[1-9]|1[0-2]):[0-5][0-9] ?([AaPp][Mm]))$/, "Invalid time"),
   type_of_rent: z.string(),
-  location: z.string(),
+  location: z.string().min(1),
   vehicle_left_plate_number: z.string().optional(),
   vehicle_left_model: z.string().optional(),
   vehicle_left_type: z.string().optional(),

@@ -9,25 +9,29 @@ interface AuthStore {
   isAuthenticated: boolean;
   user: SupabaseUser | null;
   loading: boolean;
-  signUp: (email: string,password: string) => Promise<{ data?: any; error?: any }>;
-  signIn: (email: string,password: string) => Promise<{ data?: any; error?: any }>;
+  signUp: (
+    email: string,
+    password: string
+  ) => Promise<{ data?: any; error?: any }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ data?: any; error?: any }>;
   signOut: () => Promise<{ error: any | null }>;
   finishLoading: () => void;
   setUser: (user: any) => void;
   getDisplayName: () => string;
   isRecoveringPassword: boolean;
-  setRecoveringPassword: (value: boolean) => void; 
+  setRecoveringPassword: (value: boolean) => void;
 }
 
-export const useAuthStore = create<AuthStore>((set, get,) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   isAuthenticated: false,
   user: null,
   loading: true,
   isRecoveringPassword: false,
   finishLoading: () => set({ loading: false }),
-  setRecoveringPassword: (value) =>
-    set({ isRecoveringPassword: value }),
-
+  setRecoveringPassword: (value) => set({ isRecoveringPassword: value }),
 
   //sign in
   signIn: async (email: string, password: string) => {
@@ -49,7 +53,7 @@ export const useAuthStore = create<AuthStore>((set, get,) => ({
     });
     return { data };
   },
-//signout
+  //signout
   signOut: async () => {
     set({ loading: true });
     const { error } = await supabase.auth.signOut();
@@ -64,7 +68,7 @@ export const useAuthStore = create<AuthStore>((set, get,) => ({
     });
     return { error: null };
   },
-//signup
+  //signup
   signUp: async (email: string, password: string) => {
     set({ loading: true });
     const { data, error } = await supabase.auth.signUp({
@@ -94,6 +98,6 @@ export const useAuthStore = create<AuthStore>((set, get,) => ({
 
   getDisplayName: () => {
     const user = get().user;
-    return user?.email || "User"
+    return user?.email || "User";
   },
 }));

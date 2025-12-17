@@ -37,14 +37,22 @@ const Vehicles = () => {
       .delete()
       .eq("id", vehicleId);
     if (error) {
-      console.log("Failed to delete");
-      toast.error("Failed to delete");
+      console.log("Failed to delete Vehicle");
+      toast.error("Failed to delete Vehicle");
       return;
     }
 
     console.log("Deleted Successfully", data);
     toast.success("Delete Successfully");
     setOpenDelete(false);
+
+    // const {data:bookingData, error:bookingError } = await supabase.from('booking').delete().eq("id", vehicleId)
+    // if(error) {
+    //   console.log('Failed to Delete Booking',bookingError)
+    //   return
+    // }
+    // console.log('Successfully Deleted in Booking', bookingData)
+
 // for deleting maintenance data also
     const { data: maintenanceData, error: maintenanceError } = await supabase
       .from("maintenance")
@@ -95,7 +103,7 @@ const Vehicles = () => {
     return () => {
       isMounted = false;
     };
-  }, [open, openDelete]);
+  }, [open]);
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 

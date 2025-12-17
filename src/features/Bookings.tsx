@@ -13,6 +13,7 @@ import { supabase } from "../utils/supabase";
 import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
 import DeleteModal from "../modals/DeleteModal";
+import to12Hour from "../utils/timeFormatter";
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
@@ -187,6 +188,22 @@ const Bookings = () => {
             day: "2-digit",
             year: "numeric",
           })}
+        </div>
+      ),
+    },
+    {
+      name: "Pick up",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center ">
+          {to12Hour(row.start_time)}
+        </div>
+      ),
+    },
+    {
+      name: "Drop off",
+      cell: (row: DataBookingProps) => (
+        <div className="text-center ">
+         {to12Hour(row.end_time)}
         </div>
       ),
     },
