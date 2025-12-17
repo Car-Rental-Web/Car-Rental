@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { supabase } from "../utils/supabase";
+import { toast } from "react-toastify";
 
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [loading, setIsLoading] = useState(false)
 
 const handleSubmit = async () => {
   
     if(!email) return console.log("Please Enter your email")
-
+      setIsLoading(true)
     const {data, error} = await supabase.auth.resetPasswordForEmail(email , {
       redirectTo: `${import.meta.env.VITE_APP_URL}/reset-password`,
     })
@@ -17,8 +19,8 @@ const handleSubmit = async () => {
       console.log('Error Sending Email', error)
       return
     }
+      toast.success('Reset Email Sent')
       console.log("Reset Email Sent:", data);
-      alert("Check your email for password reset link!");
 }
 
   return (
@@ -37,7 +39,7 @@ const handleSubmit = async () => {
           type="submit"
           className="w-full text-white py-3 cursor-pointer rounded bg-gray-800"
         >
-          Send Reset Email
+          {loading ? "Sending" : "Send"}
         </button>
       </form>
     </div>
