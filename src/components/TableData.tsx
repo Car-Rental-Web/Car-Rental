@@ -5,7 +5,7 @@ import { createTheme } from "react-data-table-component";
 
 createTheme("darkBody", {
   background: {
-    default: "#011a31",  // ← THIS is the table body background
+    default: "#011a31",  
   },
   text: {
     primary: "white"
@@ -46,8 +46,8 @@ const customStyles:TableStyles = {
       color: "#fff"
     },
     pageButtonsStyle: {
-      color: "#ffffff",            // Text color
-      fill: "#ffffff",             // SVG arrow color
+      color: "#ffffff",            
+      fill: "#ffffff",             
       backgroundColor: "transparent",
       borderRadius: "50%",
       "&:hover:not(:disabled)": {

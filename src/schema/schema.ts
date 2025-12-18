@@ -27,17 +27,10 @@ export const VehicleFormSchema = z.object({
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
 export const MaintenanceFormSchema = z.object({
-  date: z
-    .string()
-    .transform((v) => new Date(v)),
-
+  date: z.string().min(1),
   car: z.string().min(1, "Vehicle is required"),
-
   type_of_maintenance: z.string().min(1),
-
-  cost_of_maintenance: z
-    .string()
-    .transform((v) => Number(v)),
+  cost_of_maintenance: z.string(),
   location: z.string().min(1),
   maintained_by: z.string().min(1),
   status: z.string().min(1),
@@ -73,12 +66,13 @@ export const RenterFormSchema = z.object({
   car_type: z.string(),
   total_price_rent: z.string().transform((v) => Number(v)),
   downpayment: z.z.string().transform((v) => Number(v)),
-  start_date:  z.string()
-    .transform((v) => new Date(v)),
-  end_date:  z.string()
-    .transform((v) => new Date(v)),
-  start_time: z.string().regex( /^((0[1-9]|1[0-2]):[0-5][0-9] ?([AaPp][Mm]))$/, "Invalid time"),
-  end_time: z.string().regex( /^((0[1-9]|1[0-2]):[0-5][0-9] ?([AaPp][Mm]))$/, "Invalid time"),
+  start_date: z.string().transform((v) => new Date(v)),
+  end_date: z.string().transform((v) => new Date(v)),
+  start_time: z
+    .string(),
+   
+  end_time: z
+    .string(),
   type_of_rent: z.string(),
   location: z.string().min(1),
   vehicle_left_plate_number: z.string().optional(),

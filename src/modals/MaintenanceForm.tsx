@@ -29,7 +29,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
   } = useForm({
     resolver: zodResolver(MaintenanceFormSchema),
   });
-
+  
   const onAddMaintenance = async (data: MaintenanceFormData) => {
     setIsLoading(true);
     console.log(data);

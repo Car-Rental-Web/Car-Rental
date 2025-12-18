@@ -102,7 +102,7 @@ export interface DataBookingProps {
     date: Date;
     car:string;
     type_of_maintenance: string;
-    cost_of_maintenance: number;
+    cost_of_maintenance: string;
     location:string;
     maintained_by:string;
     status: string | null

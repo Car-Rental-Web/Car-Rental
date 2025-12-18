@@ -31,6 +31,7 @@ import { IoCheckmarkDoneCircleSharp } from "react-icons/io5";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
 import { FiPlus } from "react-icons/fi";
+import { FaRegCheckCircle } from "react-icons/fa";
 
 
 
@@ -70,6 +71,7 @@ const icons = {
     trash:FaRegTrashAlt,
     edit:CiEdit,
     add: FiPlus,
+    check: FaRegCheckCircle,
 
 }
 

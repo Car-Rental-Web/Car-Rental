@@ -165,14 +165,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="absolute  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center">
+    <div className="fixed  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit(onSubmit)(e);
         }}
         action=""
-        className="h-4/5 overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
+        className="h-full overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
           <div>
@@ -430,11 +430,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     </label>
                     <select
                       {...register("type_of_rent", {required:true})}
-                      className="border py-4 px-4 border-gray-400 rounded text-gray-400  appearance-none outline-none"
+                      className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none outline-none"
                     >
                       <option value="" >Select Type of Rent</option>
-                      <option value="Self Drive">Self Drive</option>
-                      <option value="With Driver">With Driver</option>
+                      <option value="Self Drive" className="txt-color">Self Drive</option>
+                      <option value="With Driver" className="txt-color">With Driver</option>
                     </select>
                     <div className="absolute top-12 right-3">
                       {" "}

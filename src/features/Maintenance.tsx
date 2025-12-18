@@ -12,6 +12,7 @@ import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 import DeleteModal from "../modals/DeleteModal";
+import UpdateStatus from "../modals/UpdateStatus";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -22,11 +23,25 @@ const Maintenance = () => {
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [openStatus, setOpenStatus] = useState(false)
   const { open, onOpen, onClose } = useModalStore();
 
   useEffect(() => {
     onClose();
   }, [onClose]);
+
+
+const handleUpdate = async (id:number) => {
+  const {data, error} = await supabase.from("maintenance").update({status:"Maintained"}).eq('id',id)
+
+  if(error){
+    toast.error('Update Failed')
+    console.log('Update Failed',error)
+  }
+  toast.success('Update Successfully')
+  console.log('Update Successfully', data)
+  setOpenStatus(false)
+}
 
   const handleDelete = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
@@ -125,7 +140,7 @@ const Maintenance = () => {
     return () => {
       isMounted = false;
     };
-  }, [open]);
+  }, [open, openStatus]);
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
@@ -214,11 +229,17 @@ const Maintenance = () => {
       name: "Action",
       cell: (row: DataMaintenanceProps) => (
         <div className="flex gap-2">
-          <icons.openEye
-            className="cursor-pointer text-blue-400 text-xl"
-            // onClick={() => handleView(row)}
+          { row.status === "On Maintenance" && 
+          <div>
+                  <icons.check
+            className="cursor-pointer text-green-400 text-xl"
+            onClick={() => setOpenStatus(true)}
           />
-          <icons.edit className="cursor-pointer text-green-400 text-xl" />
+          <UpdateStatus open={openStatus} onClick={() => handleUpdate(row.id) } onClose={() => setOpenStatus(false)} />
+          </div>
+          }
+         
+          <icons.edit className="cursor-pointer text-blue-300 text-xl" />
           <icons.trash
             className="cursor-pointer text-red-400 text-xl"
             onClick={() => setOpenDelete(true)}

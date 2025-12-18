@@ -307,7 +307,7 @@ const Bookings = () => {
           <CustomButtons
           icons ={<icons.add className="text-xl text-white"/>}
             handleclick={onOpen}
-            children="Add Renter"
+            children="Add Booking"
             className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "
           />
           <BookingForm open={open} onClose={onClose} />
