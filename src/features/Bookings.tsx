@@ -7,7 +7,6 @@ import SearchBar from "../components/SearchBar";
 import Card from "../components/Card";
 import icons from "../constants/icon";
 import { CustomButtons } from "../components/CustomButtons";
-import { BookingForm } from "../modals";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
 import { BsThreeDots } from "react-icons/bs";
@@ -15,6 +14,10 @@ import { toast } from "react-toastify";
 import DeleteModal from "../modals/DeleteModal";
 import to12Hour from "../utils/timeFormatter";
 import UpdateStatus from "../modals/../modals/UpdateStatus"
+import React from "react";
+
+
+const BookingForm = React.lazy(() => import ('../modals/BookingForm'))
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
