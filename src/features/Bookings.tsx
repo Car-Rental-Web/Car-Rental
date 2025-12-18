@@ -14,6 +14,7 @@ import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
 import DeleteModal from "../modals/DeleteModal";
 import to12Hour from "../utils/timeFormatter";
+import UpdateMaintenance from "../modals/UpdateMaintenance";
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
@@ -24,10 +25,65 @@ const Bookings = () => {
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
-
+  const [openStatus, setOpenStatus] = useState(false);
   useEffect(() => {
     onClose();
   }, [onClose]);
+
+  const handleUpdate = async (id: number, vehicleId: string) => {
+    const { data, error } = await supabase
+      .from("booking")
+      .update({ status: "Completed" })
+      .eq("id", id);
+    if (error) {
+      console.log("Failed to update");
+      toast.error("Failed to update");
+      return;
+    }
+
+    const { data: vehicleData, error: vehicleError } = await supabase
+      .from("vehicle")
+      .update({ status: "Available" })
+      .eq("plate_no", vehicleId);
+
+    if (vehicleError) {
+      console.log("Failed to update Vehicle as Available");
+      return;
+    }
+    console.log("Success updating status of vehicle", vehicleData);
+
+    toast.success("Update Successfully");
+    console.log("Update Successfully", data);
+    setOpenStatus(false);
+  };
+
+  const handleReserveUpdate = async (id: number, vehicleId: string) => {
+    const { data, error } = await supabase
+      .from("booking")
+      .update({ status: "On Service" })
+      .eq("id", id);
+    if (error) {
+      toast.error("Failed to update as ready");
+      console.log("Failed to update as ready");
+      return;
+    }
+
+    console.log("Successfully Update to On Service", data);
+    toast.success("Successfully Update to On Service");
+    setOpenStatus(false);
+
+    const { data: vehicleData, error: vehicleError } = await supabase
+      .from("vehicle")
+      .update({ status: "On Service" })
+      .eq("plate_no", vehicleId);
+
+    if (vehicleError) {
+      toast.error("Failed to update status in Vehicle");
+      console.log("Failed to update status in Vehicle");
+      return;
+    }
+    console.log("Successfully update status in vehicle", vehicleData);
+  };
 
   const handleDelete = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
@@ -66,7 +122,7 @@ const Bookings = () => {
         const { data, error } = await supabase
           .from("booking")
           .select(
-            "id, full_name, license_number, car_model, car_type, start_date, end_date, start_time, end_time, location, type_of_rent, status"
+            "id, full_name, license_number, car_plate_number, car_model, car_type, start_date, end_date, start_time, end_time, location, type_of_rent, status"
           );
         if (!isMounted) return;
 
@@ -75,6 +131,7 @@ const Bookings = () => {
           id: item.id,
           full_name: item.full_name,
           license_number: item.license_number,
+          car_plate_number: item.car_plate_number,
           car_model: item.car_model,
           car_type: item.car_type,
           start_date: item.start_date,
@@ -102,7 +159,7 @@ const Bookings = () => {
     return () => {
       isMounted = false;
     };
-  }, [open]);
+  }, [open, openStatus]);
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
@@ -158,6 +215,12 @@ const Bookings = () => {
     {
       name: "Car",
       cell: (row: DataBookingProps) => (
+        <div className="text-center font-semibold">{row.car_plate_number}</div>
+      ),
+    },
+    {
+      name: "Type",
+      cell: (row: DataBookingProps) => (
         <div className="text-center font-semibold">{row.car_type}</div>
       ),
     },
@@ -194,17 +257,13 @@ const Bookings = () => {
     {
       name: "Pick up",
       cell: (row: DataBookingProps) => (
-        <div className="text-center ">
-          {to12Hour(row.start_time)}
-        </div>
+        <div className="text-center ">{to12Hour(row.start_time)}</div>
       ),
     },
     {
       name: "Drop off",
       cell: (row: DataBookingProps) => (
-        <div className="text-center ">
-         {to12Hour(row.end_time)}
-        </div>
+        <div className="text-center ">{to12Hour(row.end_time)}</div>
       ),
     },
     {
@@ -239,12 +298,42 @@ const Bookings = () => {
       name: "Action",
       cell: (row: DataBookingProps) => (
         <div className="flex gap-2">
-          <icons.openEye
-            className="cursor-pointer text-blue-400 text-xl"
-            // onClick={() => handleView(row)}
-          />
+          {row.status === "On Service" && (
+            <div>
+              <icons.check
+                className="cursor-pointer text-green-400 text-xl"
+                onClick={() => setOpenStatus(true)}
+              />
+
+              <UpdateMaintenance
+                children={"Transaction Complete?"}
+                onClick={() => handleUpdate(row.id, row.car_plate_number)}
+                onClose={() => setOpenStatus(false)}
+                open={openStatus}
+              />
+            </div>
+          )}
+
+          {row.status === "On Reservation" && (
+            <div>
+              <icons.check
+                className="cursor-pointer text-green-400 text-xl"
+                onClick={() => setOpenStatus(true)}
+              />
+
+              <UpdateMaintenance
+                children={"Ready to Service?"}
+                onClick={() =>
+                  handleReserveUpdate(row.id, row.car_plate_number)
+                }
+                onClose={() => setOpenStatus(false)}
+                open={openStatus}
+              />
+            </div>
+          )}
+
           <icons.edit
-            className="cursor-pointer text-green-400 text-xl"
+            className="cursor-pointer text-blue-400 text-xl"
             // onClick={() => handleUpdate(row.id, row.car)}
           />
           <icons.trash
@@ -305,7 +394,7 @@ const Bookings = () => {
       <div className="flex flex-col gap-6 ">
         <div className="text-end flex justify-end ">
           <CustomButtons
-          icons ={<icons.add className="text-xl text-white"/>}
+            icons={<icons.add className="text-xl text-white" />}
             handleclick={onOpen}
             children="Add Booking"
             className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "

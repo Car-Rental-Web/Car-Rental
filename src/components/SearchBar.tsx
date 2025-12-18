@@ -36,7 +36,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           className="absolute text-2xl text-gray-300 top-2 right-1 cursor-pointer"
         />
       ) : (
-        <CiSearch className="absolute text-2xl top-2 right-1 cursor-pointer" />
+        <CiSearch className="absolute text-2xl top-2 right-1 " />
       )}
     </div>
   );

@@ -1,5 +1,4 @@
 import type { Alignment, Direction, TableColumn } from "react-data-table-component";
-import type { IconType } from "react-icons/lib";
 
 export interface LinksPath {
   className?: string;
@@ -61,6 +60,7 @@ export interface DataBookingProps {
   id:number
   full_name:string
   license_number:string
+  car_plate_number:string;
   car_type:string
   car_model:string
   start_date: Date

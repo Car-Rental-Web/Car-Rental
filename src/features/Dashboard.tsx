@@ -1,7 +1,55 @@
+import { useEffect, useState } from "react";
 import { ReactChartLine } from "../components";
 import Card from "../components/Card";
 import icons from "../constants/icon";
+import { supabase } from "../utils/supabase";
+
+
 const Dashboard = () => {
+const [value, setValue] = useState<number>(0)
+const [status, setStatus] = useState<number>(0)
+
+const fetchRevenue = async () => {
+    const { data, error} = await supabase.from('booking').select("id, total_price_rent, status") 
+      
+    if(error){
+      console.log('Error Fetching Price')
+      return
+    }
+    const completedBooking = data.filter(item => item.status === "Completed");
+    const totalRevenue = completedBooking.reduce((acc, curr) => acc + Number(curr.total_price_rent), 0)
+
+
+    console.log('Successfully Fetched Price',data)
+    setValue(totalRevenue)
+}
+
+
+useEffect(() => {
+    fetchRevenue()
+},[])
+
+
+const fetchOnService = async () => {
+  const {data, error} = await supabase.from('vehicle').select("id, status")
+
+  if(error) {
+    console.log('Error Fetching On Service Vehicles')
+    return
+  }
+
+  const onService = data.filter(item => item.status === "On Service");
+  const totalOnService = onService.length 
+
+  console.log('Successfully Fetched On Service Vehicle')
+  setStatus(totalOnService)
+}
+
+useEffect(() => {
+  fetchOnService()
+},[])
+
+
   return (
     <div className=" w-full bg-body  min-h-screen  pb-2 pt-12 px-2 2xl:px-3">
       <p className="text-5xl font-semibold text-gray-300 tracking-wide mb-5">
@@ -42,7 +90,7 @@ const Dashboard = () => {
               className="bg-border w-full h-full"
               title="Revenue"
               url={""}
-              amount={<span className="text-6xl">20,000</span>}
+              amount={<span className="text-6xl">{value.toLocaleString()}</span>}
               description={"Monthly Revenue"}
               linkIcon={<icons.money />}
             />
@@ -50,7 +98,7 @@ const Dashboard = () => {
               className="bg-border w-full h-full "
               title="On Service"
               url={""}
-              amount={<span className="text-6xl">12</span>}
+              amount={<span className="text-6xl">{status}</span>}
               description={"Currently On Service"}
               linkIcon={<icons.onService />}
             />
