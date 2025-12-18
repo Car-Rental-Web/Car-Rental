@@ -130,14 +130,14 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             <p className="text-red-500 text-sm text-start">Fill all the fields</p>
           )}
         </div>
-        <div className="flex flex-col  mb-3">
+        {/* <div className="flex flex-col  mb-3">
           <label htmlFor=""  className="text-start text-white">Status</label>
           <input 
           disabled
           defaultValue={"Available"}
           {...register("status")}
           type="text" className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"  placeholder="Available" />
-        </div>
+        </div> */}
         <div className="mt-15 mb-6">
           <button
           disabled={loading}

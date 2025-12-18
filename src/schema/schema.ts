@@ -68,11 +68,8 @@ export const RenterFormSchema = z.object({
   downpayment: z.z.string().transform((v) => Number(v)),
   start_date: z.string().transform((v) => new Date(v)),
   end_date: z.string().transform((v) => new Date(v)),
-  start_time: z
-    .string(),
-   
-  end_time: z
-    .string(),
+  start_time: z.string(),
+  end_time: z.string(),
   type_of_rent: z.string(),
   location: z.string().min(1),
   vehicle_left_plate_number: z.string().optional(),

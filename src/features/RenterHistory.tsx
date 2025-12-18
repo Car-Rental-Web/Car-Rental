@@ -19,7 +19,7 @@ const RenterHistory = () => {
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
-
+  // delete data or renter's information based on id
   const handleDelete = async (id:number) => {
       const {data, error} = await supabase.from('renter').delete().eq("id", id)
 
@@ -34,8 +34,7 @@ const RenterHistory = () => {
       onClose()
   }
 
-
-
+  //fetch renter information that was insert in bookingform
   useEffect(() => {
     let mounted = true;
     const fetchRenter = async () => {
@@ -69,6 +68,7 @@ const RenterHistory = () => {
     };
   }, [open]);
 
+  //search filter
   useEffect(() => {
     const result = filterData(debounceSearchTerm, filterRecords, [
       "id",
@@ -82,7 +82,7 @@ const RenterHistory = () => {
   }, [debounceSearchTerm, filterRecords]);
 
 
-
+//table columns
   const columns = [
     {
       name: "No.",

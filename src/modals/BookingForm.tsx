@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { RenterFormSchema, type RenterFormData } from "../schema/schema";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
+import { uploadFile } from "../utils/UploadFile";
 
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
@@ -14,7 +15,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
-
   const {
     register,
     handleSubmit,
@@ -26,11 +26,13 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   });
 
 
+  //fetching vehicle
   useEffect(() => {
     const fetchVehicle = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no ,model, type").neq('status', 'On Maintenance')
+        .select("id, plate_no ,model, type")
+        .neq("status", "On Maintenance");
 
       if (error) {
         console.log("Error fetching Vehicles", error);
@@ -41,14 +43,16 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     fetchVehicle();
   }, []);
 
-   const selectedPlate = watch("car_plate_number");
+
+  // get selectedPlate value from vehicles
+  const selectedPlate = watch("car_plate_number");
+  
   useEffect(() => {
     if (!selectedPlate) {
       setValue("car_model", "");
       setValue("car_type", "");
     }
     const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate);
-
     if (selectedVehicle) {
       setValue("car_model", selectedVehicle.model);
       setValue("car_type", selectedVehicle.type);
@@ -56,23 +60,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   }, [selectedPlate, vehicles, setValue]);
 
 
-    const uploadFile = async (file: File, bucket: string, folder?: string) => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = folder ? `${folder}/${fileName}` : fileName;
-
-    const { error } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, file);
-    if (error) throw error;
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-    return data.publicUrl;
-  };
-
+  // onSubmit function to add data
   const onSubmit = async (data: RenterFormData) => {
     try {
       setIsLoading(true);
+      // for image handling 
       const validIdUrl = data.valid_id?.[0]
         ? await uploadFile(data.valid_id[0], "valid_id")
         : null;
@@ -87,6 +79,8 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           )
         : null;
       console.log(data);
+
+      // to insert or add data in the booking table 
       const { data: bookings, error } = await supabase.from("booking").insert({
         full_name: data.full_name,
         address: data.address,
@@ -124,35 +118,48 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       console.log("Renter added successfully:", bookings);
       toast.success("Renter added successfully");
 
-      const {data:renter, error:renterError} = await supabase.from('renter').select("id, times_rented")
-      .eq("license_number", data.license_number).maybeSingle()
 
-      if(renterError) {
-        console.log('Error', error)
-        toast.error('Error')
+      // avoid duplication of renter information
+      const { data: renter, error: renterError } = await supabase
+        .from("renter")
+        .select("id, times_rented")
+        .eq("license_number", data.license_number)
+        .maybeSingle();
+
+      if (renterError) {
+        console.log("Error", error);
+        toast.error("Error");
       }
-      if(!renter){
-        await supabase.from('renter').insert({
+      // if no same information, insert in the renter history table
+      if (!renter) {
+        await supabase.from("renter").insert({
           full_name: data.full_name,
           license_number: data.license_number,
-          times_rented:1,
-          notes: data.notes
-        })
-      } else {
-        await supabase.from('renter').update({times_rented: renter.times_rented + 1}).eq("id", renter.id)
+          times_rented: 1,
+          notes: data.notes,
+        });
+      } 
+      // if yes, increment times rented by 1
+      else { 
+        await supabase
+          .from("renter")
+          .update({ times_rented: renter.times_rented + 1 })
+          .eq("id", renter.id);
       }
 
-      const bookingStatus = data.status as "On Service" | "On Reservation" 
-      const {data:vehicleData, error:vehicleError} = await supabase.from('vehicle').update({status:bookingStatus}).eq("plate_no", data.car_plate_number)
+      // to change status in the vehicle table
+      // const bookingStatus = data.status as "On Service" | "On Reservation";
+      // const { data: vehicleData, error: vehicleError } = await supabase
+      //   .from("vehicle")
+      //   .update({ status: bookingStatus })
+      //   .eq("plate_no", data.car_plate_number);
 
-    
-      if(vehicleError){
-        console.log('Error Updating In Vehicle',error)
-        toast.error('Error Updating In Vehicle')
-        return
-      }
-      console.log('Successfully Updated In Vehicle',vehicleData)
-
+      // if (vehicleError) {
+      //   console.log("Error Updating In Vehicle", error);
+      //   toast.error("Error Updating In Vehicle");
+      //   return;
+      // }
+      // console.log("Successfully Updated In Vehicle", vehicleData);
     } catch (error) {
       console.log("Error adding renter:", error);
       toast.error("Error adding renter");
@@ -162,7 +169,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     }
   };
 
-
+  //modal  
   if (!open) return null;
 
   return (
@@ -172,7 +179,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           e.preventDefault();
           handleSubmit(onSubmit)(e);
         }}
-        action=""
         className="h-full overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
@@ -184,9 +190,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           </div>
           <div className="flex w-full justify-around items-center gap-5 ">
             <div className="flex flex-col w-full gap-1 ">
-              <label className=" text-start text-white">
-                Fullname
-              </label>
+              <label className=" text-start text-white">Fullname</label>
               <input
                 {...register("full_name")}
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -299,7 +303,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   Plate #
                 </label>
                 <select
-                  {...register("car_plate_number", {required:true})}
+                  {...register("car_plate_number", { required: true })}
                   className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
                 >
                   <option value="" className="txt-color">
@@ -327,7 +331,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 </label>
                 <input
                   readOnly
-                  {...register("car_model" , {required:true})}
+                  {...register("car_model", { required: true })}
                   type="text"
                   placeholder="Ex:Civic LX"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -339,7 +343,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 </label>
                 <input
                   readOnly
-                  {...register("car_type", {required:true})}
+                  {...register("car_type", { required: true })}
                   type="text"
                   placeholder="Ex: Sedan"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
@@ -359,7 +363,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Total Price
                     </label>
                     <input
-                      {...register("total_price_rent", {required:true})}
+                      {...register("total_price_rent", { required: true })}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: 2000"
@@ -370,7 +374,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Downpayment
                     </label>
                     <input
-                      {...register("downpayment", {required:true})}
+                      {...register("downpayment", { required: true })}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex:1000"
@@ -383,7 +387,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Date
                     </label>
                     <input
-                      {...register("start_date", {required:true})}
+                      {...register("start_date", { required: true })}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -393,7 +397,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Date
                     </label>
                     <input
-                      {...register("end_date", {required:true})}
+                      {...register("end_date", { required: true })}
                       type="date"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -405,7 +409,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Start Time
                     </label>
                     <input
-                      {...register("start_time", {required:true})}
+                      {...register("start_time", { required: true })}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -415,7 +419,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       End Time
                     </label>
                     <input
-                      {...register("end_time", {required:true})}
+                      {...register("end_time", { required: true })}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
@@ -430,12 +434,16 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Type of Rent
                     </label>
                     <select
-                      {...register("type_of_rent", {required:true})}
+                      {...register("type_of_rent", { required: true })}
                       className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none outline-none"
                     >
-                      <option value="" >Select Type of Rent</option>
-                      <option value="Self Drive" className="txt-color">Self Drive</option>
-                      <option value="With Driver" className="txt-color">With Driver</option>
+                      <option value="" className="txt-color">Select Type of Rent</option>
+                      <option value="Self Drive" className="txt-color">
+                        Self Drive
+                      </option>
+                      <option value="With Driver" className="txt-color">
+                        With Driver
+                      </option>
                     </select>
                     <div className="absolute top-12 right-3">
                       {" "}
@@ -451,7 +459,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       Location
                     </label>
                     <input
-                      {...register("location", {required:true})}
+                      {...register("location", { required: true })}
                       type="text"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                       placeholder="Ex: Baguio"
@@ -547,19 +555,31 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </div>
                     </div>
                   </div>
-                  <div onClick={() => setSelectToggle((t) => !t)} className=" flex relative flex-col w-full gap-1">
+                  <div
+                    onClick={() => setSelectToggle((t) => !t)}
+                    className=" flex relative flex-col w-full gap-1"
+                  >
                     <label htmlFor="" className="text-white text-start">
-                        Status
+                      Status
                     </label>
-                    <select {...register("status", {required:true})} className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white">
-                      <option value="">Select Status</option>
-                      <option value="On Service" className="txt-color">On Service</option>
-                      <option value="On Reservation" className="txt-color">On Reservation</option>
-                      <option value="Completed" className="txt-color">Completed</option>
+                    <select
+                      {...register("status", { required: true })}
+                      className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+                    >
+                      <option value="" className="txt-color">
+                        Select Status
+                      </option>
+                      <option value="On Service" className="txt-color">
+                        On Service
+                      </option>
+                      <option value="On Reservation" className="txt-color">
+                        On Reservation
+                      </option>
+                      {/* <option value="Completed" className="txt-color">Completed</option> */}
                     </select>
-                     <div className="absolute top-12 right-3 txt-color">
-                {selectToggle? <icons.up /> : <icons.down />}
-                      </div>
+                    <div className="absolute top-12 right-3 txt-color">
+                      {selectToggle ? <icons.up /> : <icons.down />}
+                    </div>
                   </div>
                 </div>
                 <div className=" text-center pb-4">

@@ -14,7 +14,7 @@ import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
 import DeleteModal from "../modals/DeleteModal";
 import to12Hour from "../utils/timeFormatter";
-import UpdateMaintenance from "../modals/UpdateMaintenance";
+import UpdateStatus from "../modals/../modals/UpdateStatus"
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
@@ -26,11 +26,15 @@ const Bookings = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
   const [openStatus, setOpenStatus] = useState(false);
+
+
+
   useEffect(() => {
     onClose();
   }, [onClose]);
 
-  const handleUpdate = async (id: number, vehicleId: string) => {
+  //update action to completed if status = "On Service"
+  const handleOnServiceUpdate = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "Completed" })
@@ -57,6 +61,7 @@ const Bookings = () => {
     setOpenStatus(false);
   };
 
+  //update action to completed if status = "On Reservation"
   const handleReserveUpdate = async (id: number, vehicleId: string) => {
     const { data, error } = await supabase
       .from("booking")
@@ -85,7 +90,8 @@ const Bookings = () => {
     console.log("Successfully update status in vehicle", vehicleData);
   };
 
-  const handleDelete = async (id: number, vehicleId: string) => {
+  //delete data of the renter or bookings based on id
+  const handleDelete = async (id: number) => { //vehicleId: string
     const { data, error } = await supabase
       .from("booking")
       .delete()
@@ -98,23 +104,27 @@ const Bookings = () => {
     console.log("Deleted Successfully", data);
     toast.success("Deleted Succesfully");
 
-    const { data: vehicle, error: vehicleError } = await supabase
-      .from("vehicle")
-      .update({ status: "Available" })
-      .eq("plate_no", vehicleId);
+    // if the booking is deleted, the status in the vehicle that was choose will be available not On service | On Reservation | Completed
 
-    if (vehicleError) {
-      console.log("Error Changing Status in Vehicle");
-      toast.error("Error Changing Status in Vehicle");
-      return;
-    }
-    console.log("Successfully changing status in Vehicle", vehicle);
+    // const { data: vehicle, error: vehicleError } = await supabase
+    //   .from("vehicle")
+    //   .update({ status: "Available" })
+    //   .eq("plate_no", vehicleId);
+
+    // if (vehicleError) {
+    //   console.log("Error Changing Status in Vehicle");
+    //   toast.error("Error Changing Status in Vehicle");
+    //   return;
+    // }
+    // console.log("Successfully changing status in Vehicle", vehicle);
 
     setOpenDelete(false);
+    // if !== id = delete the id 
     setRecords((records) => records.filter((row) => row.id !== id));
     setFilterRecords((records) => records.filter((row) => row.id !== id));
   };
 
+  //fetch the data in that was inserted in booking form
   useEffect(() => {
     let isMounted = true;
     const fetchBookingData = async () => {
@@ -161,6 +171,7 @@ const Bookings = () => {
     };
   }, [open, openStatus]);
 
+  //search filter
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
       "car_type",
@@ -179,6 +190,8 @@ const Bookings = () => {
     setRecords(result);
   }, [debounceSearchTerm, selectValue, filterRecords]);
 
+
+  //filter status to get the length or number of the bookings based on the status
   const onService = records.filter(
     (item) => item.status === "On Service"
   ).length;
@@ -190,9 +203,10 @@ const Bookings = () => {
   const onComplete = records.filter(
     (item) => item.status === "Completed"
   ).length;
-
+ //total calculation of bookings
   const totalBookings = records.length;
 
+  //table columns
   const columns = [
     {
       name: "No.",
@@ -280,7 +294,7 @@ const Bookings = () => {
       name: "Status",
       cell: (row: DataBookingProps) => (
         <span
-          className={` rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
+          className={` rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10px] xl:text-[11px] ${
             row.status === "On Service"
               ? "bg-green-800 text-white  rounded-full w-full text-center"
               : row.status === "On Reservation"
@@ -305,9 +319,9 @@ const Bookings = () => {
                 onClick={() => setOpenStatus(true)}
               />
 
-              <UpdateMaintenance
+              <UpdateStatus
                 children={"Transaction Complete?"}
-                onClick={() => handleUpdate(row.id, row.car_plate_number)}
+                onClick={() => handleOnServiceUpdate(row.id, row.car_plate_number)}
                 onClose={() => setOpenStatus(false)}
                 open={openStatus}
               />
@@ -321,7 +335,7 @@ const Bookings = () => {
                 onClick={() => setOpenStatus(true)}
               />
 
-              <UpdateMaintenance
+              <UpdateStatus
                 children={"Ready to Service?"}
                 onClick={() =>
                   handleReserveUpdate(row.id, row.car_plate_number)
@@ -331,11 +345,8 @@ const Bookings = () => {
               />
             </div>
           )}
-
           <icons.edit
-            className="cursor-pointer text-blue-400 text-xl"
-            // onClick={() => handleUpdate(row.id, row.car)}
-          />
+            className="cursor-pointer text-blue-400 text-xl"/>
           <icons.trash
             className="cursor-pointer text-red-400 text-xl"
             onClick={() => setOpenDelete(true)}
@@ -343,7 +354,7 @@ const Bookings = () => {
           <DeleteModal
             open={openDelete}
             onClose={() => setOpenDelete(false)}
-            onClick={() => handleDelete(row.id, row.car_model)}
+            onClick={() => handleDelete(row.id)}
           />
         </div>
       ),

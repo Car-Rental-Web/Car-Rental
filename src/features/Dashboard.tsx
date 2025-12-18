@@ -9,6 +9,8 @@ const Dashboard = () => {
 const [value, setValue] = useState<number>(0)
 const [status, setStatus] = useState<number>(0)
 
+
+// fetch total revenue based on the total_price_rent of the booking 
 const fetchRevenue = async () => {
     const { data, error} = await supabase.from('booking').select("id, total_price_rent, status") 
       
@@ -24,14 +26,14 @@ const fetchRevenue = async () => {
     setValue(totalRevenue)
 }
 
-
 useEffect(() => {
     fetchRevenue()
 },[])
 
 
+//fetch On Service or On going  Status in the bookings
 const fetchOnService = async () => {
-  const {data, error} = await supabase.from('vehicle').select("id, status")
+  const {data, error} = await supabase.from('booking').select("id, status")
 
   if(error) {
     console.log('Error Fetching On Service Vehicles')

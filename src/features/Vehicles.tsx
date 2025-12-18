@@ -1,5 +1,5 @@
 import { BsThreeDots } from "react-icons/bs";
-import Card from "../components/Card";
+// import Card from "../components/Card";
 import TableData from "../components/TableData";
 import icons from "../constants/icon";
 import type { DataVehicleProps } from "../types/types";
@@ -13,6 +13,7 @@ import { supabase } from "../utils/supabase";
 import { useModalStore } from "../store/useModalStore";
 import DeleteModal from "../modals/DeleteModal";
 import { toast } from "react-toastify";
+import Card from "../components/Card";
 
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
@@ -22,8 +23,8 @@ const Vehicles = () => {
   );
   const [selectedPlate, setSelectedPlate] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectValue, setSelectValue] = useState("");
-  const [selectToggle, setSelectToggle] = useState(false);
+  // const [selectValue, setSelectValue] = useState("");
+  // const [selectToggle, setSelectToggle] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
 
@@ -31,7 +32,9 @@ const Vehicles = () => {
     onClose();
   }, [onClose]);
 
-  const handleDelete = async (vehicleId: number, plateNumber: string) => {
+
+  // delete data or vehicle information based on id
+  const handleDelete = async (vehicleId: number,) => { // plateNumber: string
     const { data, error } = await supabase
       .from("vehicle")
       .delete()
@@ -53,18 +56,21 @@ const Vehicles = () => {
     // }
     // console.log('Successfully Deleted in Booking', bookingData)
 
-// for deleting maintenance data also
-    const { data: maintenanceData, error: maintenanceError } = await supabase
-      .from("maintenance")
-      .delete()
-      .eq("car", plateNumber);
+  // for deleting maintenance data also
 
-    if (maintenanceError) {
-      console.log("Error Deleting data in Maintenance");
-      toast.error("Error Deleting data in Maintenance");
-      return;
-    }
-    console.log("Deleted Successfully in Maintenance", maintenanceData);
+    // const { data: maintenanceData, error: maintenanceError } = await supabase
+    //   .from("maintenance")
+    //   .delete()
+    //   .eq("car", plateNumber);
+
+    // if (maintenanceError) {
+    //   console.log("Error Deleting data in Maintenance");
+    //   toast.error("Error Deleting data in Maintenance");
+    //   return;
+    // }
+    // console.log("Deleted Successfully in Maintenance", maintenanceData);
+    
+    // if !== id = delete the id 
     setRecords((records) => records.filter((row) => row.id !== vehicleId));
     setFilterRecords((records) =>
       records.filter((row) => row.id !== vehicleId)
@@ -74,6 +80,8 @@ const Vehicles = () => {
     setSelectedPlate(null);
   };
 
+
+  // fetch vehicle information that was inserted in booking form
   useEffect(() => {
     let isMounted = true;
     const fetchVehicles = async () => {
@@ -107,6 +115,7 @@ const Vehicles = () => {
 
   const debounceValue = useDebouncedValue(searchTerm, 200);
 
+  //search filter
   useEffect(() => {
     let result = filterData(debounceValue, filterRecords, [
       "model",
@@ -117,25 +126,28 @@ const Vehicles = () => {
       "status",
     ]);
 
-    if (selectValue !== "") {
-      result = result.filter((item) => item.status === selectValue);
-    }
+    // if (selectValue !== "") {
+    //   result = result.filter((item) => item.status === selectValue);
+    // }
     setRecords(result);
-  }, [debounceValue, selectValue, filterRecords]);
+  }, [debounceValue, filterRecords]); //, selectValue
 
-  const available = records.filter(
-    (item) => item.status === "Available"
-  ).length;
-  const onService = records.filter(
-    (item) => item.status === "On Service"
-  ).length;
-  const onReservation = records.filter(
-    (item) => item.status === "On Reservation"
-  ).length;
-  const onMaintenance = records.filter(
-    (item) => item.status === "On Maintenance"
-  ).length;
+  // const available = records.filter(
+  //   (item) => item.status === "Available"
+  // ).length;
+  // const onService = records.filter(
+  //   (item) => item.status === "On Service"
+  // ).length;
+  // const onReservation = records.filter(
+  //   (item) => item.status === "On Reservation"
+  // ).length;
+  // const onMaintenance = records.filter(
+  //   (item) => item.status === "On Maintenance"
+  // ).length;
 
+  const totalVehicle = records.length
+
+  //table columns
   const columns = [
     {
       name: "No.",
@@ -161,28 +173,28 @@ const Vehicles = () => {
       name: "Plate #",
       cell: (row: DataVehicleProps) => <div>{row.plateNumber}</div>,
     },
-    {
-      name: "Status",
-      cell: (row: DataVehicleProps) => {
-        return (
-          <div
-            className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
-              row.status === "On Service"
-                ? "text-white on-service"
-                : row.status === "On Reservation"
-                ? "text-white bg-blue-900"
-                : row.status === "On Maintenance"
-                ? "bg-red-900 text-white"
-                : row.status === "Available"
-                ? "text-white bg-green-800"
-                : "text-gray-400"
-            }`}
-          >
-            {row.status}
-          </div>
-        );
-      },
-    },
+    // {
+    //   name: "Status",
+    //   cell: (row: DataVehicleProps) => {
+    //     return (
+    //       <div
+    //         className={` px-1 xl:px-4 py-1 rounded-full w-full  text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
+    //           row.status === "On Service"
+    //             ? "text-white on-service"
+    //             : row.status === "On Reservation"
+    //             ? "text-white bg-blue-900"
+    //             : row.status === "On Maintenance"
+    //             ? "bg-red-900 text-white"
+    //             : row.status === "Available"
+    //             ? "text-white bg-green-800"
+    //             : "text-gray-400"
+    //         }`}
+    //       >
+    //         {row.status}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       name: "Action",
       cell: (row: DataVehicleProps) => (
@@ -205,7 +217,7 @@ const Vehicles = () => {
               <DeleteModal
                 open={openDelete}
                 onClose={() => setOpenDelete(false)}
-                onClick={() => handleDelete(selectedVehicleId, selectedPlate)}
+                onClick={() => handleDelete(selectedVehicleId)}
               />
             )}
         </div>
@@ -219,15 +231,15 @@ const Vehicles = () => {
         Vehicles
       </p>
       <div className="flex flex-col gap-10">
-        <div className="flex flex-col xl:flex-row w-full gap-2">
           <Card
             className="bg-border  w-full"
             title={<span className="text-md xl:text-2xl">On Service</span>}
             url={""}
-            amount={<span className="text-6xl">{onService}</span>}
-            description="Total On Service"
+            amount={<span className="text-6xl">{totalVehicle}</span>}
+            description="Total Vehicles"
             topIcon={<icons.onService className="text-white text-2xl" />}
           />{" "}
+        {/* <div className="flex flex-col xl:flex-row w-full gap-2">
           <Card
             className="bg-border w-full"
             title={<span className="text-md xl:text-2xl">On Reservation</span>}
@@ -252,7 +264,7 @@ const Vehicles = () => {
             description="Total Available"
             topIcon={<icons.onAvailable className="text-white text-2xl" />}
           />
-        </div>
+        </div> */}
         <div className="text-end mb-4 flex justify-end">
           <CustomButtons
             handleclick={onOpen}
@@ -263,7 +275,7 @@ const Vehicles = () => {
       </div>
       <div className="border border-[#055783] px-6 py-2 rounded ">
         <div className="pb-4 pt-4 flex justify-end items-center gap-3">
-          <div
+          {/* <div
             onClick={() => setSelectToggle((t) => !t)}
             className="flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
           >
@@ -293,7 +305,7 @@ const Vehicles = () => {
             <div className="absolute top-2 xl:top-3 right-3 txt-color">
               {selectToggle ? <icons.up /> : <icons.down />}
             </div>
-          </div>
+          </div> */}
           <div>
             <SearchBar
               value={searchTerm}
@@ -310,7 +322,7 @@ const Vehicles = () => {
           columns={columns}
           fixedHeader={true}
           pagination={true}
-          fixedHeaderScrollHeight="350px"
+          fixedHeaderScrollHeight="600px"
         />
       </div>
     </div>

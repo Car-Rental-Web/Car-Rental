@@ -12,7 +12,7 @@ import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 import DeleteModal from "../modals/DeleteModal";
-import UpdateMaintenance from "../modals/UpdateMaintenance";
+import UpdateStatus from "../modals/UpdateStatus";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -31,6 +31,7 @@ const Maintenance = () => {
   }, [onClose]);
 
 
+  // to update the status if the car is done on maintenance
 const handleUpdate = async (id:number) => {
   const {data, error} = await supabase.from("maintenance").update({status:"Maintained"}).eq('id',id)
 
@@ -43,7 +44,9 @@ const handleUpdate = async (id:number) => {
   setOpenStatus(false)
 }
 
-  const handleDelete = async (id: number, vehicleId: string) => {
+
+// to delete data or information of the inserted information in maintenanceform
+  const handleDelete = async (id: number) => { //, vehicleId: string
     const { data, error } = await supabase
       .from("maintenance")
       .delete()
@@ -54,62 +57,33 @@ const handleUpdate = async (id:number) => {
       toast.error("Failed to delete");
       return;
     }
+    // if !== id = delete the id 
     setRecords((prev) => prev.filter((row) => row.id !== id));
     setFilterRecords((prev) => prev.filter((row) => row.id !== id));
     console.log("Deleted Successfully", data);
     toast.success("Deleted Successfully");
     
-    const { data: vehicleData, error: errorStatus } = await supabase
-      .from("vehicle")
-      .update({ status: "Available" })
-      .eq("plate_no", vehicleId);
+    // to update vehicle status as available if done maintenance
+    // const { data: vehicleData, error: errorStatus } = await supabase
+    //   .from("vehicle")
+    //   .update({ status: "Available" })
+    //   .eq("plate_no", vehicleId);
 
-    if (errorStatus) {
-      console.log("Vehicle Update Error", errorStatus);
-      toast.error("Error Updating");
-    }
-    if (!vehicleData) {
-      console.log("Vehicle status already Available, skipping toast");
-    } else {
-      console.log("Vehicle Update Successfully", vehicleData);
-      toast.success("Update Successfully");
-    }
+    // if (errorStatus) {
+    //   console.log("Vehicle Update Error", errorStatus);
+    //   toast.error("Error Updating");
+    // }
+    // if (!vehicleData) {
+    //   console.log("Vehicle status already Available, skipping toast");
+    // } else {
+    //   console.log("Vehicle Update Successfully", vehicleData);
+    //   toast.success("Update Successfully");
+    // }
     setOpenDelete(false)
   };
 
-  // const handleUpdate = async (id: number, vehicleId: string) => {
-  //   const { data, error } = await supabase
-  //     .from("maintenance")
-  //     .update({ status: "Maintained" })
-  //     .eq("id", id);
 
-  //   if (error) {
-  //     console.log("Error Updating", error);
-  //   }
-  //   console.log("Update Successfully", data);
-
-  //   const { data: vehicleData, error: errorStatus } = await supabase
-  //     .from("vehicle")
-  //     .update({ status: "Available" })
-  //     .eq("plate_no", vehicleId);
-
-  //   if (errorStatus) {
-  //     console.log("Vehicle Update Error", errorStatus);
-  //     toast.error("Error Updating");
-  //   }
-  //   if (!vehicleData) {
-  //     console.log("Vehicle status already Available, skipping toast");
-  //   } else {
-  //     console.log("Vehicle Update Successfully", vehicleData);
-  //     toast.success("Update Successfully");
-  //   }
-  //   setRecords((prev) =>
-  //     prev.map((row) =>
-  //       row.id === id ? { ...row, status: "Maintained" } : row
-  //     )
-  //   );
-  // };
-
+  //fetch maintenance information that was inserted in maintenanceform
   useEffect(() => {
     let isMounted = true;
     const fetchMaintenance = async () => {
@@ -120,7 +94,6 @@ const handleUpdate = async (id:number) => {
         console.log("Error fetching maintenance:", error?.message);
         return;
       }
-
       const row = data ?? [];
       const rowsData = row.map((item) => ({
         id: item.id,
@@ -144,6 +117,7 @@ const handleUpdate = async (id:number) => {
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
+  //search filter
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
       "id",
@@ -167,9 +141,12 @@ const handleUpdate = async (id:number) => {
     (sum, row) => sum + Number(row.cost_of_maintenance),
     0
   );
+  //total ongoing "On Maintenance"
   const ongoing = records.filter((r) => r.status === "On Maintenance").length;
+  // total "Maintained" vehicle
   const maintained = records.filter((r) => r.status === "Maintained").length;
 
+  //table columns
   const columns = [
     {
       name: "No.",
@@ -231,11 +208,11 @@ const handleUpdate = async (id:number) => {
         <div className="flex gap-2">
           { row.status === "On Maintenance" && 
           <div>
-                  <icons.check
+            <icons.check
             className="cursor-pointer text-green-400 text-xl"
             onClick={() => setOpenStatus(true)}
           />
-          <UpdateMaintenance open={openStatus} onClick={() => handleUpdate(row.id)} onClose={() => setOpenStatus(false)} children={"Maintenance Done?"} />
+          <UpdateStatus open={openStatus} onClick={() => handleUpdate(row.id)} onClose={() => setOpenStatus(false)} children={"Maintenance Done?"} />
           </div>
           }
           {row.status === "On Maintenance" && <icons.edit className="cursor-pointer text-blue-300 text-xl" /> }
@@ -245,7 +222,7 @@ const handleUpdate = async (id:number) => {
           />
           <DeleteModal
             onClose={() => setOpenDelete(false)}
-            onClick={() => handleDelete(row.id, row.car)}
+            onClick={() => handleDelete(row.id)}
             open={openDelete}
           />
         </div>

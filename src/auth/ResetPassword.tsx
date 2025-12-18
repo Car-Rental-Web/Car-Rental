@@ -11,8 +11,7 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const navigate = useNavigate()
   
-  console.log(password)
-  console.log(confirmPassword)
+
   const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
     if (password !== confirmPassword) {

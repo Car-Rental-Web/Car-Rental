@@ -5,6 +5,7 @@ interface SupabaseUser {
   id: string;
   email: string;
 }
+
 interface AuthStore {
   isAuthenticated: boolean;
   user: SupabaseUser | null;

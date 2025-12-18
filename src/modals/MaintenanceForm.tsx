@@ -30,7 +30,9 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     resolver: zodResolver(MaintenanceFormSchema),
   });
   
-  const onAddMaintenance = async (data: MaintenanceFormData) => {
+
+  // onsubmit function to add data
+  const onSubmit = async (data: MaintenanceFormData) => {
     setIsLoading(true);
     console.log(data);
     const { data: maintenance, error } = await supabase
@@ -53,6 +55,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
       toast.error("Error adding maintenance:" + error.message);
       return;
     }
+    // update vehicle status if on maintenance
 
     // const { data: updateVehicle, error: errorUpdate } = await supabase
     //   .from("vehicle")
@@ -73,7 +76,8 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     onClose();
     reset();
   };
-// to fix
+
+  //fetch vehicles to use in select options
   useEffect(() => {
     const fetchVehicles = async () => {
       const { data, error } = await supabase
@@ -95,7 +99,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit(onAddMaintenance)(e);
+          handleSubmit(onSubmit)(e);
         }}
         onClick={(e) => e.stopPropagation()}
         action=""
