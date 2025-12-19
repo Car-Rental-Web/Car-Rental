@@ -97,6 +97,7 @@ input[type="file"]::-webkit-file-upload-button {
   font-weight: bold;
 }
 
+
 .myCalendar .fc-event-title {
   white-space: normal !important;       /* prevent multi-line overflow */
   overflow: hidden;   
@@ -120,6 +121,16 @@ input[type="file"]::-webkit-file-upload-button {
   border-radius: 6px;
 }
 
+.myCalendar .fc-timegrid-slot-label {
+  color: #ffffff;   /* text color */
+  font-weight: 500; /* optional */
+}
+
+.myCalendar .fc-timegrid-axis-cushion {
+  color: #ffffff;   /* make text white */
+  font-weight: 600; /* optional bold */
+  font-size: 12px;
+}
 .myCalendar .fc-button:hover {
   background: #3b6f80;
 }
@@ -138,3 +149,31 @@ input[type="file"]::-webkit-file-upload-button {
 .myCalendar .fc-day-sun{
   color: white;
 }
+
+
+.myCalendar .fc-list-day-cushion {
+  color: #ffffff;
+  font-weight: bold;
+  background-color: #032d44
+}
+.myCalendar .fc-list-event:hover {
+  background-color: #032d44;
+  cursor: default; /* optional: remove pointer cursor */
+}
+
+/* Also disable hover on the title cell specifically */
+.myCalendar .fc-list-event-title:hover {
+  background: none !important;
+}
+
+
+/* Make event titles white too */
+.myCalendar .fc-list-event-title {
+  color: #ffffff;
+}
+
+/* Optional: style the time column */
+.myCalendar .fc-list-event-time {
+  color: #9ca3af; /* Tailwind gray-400 */
+}
+

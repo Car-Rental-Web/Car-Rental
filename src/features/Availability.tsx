@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import Calendar from "../components/Calendar";
-import icons from "../constants/icon";
 import { supabase } from "../utils/supabase";
 import type { EventInput } from "@fullcalendar/core/index.js";
-import to12Hour from "../utils/timeFormatter";
 
 const Availability = () => {
   const [events, setEvents] = useState<EventInput[]>([]);
 
-  useEffect(() => {
     const fetchBookings = async () => {
       try {
         const { data, error } = await supabase
@@ -38,46 +35,59 @@ const Availability = () => {
           }
           const adjustedEndDate = new Date(item.end_date);
           adjustedEndDate.setDate(adjustedEndDate.getDate());
+          const startDate = new Date(item.start_date).toLocaleDateString("en-US",{
+            year:"numeric",
+            month: "long",
+            day:"2-digit"
+          })
+
+          const endDate = new Date(adjustedEndDate).toLocaleDateString("en-US", {
+            year:"numeric",
+            month: "long",
+            day: "2-digit"
+          })
+
           return {
             id: String(item.id),
-            title: `${item.full_name}
-             `,
+            title: `${item.full_name}`,
             start: new Date(item.start_date).toISOString(),
             end: adjustedEndDate.toISOString(),
             color,
             extendedProps: {
+              id:item.id,
               full_name: item.full_name,
               car_plate_number: item.car_plate_number,
               car_model: item.car_model,
               car_type: item.car_type,
               location: item.location,
+              start_date:startDate,
+              end_date:endDate,
               start_time: item.start_time,
               end_time: item.end_time,
               status: item.status,
             },
           };
         });
-        setEvents(rowData);
+        setEvents((prev) => [...prev, ...rowData]);
       } catch (error) {
         console.log("Error", error);
       }
     };
     fetchBookings();
-  },);
 
   return (
     <div className="p-12  w-full bg-body">
       <div className="text-white pb-6">
         <p>Status</p>
         <div className="flex flex-col gap-1">
-          <p className="flex items-center gap-2">
-            On Service <icons.onService className="text-green-500" />
+          <p className="flex items-center gap-3">
+          <span className="w-4 h-4 bg-green-500 rounded-full "></span>  On Service  
           </p>
-          <p className="flex items-center gap-2">
-            Reservation <icons.onReserve className="text-blue-700" />
+          <p className="flex items-center gap-3">
+           <span className="w-4 h-4 bg-blue-500 rounded-full"></span> Reservation 
           </p>
-          <p className="flex items-center gap-2">
-            Completed <icons.completed className="text-red-600" />
+          <p className="flex items-center gap-3">
+           <span className="w-4 h-4 bg-red-500 rounded-full"></span> Completed 
           </p>
         </div>
       </div>

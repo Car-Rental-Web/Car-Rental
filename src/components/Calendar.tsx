@@ -6,7 +6,7 @@ import { useRef, useEffect } from "react";
 import type { EventInput } from "@fullcalendar/core/index.js";
 import tippy from "tippy.js";
 import to12Hour from "../utils/timeFormatter";
-
+import listPlugin from '@fullcalendar/list'
 interface CalendarProps {
   contentHeight?: string;
   height?: number;
@@ -17,7 +17,6 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({
   contentHeight,
   height,
-  end,
   events,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -42,12 +41,12 @@ const Calendar: React.FC<CalendarProps> = ({
         displayEventTime={false}
         eventDisplay="block"
         ref={calendarRef}
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
         initialView={"dayGridMonth"}
         headerToolbar={{
           start: "title",
           center: "",
-          end: end,
+          end:  window.innerWidth < 640 ? "today,prev,next,listWeek" : "dayGridMonth today prevYear nextYear prev next listWeek",
         }}
         height={height}
         contentHeight={contentHeight}
@@ -55,12 +54,26 @@ const Calendar: React.FC<CalendarProps> = ({
         eventDidMount={(info) => {
           const props = info.event.extendedProps;
 
+          const startDate = new Date(props.start_date).toLocaleDateString("en-US", {
+            year:"numeric",
+            month: "long",
+            day:"2-digit"
+          })
+          const endDate = new Date(props.end_date).toLocaleDateString("en-US", {
+            year:"numeric",
+            month: "long",
+            day:"2-digit"
+          })
+
           const tooltipContent = `
             ${props.full_name}<br>
             Car Rented "${props.car_plate_number} - ${props.car_model} ${props.car_type}"<br>
             Location: ${props.location}<br>
+            Date Started: ${startDate}<br>
+            Date Ends: ${endDate}<br>
             Pick up Time: ${to12Hour(props.start_time)}<br>
             Drop off Time: ${to12Hour(props.end_time)}<br>
+            
             Status: ${props.status}
           `;
 
