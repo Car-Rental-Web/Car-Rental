@@ -73,6 +73,19 @@ export interface DataBookingProps {
   action?: React.ReactNode
  }
 
+ export interface CalendarEvent {
+  id:string;
+  full_name: string;
+  car_plate_number: string;
+  car_model:string,
+  start_date: Date;
+  end_date: Date;
+  start_time: string;
+  end_time:string;
+  location:string;
+  status: string | null;
+ }
+
 
  export interface  DataRenterProps {
   id:number;

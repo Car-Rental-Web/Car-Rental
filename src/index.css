@@ -86,10 +86,31 @@ input[type="file"]::-webkit-file-upload-button {
 }
 
 
+.fc-daygrid-event {
+  margin-top: 4px;   /* space above each event */
+  margin-bottom: 4px; /* space below each event */
+}
+
 .myCalendar .fc-toolbar-title {
   color: rgb(192, 190, 190);
   font-size: 24px;
   font-weight: bold;
+}
+
+.myCalendar .fc-event-title {
+  white-space: normal !important;       /* prevent multi-line overflow */
+  overflow: hidden;   
+  font-size: 12px;
+  text-overflow: ellipsis;   /* add "..." at the end */
+  max-width: 100%;       
+  line-height: 1.2;    
+}
+
+.tippy-box[data-theme~='white'] {
+  background-color: #fff;
+  font-size: 12px;
+  color: #000;        /* text color */
+  border: 1px solid #ccc;
 }
 
 .myCalendar .fc-button {

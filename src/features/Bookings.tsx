@@ -9,7 +9,6 @@ import icons from "../constants/icon";
 import { CustomButtons } from "../components/CustomButtons";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
-import { BsThreeDots } from "react-icons/bs";
 import { toast } from "react-toastify";
 import DeleteModal from "../modals/DeleteModal";
 import to12Hour from "../utils/timeFormatter";
@@ -141,7 +140,7 @@ const Bookings = () => {
 
         const row = data ?? [];
         const rowData = row.map((item) => ({
-          id: item.id,
+          id:item.id,
           full_name: item.full_name,
           license_number: item.license_number,
           car_plate_number: item.car_plate_number,
@@ -154,7 +153,6 @@ const Bookings = () => {
           location: item.location,
           type_of_rent: item.type_of_rent,
           status: item.status,
-          action: <BsThreeDots />,
         }));
         setFilterRecords(rowData);
         setRecords(rowData);
