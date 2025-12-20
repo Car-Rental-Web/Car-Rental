@@ -13,44 +13,34 @@ const [renter, setRenter] = useState<number>(0)
 const [booking, setBooking] = useState<number>(0)
 
 
-// fetch total revenue based on the total_price_rent of the booking 
-const fetchRevenue = async () => {
-    const { data, error} = await supabase.from('booking').select("id, total_price_rent, status") 
-      
-    if(error){
-      console.log('Error Fetching Price')
-      return
-    }
-    const completedBooking = data.filter(item => item.status === "Completed");
-    const totalRevenue = completedBooking.reduce((acc, curr) => acc + Number(curr.total_price_rent), 0)
-
-
-    console.log('Successfully Fetched Price',data)
-    setValue(totalRevenue)
-}
-
-useEffect(() => {
-    fetchRevenue()
-},[])
-
-
-//fetch On Service or On going  Status in the bookings
-const fetchOnService = async () => {
-  const {data, error} = await supabase.from('booking').select("id, status")
+// fetch total revenue , on service, total bookings
+const fetchBookings = async () => {
+  const {data, error} = await supabase.from('booking').select("status, total_price_rent")
 
   if(error) {
     console.log('Error Fetching On Service Vehicles')
     return
   }
 
-  const onService = data.filter(item => item.status === "On Service");
-  const totalOnService = onService.length 
+  let revenue = 0;
+  let onService = 0;
+  let totalBookings = data.length
+  data.forEach((item) => {
+    if(item.status === "Completed"){
+      revenue += Number(item.total_price_rent)
+    }
+    if(item.status === "On Service"){
+      onService += 1;
+    }
+  })
 
   console.log('Successfully Fetched On Service Vehicle')
-  setStatus(totalOnService)
+  setValue(revenue)
+  setStatus(onService)
+  setBooking(totalBookings)
 }
 useEffect(() => {
-  fetchOnService()
+  fetchBookings()
 },[])
 
  const fetchRenters = async () => {
@@ -68,24 +58,6 @@ useEffect(() => {
  } 
 useEffect(() => {
   fetchRenters()
-},[]);
-
-const fetchBookings = async () => {
-  const {data, error} = await supabase.from('booking').select('id')
-
-  if(error) {
-    console.log('Error Fetching  booking') 
-    return
-  }
-
-  const booking = data.filter(item => item.id)
-  const totalBooking= booking.length
-  setBooking(totalBooking)
-  console.log('Fetched Booking',data)
-}
-
-useEffect(() => {
-  fetchBookings()
 },[]);
 
 
