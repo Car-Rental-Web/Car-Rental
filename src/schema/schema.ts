@@ -26,6 +26,7 @@ export const VehicleFormSchema = z.object({
 });
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
+
 export const MaintenanceFormSchema = z.object({
   date: z.string().min(1),
   car: z.string().min(1, "Vehicle is required"),

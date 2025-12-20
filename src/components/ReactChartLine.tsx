@@ -1,85 +1,43 @@
-import { Line } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Title,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-} from "chart.js";
+} from "recharts";
 
-ChartJS.register(
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-interface SizeProps {
-  height:number;
-  width:number
+interface ChartProps {
+  data:{month:string; count:number}[]
+  maxHeight:string
+  maxWidth:string
 }
 
-const options = {
-  responsive:true,
-  maintainAspectRaio:true,
-  plugins: {
-    legend: {
-      labels: {
-        color: '#032d44',        
-      },
-    },
-  },
-  scales: {
-    x: {
-      ticks: { color: 'white' },  
-      grid: { color: 'gray' },    
-    },
-    y: {
-      ticks: { color: 'white' },   
-      grid: { color: 'gray' },    
-    },
-  },
-};
-const lineChartData = {
-  labels: [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ],
-  datasets: [
-    {
-      label: "2024",
-      data: [100, 200, 300, 50, 150, 90, 120, 300, 400, 12, 20, 45],
-      tension: 0.4, // ← THIS softens the line
-       borderColor: '#36A2EB',
-      backgroundColor: '#032d44',
-      
-    },
-    
-  ],
-};
-
-const ReactChartLine:React.FC<SizeProps> = ({height, width}) => {
+const ReactChartLine = ({data ,maxHeight, maxWidth}:ChartProps) => {
+  
 
   return (
-  <Line data={lineChartData} options={options} height={height} width={width} />
-  )
-  
+    <LineChart
+      margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
+      data={data}
+      responsive
+      style={{
+        width: "100%",
+        maxWidth: maxWidth,
+        height: "100%",
+        maxHeight: maxHeight,
+        aspectRatio: 1.5,
+      }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="month" interval={0} />
+      <YAxis dataKey="count" tick={{fontSize:12, fill: "#ffffff"}} />
+      <Tooltip />
+      <Legend />
+      <Line type="monotone" dataKey="count" stroke="#8884d8" dot={{ r: 3 }} />
+    </LineChart>
+  );
 };
 
 export default ReactChartLine;

@@ -31,7 +31,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
         type: data.type,
         color: data.color,
         plate_no: data.plate_no,
-        status: data.status
+        status: null
       })
       .select()
       .single();

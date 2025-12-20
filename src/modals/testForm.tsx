@@ -3,12 +3,16 @@ import { supabase } from "../utils/supabase";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TestFormSchema, type TestFormData } from "../schema/schema";
+import type { TestProps } from "../types/types";
+import TableData from "../components/TableData";
+import icons from "../constants/icon";
 
 const TestForm = () => {
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
   const [selectedImage, setSelectedImage] = useState<string[]>([])
+  const [records, setRecords] = useState<TestProps[]>([])
   const {
     register,
     handleSubmit,
@@ -109,7 +113,83 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
       }
 
   },[selectedPlate, vehicles, setValue])
+
+
+    const fetchValue = async () => {
+      const {data, error } = await supabase.from('test').select("*")
+
+      if(error){
+        console.log('Error Fetching')
+        return
+      }
+      console.log('Fetched Data:', data)
+      setRecords(data)
+    }
+    fetchValue()
+
+    const handleEdit = async  (id:number, data:TestFormData) => {
+        await supabase.from('test').update({
+          full_name: data.full_name,
+          valid_id: data.valid_id,
+          plate_no: data.plate_no,
+          car_model: data.car_model,
+          car_type: data.car_type,
+        }).eq("id",id)
+    }
+
+
+    const columns = [
+        {
+        name:"id",
+        cell:(row:TestProps) => 
+          <div>{row.id}</div>
+        
+      },
+
+      {
+        name:"full_name",
+        cell:(row:TestProps) => 
+          <div>{row.full_name}</div>
+        
+      },
+      {
+        name:"valid_id",
+        cell:(row:TestProps) => 
+          <div>{row.valid_id}</div>
+        
+      },
+      {
+        name: "plate_no",
+        cell:(row:TestProps) => 
+          <div>{row.plate_no}</div>
+        
+      },
+      {
+        name: "car_model",
+        cell:(row:TestProps) => 
+            <div>{row.car_model}</div>
+        
+      },
+      {
+        name: "car_type",
+        cell:(row:TestProps) => 
+              <div>{row.car_type}</div>
+        
+      },
+      {
+        name: "actions",
+        cell:(_row:TestProps) => <div>
+          <div>
+          <icons.edit className="cursor-pointer"/>
+          </div>
+
+        </div>
+      },
+    ]
+
   return (
+
+<>
     <form onSubmit={handleSubmit(onSubmit)} action="" className="flex flex-col">
       <div>
         <div>
@@ -168,6 +248,11 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
       </div>
       <button type="submit">Add</button>
     </form>
+
+            <TableData columns={columns}
+              data={records}
+            />
+</>
   );
 };
 

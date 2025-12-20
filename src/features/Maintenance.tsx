@@ -82,6 +82,9 @@ const handleUpdate = async (id:number) => {
     setOpenDelete(false)
   };
 
+  // const handleEdit = async () => {
+
+  // }
 
   //fetch maintenance information that was inserted in maintenanceform
   useEffect(() => {
@@ -326,3 +329,5 @@ const handleUpdate = async (id:number) => {
 };
 
 export default Maintenance;
+
+

@@ -127,3 +127,15 @@ export interface DataBookingProps {
   onClose: () => void;
   
 }
+
+
+
+export interface TestProps {
+  id:number;
+  full_name:string;
+  valid_id:string;
+  plate_no: string;
+  car_model:string;
+  car_type:string;
+  action?: React.ReactNode
+}

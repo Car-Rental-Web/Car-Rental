@@ -170,7 +170,7 @@ const Bookings = () => {
     return () => {
       isMounted = false;
     };
-  }, [openStatus]);
+  }, [open,openStatus]);
 
   //search filter
   useEffect(() => {
