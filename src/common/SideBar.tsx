@@ -132,7 +132,7 @@ const Sidebar = () => {
                   {isSidebarOpen ? (
                     <span>{item.icon}</span>
                   ) : (
-                    <span>{item.label}</span>
+                    <span className="text-sm md:text-lg">{item.label}</span>
                   )}
                 </Link>
               </li>

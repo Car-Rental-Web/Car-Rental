@@ -49,7 +49,7 @@ const Availability = () => {
 
           return {
             id: String(item.id),
-            title: `${item.full_name} Car Rented: ${item.car_plate_number} ${item.car_model} ${item.car_type} /  Location: ${item.location} Start Date: ${item.start_date} End Date: ${item.end_date} Pick up time: ${item.start_time} Drop off time: ${item.end_time}`,
+            title: `${item.full_name}`, // Car Rented: ${item.car_plate_number} ${item.car_model} ${item.car_type} /  Location: ${item.location} Start Date: ${item.start_date} End Date: ${item.end_date} Pick up time: ${item.start_time} Drop off time: ${item.end_time}
             start: new Date(item.start_date).toISOString(),
             end: adjustedEndDate.toISOString(),
             color,
@@ -76,7 +76,7 @@ const Availability = () => {
     fetchBookings();
 
   return (
-    <div className="p-12  w-full bg-body">
+    <div className="p-12  w-full bg-body min-h-screen">
       <div className="text-white pb-6">
         <p>Status</p>
         <div className="flex flex-col gap-1">

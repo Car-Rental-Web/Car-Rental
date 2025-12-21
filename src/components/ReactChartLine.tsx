@@ -23,6 +23,7 @@ const ReactChartLine = ({data ,maxHeight, maxWidth}:ChartProps) => {
       data={data}
       responsive
       style={{
+        minHeight:"20vh",
         width: "100%",
         maxWidth: maxWidth,
         height: "100%",

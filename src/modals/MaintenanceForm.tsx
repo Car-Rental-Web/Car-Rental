@@ -103,10 +103,10 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
         }}
         onClick={(e) => e.stopPropagation()}
         action=""
-        className="border border-gray-400 rounded-xl py-6 px-8 w-2/5 bg-sub overflow-y-auto   "
+        className="border border-gray-400 rounded-xl py-6 px-8 w-full md:w-2/5 bg-sub overflow-y-auto h-full   "
       >
         <ModalButton onclick={onClose} />
-        <div className="flex flex-col mb-3 w-full">
+        <div className="flex flex-col pb-3 w-full">
           <label htmlFor="" className="text-start text-white">
             Maintenance Date
           </label>
@@ -116,10 +116,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             type="date"
             placeholder="Ex:Civic Lx"
           />
+          {errors?.date?.message && 
+          <p className="text-red-400 text-start text-sm">Please Select a Date</p>
+          }
         </div>
         <div
           onClick={() => setSelectToggle(!selectToggle)}
-          className="flex flex-col gap-1 mb-3 relative"
+          className="flex flex-col gap-1  relative"
         >
           <label htmlFor="" className="text-start text-white">
             Registered Vehicles
@@ -147,7 +150,10 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             <icons.down className="absolute top-13 right-4 txt-color" />
           )}
         </div>
-        <div className="flex flex-col gap-1 mb-3">
+        {errors?.car?.message &&
+        <p className="text-red-400 text-start text-sm">Please Select a Vehicle</p>
+        }
+        <div className="flex flex-col gap-1 pt-3 pb-3">
           <label htmlFor="" className="text-start text-white">
             Cost of Maintenance
           </label>
@@ -155,10 +161,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             {...register("cost_of_maintenance")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
-            placeholder="Ex:Sedan"
+            placeholder="Ex: 1000 "
           />
+          {errors?.cost_of_maintenance?.message && 
+          <p className="text-red-400 text-start text-sm">Please Input a Price</p>
+          }
         </div>
-        <div className="flex flex-col gap-1 mb-3">
+        <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             Type of Maintenance
           </label>
@@ -168,20 +177,25 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             type="text"
             placeholder="Ex:Midnight Blue"
           />
+           {errors?.type_of_maintenance?.message && 
+          <p className="text-red-400 text-start text-sm">Please Input a Type</p>
+          }
         </div>
-        <div className="flex flex-col gap-1 mb-3">
+        <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             location
           </label>
-
           <input
             {...register("location")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
-            placeholder="EX:ABC-1234"
+            placeholder="Ex: Angeles"
           />
+           {errors?.location?.message && 
+          <p className="text-red-400 text-start text-sm">Please Input a Location</p>
+          }
         </div>
-        <div className="flex flex-col gap-1 mb-3">
+        <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             Maintained By
           </label>
@@ -189,15 +203,15 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             {...register("maintained_by")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
-            placeholder="EX:ABC-1234"
+            placeholder="Ex: Nicko"
           />
           {errors.maintained_by && (
-            <p className="text-red-500 text-sm">
-              {errors.maintained_by.message}
+            <p className="text-red-400 text-sm text-start">
+                Please Input Maintained By
             </p>
           )}
         </div>
-        <div className="flex flex-col gap-1 mb-3">
+        <div className="flex flex-col gap-1 ">
           <label htmlFor="" className="text-start text-white">
             Status
           </label>

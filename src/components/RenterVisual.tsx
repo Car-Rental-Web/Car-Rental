@@ -74,7 +74,7 @@ const RenterVisual = () => {
                 </option>
               ))}
             </select>
-            <div className="absolute top-3 right-2 text-white">
+            <div className="absolute top-2 md:top-3 right-2 text-white">
               {toggle ? <icons.up /> : <icons.down />}
             </div>
           </div>
@@ -84,7 +84,7 @@ const RenterVisual = () => {
         <ReactChartLine
           data={chartData}
           maxHeight={"30vh"}
-          maxWidth={"800px"}
+          maxWidth={"900px"}
         />
         ;
       </div>

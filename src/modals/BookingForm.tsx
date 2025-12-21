@@ -25,7 +25,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     resolver: zodResolver(RenterFormSchema),
   });
 
-
   //fetching vehicle
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -43,10 +42,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     fetchVehicle();
   }, []);
 
-
   // get selectedPlate value from vehicles
   const selectedPlate = watch("car_plate_number");
-  
+
   useEffect(() => {
     if (!selectedPlate) {
       setValue("car_model", "");
@@ -59,12 +57,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     }
   }, [selectedPlate, vehicles, setValue]);
 
-
   // onSubmit function to add data
   const onSubmit = async (data: RenterFormData) => {
     try {
       setIsLoading(true);
-      // for image handling 
+      // for image handling
       const validIdUrl = data.valid_id?.[0]
         ? await uploadFile(data.valid_id[0], "valid_id")
         : null;
@@ -80,7 +77,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
         : null;
       console.log(data);
 
-      // to insert or add data in the booking table 
+      // to insert or add data in the booking table
       const { data: bookings, error } = await supabase.from("booking").insert({
         full_name: data.full_name,
         address: data.address,
@@ -118,7 +115,6 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       console.log("Renter added successfully:", bookings);
       toast.success("Renter added successfully");
 
-
       // avoid duplication of renter information
       const { data: renter, error: renterError } = await supabase
         .from("renter")
@@ -138,9 +134,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           times_rented: 1,
           notes: data.notes,
         });
-      } 
+      }
       // if yes, increment times rented by 1
-      else { 
+      else {
         await supabase
           .from("renter")
           .update({ times_rented: renter.times_rented + 1 })
@@ -169,7 +165,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     }
   };
 
-  //modal  
+  //modal
   if (!open) return null;
 
   return (
@@ -179,7 +175,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           e.preventDefault();
           handleSubmit(onSubmit)(e);
         }}
-        className="h-full overflow-y-auto  border border-gray-400 rounded-xl  w-3/5 bg-sub px-8 py-4"
+        className="h-full overflow-y-auto  border border-gray-400 rounded-xl  w-full md:w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
           <div>
@@ -193,13 +189,13 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               <label className=" text-start text-white">Fullname</label>
               <input
                 {...register("full_name")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:John Doe"
               />
-              {errors.full_name && (
-                <p className="text-red-500  text-start ">
-                  {errors.full_name.message}
+              {errors?.full_name?.message && (
+                <p className="text-red-400 text-start text-sm">
+                  Please input Fullname
                 </p>
               )}
             </div>
@@ -209,37 +205,52 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("address")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:110 Maligaya St."
               />
+              {errors?.address?.message && (
+                <p className="text-red-400 text-start text-sm">
+                  Please input Address
+                </p>
+              )}
             </div>
           </div>
-          <div className="flex w-full gap-5 ">
-            <div className="flex flex-col flex-1  gap-1 ">
+          <div className="lg:flex w-full  gap-5 ">
+            <div className="flex flex-col w-full  gap-1 ">
               <label htmlFor="" className=" text-start text-white">
                 License id / Number
               </label>
               <input
                 {...register("license_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
+              {errors?.license_number?.message && (
+                <p className="text-red-400 text-start text-sm">
+                  Please input License #
+                </p>
+              )}
             </div>
-            <div className="flex flex-col flex-1 gap-1  ">
+            <div className="flex flex-col  gap-1 w-full">
               <label htmlFor="" className=" text-start text-white">
                 Valid id
               </label>
               <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                 <input
                   {...register("valid_id")}
-                  className="text-gray-600 w-full"
+                  className="text-gray-600 "
                   type="file"
                   accept="image/*"
                 />
                 <icons.upload className="absolute right-3 txt-color" />
               </div>
+              {errors?.license_number?.message && (
+                <p className="text-red-400 text-start text-sm">
+                  Please input Valid Id
+                </p>
+              )}
             </div>
           </div>
           <div className="flex w-full justify-around items-center gap-5">
@@ -250,7 +261,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("pagibig_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -261,7 +272,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("sss_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -274,7 +285,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("tin_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -286,7 +297,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               </label>
               <input
                 {...register("philhealth_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -294,7 +305,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
           </div>
           <div className="flex flex-col w-full gap-3">
             <p className=" text-start text-white text-primary">Car Rented</p>
-            <div className="flex  justify-around items-center w-full gap-3">
+            <div className="md:flex  justify-around items-center w-full gap-3">
               <div
                 onClick={() => setSelectToggle(!selectToggle)}
                 className="flex flex-col w-full relative "
@@ -319,10 +330,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     </option>
                   ))}
                 </select>
-                {selectToggle ? (
-                  <icons.up className="absolute bottom-5 right-4 txt-color" />
-                ) : (
-                  <icons.down className="absolute bottom-5 right-4 txt-color" />
+                <div className="absolute bottom-5 right-4 txt-color flex items-center">
+                  {selectToggle ? <icons.up /> : <icons.down />}
+                </div>
+
+                {errors?.car_plate_number?.message && (
+                  <p className="text-red-400 text-start text-sm ">
+                    Please Select A Vehicle{" "}
+                  </p>
                 )}
               </div>
               <div className="flex flex-col w-full">
@@ -336,6 +351,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   placeholder="Ex:Civic LX"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 />
+                {errors?.car_plate_number?.message && (
+                  <p className="text-red-400 text-start text-sm ">
+                    Please Select A Vehicle
+                  </p>
+                )}
               </div>
               <div className="flex flex-col w-full">
                 <label htmlFor="" className=" text-start text-white">
@@ -348,6 +368,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   placeholder="Ex: Sedan"
                   className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
                 />
+                {errors?.car_plate_number?.message && (
+                  <p className="text-red-400 text-start text-sm ">
+                    Please Select A Vehicle
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -365,9 +390,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("total_price_rent", { required: true })}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                       placeholder="Ex: 2000"
                     />
+                    {errors?.total_price_rent?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Input an amount
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
@@ -376,9 +406,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("downpayment", { required: true })}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                       placeholder="Ex:1000"
                     />
+                      {errors?.downpayment?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Input an amount
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex w-full justify-around gap-5">
@@ -389,8 +424,13 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("start_date", { required: true })}
                       type="date"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
                     />
+                      {errors?.start_date?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a Date
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
@@ -399,30 +439,45 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("end_date", { required: true })}
                       type="date"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
                     />
+                      {errors?.end_date?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a Date
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex w-full justify-around gap-5">
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
-                      Start Time
+                      Pick Up time
                     </label>
                     <input
                       {...register("start_time", { required: true })}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
+                      {errors?.start_time?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a time
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
-                      End Time
+                      Drop off Time
                     </label>
                     <input
                       {...register("end_time", { required: true })}
                       type="time"
                       className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
                     />
+                      {errors?.end_time?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a time
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex w-full justify-around gap-5">
@@ -437,7 +492,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       {...register("type_of_rent", { required: true })}
                       className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none outline-none"
                     >
-                      <option value="" className="txt-color">Select Type of Rent</option>
+                      <option value="" className="txt-color">
+                        Select Type of Rent
+                      </option>
                       <option value="Self Drive" className="txt-color">
                         Self Drive
                       </option>
@@ -453,6 +510,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         <icons.down className=" txt-color" />
                       )}
                     </div>
+                      {errors?.type_of_rent?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a type
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
@@ -461,14 +523,19 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <input
                       {...register("location", { required: true })}
                       type="text"
-                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                      className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                       placeholder="Ex: Baguio"
                     />
+                      {errors?.location?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please input a location
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-5 w-full">
+              <div className="flex flex-col gap-2 w-full pt-5">
                 <p className=" text-start text-white text-primary">
                   Vehicle left in the garage of renter
                   <span className="text-sm   text-start  text-white">
@@ -484,7 +551,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <input
                         {...register("vehicle_left_plate_number")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                         placeholder="Ex:ABC-1234"
                       />
                     </div>
@@ -495,7 +562,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       <input
                         {...register("vehicle_left_model")}
                         type="text"
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                         placeholder="Ex:Civic LX"
                       />
                     </div>
@@ -507,14 +574,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </label>
                       <input
                         {...register("vehicle_left_type")}
-                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                        className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
                         type="text"
-                        placeholder="Ex:N01-23-456789"
+                        placeholder="Ex: Sedan"
                       />
                     </div>
                     <div className="flex flex-col flex-1 gap-1  ">
                       <label htmlFor="" className=" text-start text-white">
-                        Agreement <span>(photo)</span> signed documents
+                        Agreement <span>(photo)</span>
                       </label>
                       <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
                         <input
@@ -580,6 +647,11 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     <div className="absolute top-12 right-3 txt-color">
                       {selectToggle ? <icons.up /> : <icons.down />}
                     </div>
+                      {errors?.status?.message && (
+                      <p className="text-red-400 text-start text-sm ">
+                        Please Select a Status
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className=" text-center pb-4">
