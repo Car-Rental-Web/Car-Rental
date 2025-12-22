@@ -127,15 +127,15 @@ const uploadFile = async (file: File, bucket: string, folder?:string) => {
     }
     fetchValue()
 
-    const handleEdit = async  (id:number, data:TestFormData) => {
-        await supabase.from('test').update({
-          full_name: data.full_name,
-          valid_id: data.valid_id,
-          plate_no: data.plate_no,
-          car_model: data.car_model,
-          car_type: data.car_type,
-        }).eq("id",id)
-    }
+    // const handleEdit = async  (id:number, data:TestFormData) => {
+    //     await supabase.from('test').update({
+    //       full_name: data.full_name,
+    //       valid_id: data.valid_id,
+    //       plate_no: data.plate_no,
+    //       car_model: data.car_model,
+    //       car_type: data.car_type,
+    //     }).eq("id",id)
+    // }
 
 
     const columns = [
