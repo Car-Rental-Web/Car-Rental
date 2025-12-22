@@ -51,7 +51,7 @@ const Header = () => {
         </div>
         {open && 
         <div className="absolute right-0  md:-right-15 lg:-right-15 xl:right-6 top-16 md:top-18 lg:top-16 z-1000 border border-gray-600 bg-sub rounded">
-        <button onClick={handleLogout} className=" py-2 px-4  text-white rounded cursor-pointer lg:text-md xl:text-base"> Logout</button>
+        <button onClick={handleLogout} className=" py-2 px-4  text-white rounded cursor-pointer lg:text-md xl:text-base"><icons.logOut/> Logout</button>
         </div>
    }
        </header> 
