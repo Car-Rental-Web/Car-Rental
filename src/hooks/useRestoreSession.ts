@@ -13,12 +13,13 @@ export const useRestoreSession = () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
         setUser(data.session.user); 
-        navigate('/dashboard');
-      } else {
-        finishLoading();
-      }
-    };
 
+        if(location.pathname === "/" || location.pathname === "/login"){
+          navigate("/dashboard", {replace:true});
+      } 
+      finishLoading()
+    };
+  }
     initSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
