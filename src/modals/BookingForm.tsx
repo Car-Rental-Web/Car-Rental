@@ -216,14 +216,14 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
               )}
             </div>
           </div>
-          <div className="lg:flex w-full  gap-5 ">
+          <div className="xl:flex w-full  gap-5 ">
             <div className="flex flex-col w-full  gap-1 ">
               <label htmlFor="" className=" text-start text-white">
                 License id / Number
               </label>
               <input
                 {...register("license_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
                 type="text"
                 placeholder="Ex:N01-23-456789"
               />
@@ -417,7 +417,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   </div>
                 </div>
                 <div className="flex w-full justify-around gap-5">
-                  <div className="flex flex-col w-full gap-1">
+                  <div className="flex flex-col flex-1 w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
                       Start Date
                     </label>
@@ -432,7 +432,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col w-full gap-1">
+                  <div className="flex flex-col flex-1 w-full gap-1">
                     <label htmlFor="" className=" text-start text-white">
                       End Date
                     </label>
@@ -493,7 +493,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                       className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none outline-none"
                     >
                       <option value="" className="txt-color">
-                        Select Type of Rent
+                        Type of Rent
                       </option>
                       <option value="Self Drive" className="txt-color">
                         Self Drive

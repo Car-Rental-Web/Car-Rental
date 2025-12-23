@@ -24,7 +24,7 @@ const fetchBookings = async () => {
 
   let revenue = 0;
   let onService = 0;
-  let totalBookings = data.length
+  const totalBookings = data.length
   data.forEach((item) => {
     if(item.status === "Completed"){
       revenue += Number(item.total_price_rent)
@@ -67,7 +67,7 @@ useEffect(() => {
         Overview
       </p>
       <div className="flex flex-col gap-2 ">
-        <div className="flex flex-col sm:flex-row w-full gap-3 ">
+        <div className="flex flex-col md:flex-row lg:flex w-full gap-3 ">
           <Card
             className="bg-border w-full"
             title="Renters"
@@ -90,7 +90,7 @@ useEffect(() => {
             <BookingVisual/>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row  gap-3  w-full">
+        <div className="flex flex-col md:flex-row  gap-3  w-full">
           <div className="w-full border border-gray-400 rounded">
             <RenterVisual/>
           </div>
