@@ -10,7 +10,7 @@ export const useRestoreSession = () => {
     const initSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
-        setUser(data.session.user); // ✅ now it's read
+        setUser(data.session.user); 
       } else {
         finishLoading();
       }
