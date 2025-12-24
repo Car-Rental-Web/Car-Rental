@@ -9,13 +9,15 @@ import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { uploadFile } from "../utils/UploadFile";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
-  const [loading, setIsLoading] = useState(false);
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
+
+  const {loading, setLoading} = useLoadingStore()
   const {
     register,
     handleSubmit,
@@ -61,7 +63,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   // onSubmit function to add data
   const onSubmit = async (data: RenterFormData) => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       // for image handling
       const validIdUrl = data.valid_id?.[0]
         ? await uploadFile(data.valid_id[0], "valid_id")
@@ -139,7 +141,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
       console.log("Error adding renter:", error);
       toast.error("Error adding renter");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
       onClose();
     }
   };

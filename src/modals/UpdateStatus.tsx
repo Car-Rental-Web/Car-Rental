@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import { createPortal } from "react-dom";
+import { useLoadingStore } from "../store/useLoading";
 
 interface UpdateProps {
   open: boolean;
@@ -17,9 +18,10 @@ const UpdateMaintenance: React.FC<UpdateProps> = ({
   children,
   disabled,
 }) => {
-  if (!open) return;
+
+  const {loading} = useLoadingStore()
   return createPortal(
-    <div className="fixed inset-0 bg-[#032d44]/25 z-1000 flex  justify-center items-center ">
+    <div className={`fixed inset-0 bg-[#032d44]/25 z-1000 flex  justify-center items-center ${open ? "flex": "hidden"} `}>
       <div className="relative w-96 h-48 border border-white flex flex-col justify-center items-center gap-3 rounded bg-white">
         <ModalButton className="absolute top-4 right-5" onclick={onClose} />
         <p className="text-white text-xl pt-6 txt-color">{children}</p>
@@ -29,7 +31,7 @@ const UpdateMaintenance: React.FC<UpdateProps> = ({
             onClick={onClick}
             className="text-white bg-red-600 py-2 px-6 rounded cursor-pointer"
           >
-            Yes
+            {loading ? "Updating..." : "Yes"}
           </button>
           <button
             onClick={onClose}

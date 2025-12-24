@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback} from "react";
 import { ModalButton } from "../components/CustomButtons";
 import type { ModalProps } from "../types/types";
 import { useForm } from "react-hook-form";
@@ -7,9 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 
 const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
-  const [loading, setIsLoading] = useState(false);
+  const {loading, setLoading} = useLoadingStore()
 
   const {
     register,
@@ -23,7 +24,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
   });
 
   const onAddVehicle = useCallback( async (data: VehicleFormData) => {
-    setIsLoading(true);
+    setLoading(true);
 
     console.log(data);
     const { data: vehicle, error } = await supabase
@@ -35,7 +36,7 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
     if (error) {
       console.log("Error adding vehicle:", error.message);
-      setIsLoading(false);
+      setLoading(false);
       toast.error("Error adding vehicle:" + error.message);
       return;
     }
@@ -43,10 +44,10 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
     console.log("Vehicle added successfully:", vehicle);
     toast.success("Vehicle added successfully");
 
-    setIsLoading(false);
+    setLoading(false);
     onClose();
     reset();
-  }, [reset, onClose]);
+  }, [reset, onClose,setLoading]);
 
   return (
     <div className={`fixed inset-0 bg-[#032d44]/25 z-999 justify-center items-center ${open ? "flex": "hidden"} `}>

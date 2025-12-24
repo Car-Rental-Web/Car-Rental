@@ -10,17 +10,19 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../utils/supabase";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 interface MaintenanceFormProps {
   open: boolean;
   onClose: () => void;
 }
 
 const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
-  const [loading, setIsLoading] = useState(false);
   const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
     []
   );
   const [selectToggle, setSelectToggle] = useState(false);
+  const {loading, setLoading} = useLoadingStore()
+
 
   const {
     register,
@@ -36,7 +38,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
 
   // onsubmit function to add data
   const onSubmit = useCallback( async (data: MaintenanceFormData) => {
-    setIsLoading(true);
+    setLoading(true);
     console.log(data);
     const { data: maintenance, error } = await supabase
       .from("maintenance")
@@ -45,7 +47,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
       })
     
     if (error) {
-      setIsLoading(false);
+      setLoading(false);
       console.log("Error adding maintenance:", error.message);
       toast.error("Error adding maintenance:" + error.message);
       return;
@@ -65,12 +67,12 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     // setIsLoading(true);
     // console.log("Update Succesfully:", updateVehicle);
 
-    setIsLoading(false);
+    setLoading(false)
     console.log("Maintenance added successfully:", maintenance);
     toast.success("Maintenance added successfully");
     onClose();
     reset();
-  }, [onClose, reset]);
+  }, [onClose, reset, setLoading]);
 
   //fetch vehicles to use in select options
   useEffect(() => {
