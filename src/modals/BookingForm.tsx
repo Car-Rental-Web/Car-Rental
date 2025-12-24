@@ -8,6 +8,7 @@ import { RenterFormSchema, type RenterFormData } from "../schema/schema";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { uploadFile } from "../utils/UploadFile";
+import React from "react";
 
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);
@@ -79,32 +80,10 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
 
       // to insert or add data in the booking table
       const { data: bookings, error } = await supabase.from("booking").insert({
-        full_name: data.full_name,
-        address: data.address,
-        license_number: data.license_number,
-        valid_id: validIdUrl,
-        pagibig_number: data.pagibig_number,
-        sss_number: data.sss_number,
-        tin_number: data.tin_number,
-        philhealth_number: data.philhealth_number,
-        car_plate_number: data.car_plate_number,
-        car_model: data.car_model,
-        car_type: data.car_type,
-        total_price_rent: data.total_price_rent,
-        downpayment: data.downpayment,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        type_of_rent: data.type_of_rent,
-        location: data.location,
-        vehicle_left_plate_number: data.vehicle_left_plate_number,
-        vehicle_left_model: data.vehicle_left_model,
-        vehicle_left_type: data.vehicle_left_type,
-        agreement_photo: agreementPhotoUrl,
-        notes: data.notes,
-        uploaded_proof: uploadedProofUrls,
-        status: data.status,
+      ...data,
+      valid_id: validIdUrl?.path,
+      agreement_photo: agreementPhotoUrl?.path,
+      uploaded_proof: uploadedProofUrls?.map(f => f.path),
       });
 
       if (error) {
@@ -165,11 +144,8 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
     }
   };
 
-  //modal
-  if (!open) return null;
-
   return (
-    <div className="fixed  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center">
+    <div className={`fixed  inset-0 bg-[#032d44]/25  z-999 flex justify-center items-center ${open ? "flex" : "hidden"}`}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -667,4 +643,4 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   );
 };
 
-export default BookingForm;
+export default React.memo(BookingForm);

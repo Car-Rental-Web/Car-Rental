@@ -9,9 +9,14 @@ export const uploadFile = async (
   const fileName = `${crypto.randomUUID()}.${fileExt}`;
   const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-  const { error } = await supabase.storage.from(bucket).upload(filePath, file);
+  const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+    cacheControl: "3600",
+    upsert: false,
+  });
   if (error) throw error;
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-  return data.publicUrl;
+  return {
+    path: filePath,
+    bucket,
+  };
 };

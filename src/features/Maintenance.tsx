@@ -9,6 +9,7 @@ import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
+import React from "react";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -324,6 +325,6 @@ const handleUpdate = async (id:number) => {
   );
 };
 
-export default Maintenance;
+export default React.memo(Maintenance);
 
 

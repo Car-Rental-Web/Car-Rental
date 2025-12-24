@@ -2,6 +2,7 @@ import {useState } from "react";
 import { supabase } from "../utils/supabase";
 import type { EventInput } from "@fullcalendar/core/index.js";
 import { Calendar } from "../components";
+import React from "react";
 
 const Availability = () => {
   const [events, setEvents] = useState<EventInput[]>([]);
@@ -100,4 +101,4 @@ const Availability = () => {
   );
 };
 
-export default Availability;
+export default React.memo(Availability);

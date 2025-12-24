@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
 import { DeleteModal } from "../modals";
+import React from "react";
 
 const RenterHistory = () => {
   const [records, setRecords] = useState<DataRenterProps[]>([]);
@@ -201,4 +202,4 @@ const totalRenter = records.length
   );
 };
 
-export default RenterHistory;
+export default React.memo(RenterHistory);

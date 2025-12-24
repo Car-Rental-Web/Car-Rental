@@ -10,6 +10,7 @@ import { supabase } from "../utils/supabase";
 import { useModalStore } from "../store/useModalStore";
 import { toast } from "react-toastify";
 import { Card, SearchBar, TableData } from "../components";
+import React from "react";
 
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
@@ -325,4 +326,4 @@ const Vehicles = () => {
   );
 };
 
-export default Vehicles;
+export default React.memo(Vehicles);

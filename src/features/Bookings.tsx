@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import type { DataBookingProps } from "../types/types";
 import { useDebouncedValue } from "../utils/useDebounce";
@@ -12,9 +13,7 @@ import React from "react";
 import { Card, SearchBar, TableData } from "../components";
 import { DeleteModal, UpdateStatus } from "../modals";
 
-
-
-const BookingForm = React.lazy(() => import ('../modals/BookingForm'))
+const BookingForm = React.lazy(() => import("../modals/BookingForm"));
 
 const Bookings = () => {
   const [records, setRecords] = useState<DataBookingProps[]>([]);
@@ -27,14 +26,12 @@ const Bookings = () => {
   const { open, onOpen, onClose } = useModalStore();
   const [openStatus, setOpenStatus] = useState(false);
 
-
-
   useEffect(() => {
     onClose();
   }, [onClose]);
 
   //update action to completed if status = "On Service"
-  const handleOnServiceUpdate = async (id: number, vehicleId: string) => {
+  const handleOnServiceUpdate = async (id: number) => { //, vehicleId: string
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "Completed" })
@@ -44,17 +41,17 @@ const Bookings = () => {
       toast.error("Failed to update");
       return;
     }
+// update vehicle status
+    // const { data: vehicleData, error: vehicleError } = await supabase
+    //   .from("vehicle")
+    //   .update({ status: "Available" })
+    //   .eq("plate_no", vehicleId);
 
-    const { data: vehicleData, error: vehicleError } = await supabase
-      .from("vehicle")
-      .update({ status: "Available" })
-      .eq("plate_no", vehicleId);
-
-    if (vehicleError) {
-      console.log("Failed to update Vehicle as Available");
-      return;
-    }
-    console.log("Success updating status of vehicle", vehicleData);
+    // if (vehicleError) {
+    //   console.log("Failed to update Vehicle as Available");
+    //   return;
+    // }
+    // console.log("Success updating status of vehicle", vehicleData);
 
     toast.success("Update Successfully");
     console.log("Update Successfully", data);
@@ -62,7 +59,7 @@ const Bookings = () => {
   };
 
   //update action to completed if status = "On Reservation"
-  const handleReserveUpdate = async (id: number, vehicleId: string) => {
+  const handleReserveUpdate = async (id: number) => { //, vehicleId: string
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "On Service" })
@@ -76,52 +73,130 @@ const Bookings = () => {
     console.log("Successfully Update to On Service", data);
     toast.success("Successfully Update to On Service");
     setOpenStatus(false);
-
-    const { data: vehicleData, error: vehicleError } = await supabase
-      .from("vehicle")
-      .update({ status: "On Service" })
-      .eq("plate_no", vehicleId);
-
-    if (vehicleError) {
-      toast.error("Failed to update status in Vehicle");
-      console.log("Failed to update status in Vehicle");
-      return;
-    }
-    console.log("Successfully update status in vehicle", vehicleData);
-  };
-
-  //delete data of the renter or bookings based on id
-  const handleDelete = async (id: number) => { //vehicleId: string
-    const { data, error } = await supabase
-      .from("booking")
-      .delete()
-      .eq("id", id);
-    if (error) {
-      console.log("Failed to Delete", error);
-      toast.error("Failed to Delete");
-      return;
-    }
-    console.log("Deleted Successfully", data);
-    toast.success("Deleted Succesfully");
-
-    // if the booking is deleted, the status in the vehicle that was choose will be available not On service | On Reservation | Completed
-
-    // const { data: vehicle, error: vehicleError } = await supabase
+    // update vehicle status
+    // const { data: vehicleData, error: vehicleError } = await supabase
     //   .from("vehicle")
-    //   .update({ status: "Available" })
+    //   .update({ status: "On Service" })
     //   .eq("plate_no", vehicleId);
 
     // if (vehicleError) {
-    //   console.log("Error Changing Status in Vehicle");
-    //   toast.error("Error Changing Status in Vehicle");
+    //   toast.error("Failed to update status in Vehicle");
+    //   console.log("Failed to update status in Vehicle");
     //   return;
     // }
-    // console.log("Successfully changing status in Vehicle", vehicle);
+    // console.log("Successfully update status in vehicle", vehicleData);
+  };
 
-    setOpenDelete(false);
-    // if !== id = delete the id 
-    setRecords((records) => records.filter((row) => row.id !== id));
-    setFilterRecords((records) => records.filter((row) => row.id !== id));
+  //delete data of the renter or bookings based on id
+
+  /* ===============================
+   Normalize storage paths
+   Handles:
+   - public URLs
+   - bucket/file paths
+   - plain filenames
+================================ */
+  const normalizePaths = (files: string[], bucket: string): string[] => {
+    return files
+      .map((file) => {
+        // Public URL → extract path
+        if (file.startsWith("http")) {
+          const marker = `/object/public/${bucket}/`;
+          const index = file.indexOf(marker);
+          return index !== -1 ? file.substring(index + marker.length) : null;
+        }
+
+        // Remove bucket prefix if present
+        if (file.startsWith(`${bucket}/`)) {
+          return file.replace(`${bucket}/`, "");
+        }
+
+        return file;
+      })
+      .filter(Boolean) as string[];
+  };
+
+  /* ===============================
+   MAIN DELETE FUNCTION
+================================ */
+  const handleDeleteBooking = async (
+    id: number,
+    setOpenDelete: (v: boolean) => void,
+    setRecords: React.Dispatch<React.SetStateAction<any[]>>,
+    setFilterRecords: React.Dispatch<React.SetStateAction<any[]>>
+  ) => {
+    try {
+      /*  Fetch booking first */
+      const { data: booking, error: fetchError } = await supabase
+        .from("booking")
+        .select("valid_id, agreement_photo, uploaded_proof")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (fetchError) {
+        toast.error("Booking not found");
+        return;
+      }
+
+      if (!booking) return;
+
+      /*  Delete STORAGE files */
+      const tasks: Promise<any>[] = [];
+
+      if (booking.valid_id) {
+        tasks.push(
+          supabase.storage
+            .from("valid_id")
+            .remove(normalizePaths([booking.valid_id], "valid_id"))
+        );
+      }
+
+      if (booking.agreement_photo) {
+        tasks.push(
+          supabase.storage
+            .from("agreement_photo")
+            .remove(
+              normalizePaths([booking.agreement_photo], "agreement_photo")
+            )
+        );
+      }
+
+      if (booking.uploaded_proof?.length) {
+        const proofs =
+          typeof booking.uploaded_proof === "string"
+            ? JSON.parse(booking.uploaded_proof)
+            : booking.uploaded_proof;
+
+        tasks.push(
+          supabase.storage
+            .from("uploaded_proof")
+            .remove(normalizePaths(proofs, "uploaded_proof"))
+        );
+      }
+
+      await Promise.all(tasks);
+
+      /*  Delete booking row */
+      const { error: deleteError } = await supabase
+        .from("booking")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) {
+        toast.error("Failed to delete booking");
+        return;
+      }
+
+      /* Update UI */
+      toast.success("Booking deleted successfully");
+      setOpenDelete(false);
+      setRecords((rows) => rows.filter((row) => row.id !== id));
+      setFilterRecords((rows) => rows.filter((row) => row.id !== id));
+    } catch (err) {
+      console.error("Delete booking error:", err);
+      toast.error("Something went wrong");
+    }
+    handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
 
   //fetch the data in that was inserted in booking form
@@ -138,7 +213,7 @@ const Bookings = () => {
 
         const row = data ?? [];
         const rowData = row.map((item) => ({
-          id:item.id,
+          id: item.id,
           full_name: item.full_name,
           license_number: item.license_number,
           car_plate_number: item.car_plate_number,
@@ -168,7 +243,7 @@ const Bookings = () => {
     return () => {
       isMounted = false;
     };
-  }, [open,openStatus]);
+  }, [open, openStatus]);
 
   //search filter
   useEffect(() => {
@@ -189,7 +264,6 @@ const Bookings = () => {
     setRecords(result);
   }, [debounceSearchTerm, selectValue, filterRecords]);
 
-
   //filter status to get the length or number of the bookings based on the status
   const onService = records.filter(
     (item) => item.status === "On Service"
@@ -202,7 +276,7 @@ const Bookings = () => {
   const onComplete = records.filter(
     (item) => item.status === "Completed"
   ).length;
- //total calculation of bookings
+  //total calculation of bookings
   const totalBookings = records.length;
 
   //table columns
@@ -320,7 +394,9 @@ const Bookings = () => {
 
               <UpdateStatus
                 children={"Transaction Complete?"}
-                onClick={() => handleOnServiceUpdate(row.id, row.car_plate_number)}
+                onClick={() =>
+                  handleOnServiceUpdate(row.id) //, row.car_plate_number
+                }
                 onClose={() => setOpenStatus(false)}
                 open={openStatus}
               />
@@ -337,15 +413,14 @@ const Bookings = () => {
               <UpdateStatus
                 children={"Ready to Service?"}
                 onClick={() =>
-                  handleReserveUpdate(row.id, row.car_plate_number)
+                  handleReserveUpdate(row.id) //, row.car_plate_number
                 }
                 onClose={() => setOpenStatus(false)}
                 open={openStatus}
               />
             </div>
           )}
-          <icons.edit
-            className="cursor-pointer text-blue-400 text-xl"/>
+          <icons.edit className="cursor-pointer text-blue-400 text-xl" />
           <icons.trash
             className="cursor-pointer text-red-400 text-xl"
             onClick={() => setOpenDelete(true)}
@@ -353,7 +428,14 @@ const Bookings = () => {
           <DeleteModal
             open={openDelete}
             onClose={() => setOpenDelete(false)}
-            onClick={() => handleDelete(row.id)}
+            onClick={() =>
+              handleDeleteBooking(
+                row.id,
+                setOpenDelete,
+                setRecords,
+                setFilterRecords
+              )
+            }
           />
         </div>
       ),
@@ -468,4 +550,4 @@ const Bookings = () => {
   );
 };
 
-export default Bookings;
+export default React.memo(Bookings);

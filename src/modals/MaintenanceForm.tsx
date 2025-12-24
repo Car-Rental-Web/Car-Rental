@@ -6,9 +6,10 @@ import {
   type MaintenanceFormData,
 } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../utils/supabase";
+import React from "react";
 interface MaintenanceFormProps {
   open: boolean;
   onClose: () => void;
@@ -28,27 +29,21 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(MaintenanceFormSchema),
+    shouldUnregister:false,
+    mode:"onSubmit",
   });
   
 
   // onsubmit function to add data
-  const onSubmit = async (data: MaintenanceFormData) => {
+  const onSubmit = useCallback( async (data: MaintenanceFormData) => {
     setIsLoading(true);
     console.log(data);
     const { data: maintenance, error } = await supabase
       .from("maintenance")
       .insert({
-        date: data.date,
-        car: data.car,
-        type_of_maintenance: data.type_of_maintenance,
-        cost_of_maintenance: data.cost_of_maintenance,
-        location: data.location,
-        maintained_by: data.maintained_by,
-        status: data.status,
+       ...data
       })
-      .select()
-      .single();
-
+    
     if (error) {
       setIsLoading(false);
       console.log("Error adding maintenance:", error.message);
@@ -75,7 +70,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     toast.success("Maintenance added successfully");
     onClose();
     reset();
-  };
+  }, [onClose, reset]);
 
   //fetch vehicles to use in select options
   useEffect(() => {
@@ -93,9 +88,8 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
     fetchVehicles();
   }, []);
 
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center">
+    <div className={`fixed inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center ${open ? "flex": "hidden"} `}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -237,4 +231,4 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
   );
 };
 
-export default MaintenanceForm;
+export default React.memo(MaintenanceForm);

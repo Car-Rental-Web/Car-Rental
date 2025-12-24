@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import type { ModalProps } from "../types/types";
 import { useForm } from "react-hook-form";
@@ -6,6 +6,7 @@ import { VehicleFormSchema, type VehicleFormData } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
+import React from "react";
 
 const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [loading, setIsLoading] = useState(false);
@@ -17,24 +18,20 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
     formState: { errors },
   } = useForm<VehicleFormData>({
     resolver: zodResolver(VehicleFormSchema),
+    mode:"onSubmit",
+    shouldUnregister:false,
   });
 
-  const onAddVehicle = async (data: VehicleFormData) => {
+  const onAddVehicle = useCallback( async (data: VehicleFormData) => {
     setIsLoading(true);
 
     console.log(data);
     const { data: vehicle, error } = await supabase
       .from("vehicle")
       .insert({
-        model: data.model,
-        brand: data.brand,
-        type: data.type,
-        color: data.color,
-        plate_no: data.plate_no,
-        status: null
-      })
-      .select()
-      .single();
+       ...data,
+       status: null,
+      });
 
     if (error) {
       console.log("Error adding vehicle:", error.message);
@@ -49,11 +46,10 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
     setIsLoading(false);
     onClose();
     reset();
-  };
+  }, [reset, onClose]);
 
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center ">
+    <div className={`fixed inset-0 bg-[#032d44]/25 z-999 justify-center items-center ${open ? "flex": "hidden"} `}>
       <form
         onSubmit={handleSubmit(onAddVehicle)}
         action=""
@@ -130,14 +126,14 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
             <p className="text-red-500 text-sm text-start">Please Input a Plate #</p>
           )}
         </div>
-        {/* <div className="flex flex-col  mb-3">
+        <div className="flex flex-col  mb-3">
           <label htmlFor=""  className="text-start text-white">Status</label>
           <input 
           disabled
           defaultValue={"Available"}
           {...register("status")}
           type="text" className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"  placeholder="Available" />
-        </div> */}
+        </div>
         <div className="mt-15 mb-6">
           <button
           disabled={loading}
@@ -152,4 +148,4 @@ const VehicleForm: React.FC<ModalProps> = ({ open, onClose }) => {
   );
 };
 
-export default VehicleForm;
+export default React.memo(VehicleForm);
