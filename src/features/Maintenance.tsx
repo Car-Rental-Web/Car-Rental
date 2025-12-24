@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -22,6 +23,7 @@ const Maintenance = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openStatus, setOpenStatus] = useState(false)
   const { open, onOpen, onClose } = useModalStore();
+  const {loading, setLoading} = useLoadingStore()
 
   useEffect(() => {
     onClose();
@@ -30,6 +32,7 @@ const Maintenance = () => {
 
   // to update the status if the car is done on maintenance
 const handleUpdate = async (id:number) => {
+  setLoading(true)
   const {data, error} = await supabase.from("maintenance").update({status:"Maintained"}).eq('id',id)
 
   if(error){
@@ -39,11 +42,13 @@ const handleUpdate = async (id:number) => {
   toast.success('Update Successfully')
   console.log('Update Successfully', data)
   setOpenStatus(false)
+  setLoading(false)
 }
 
 
 // to delete data or information of the inserted information in maintenanceform
   const handleDelete = async (id: number) => { //, vehicleId: string
+    setLoading(true)
     const { data, error } = await supabase
       .from("maintenance")
       .delete()
@@ -77,6 +82,7 @@ const handleUpdate = async (id:number) => {
     //   toast.success("Update Successfully");
     // }
     setOpenDelete(false)
+    setLoading(false)
   };
 
   // const handleEdit = async () => {
@@ -212,7 +218,7 @@ const handleUpdate = async (id:number) => {
             className="cursor-pointer text-green-400 text-xl"
             onClick={() => setOpenStatus(true)}
           />
-          <UpdateStatus open={openStatus} onClick={() => handleUpdate(row.id)} onClose={() => setOpenStatus(false)} children={"Maintenance Done?"} />
+          <UpdateStatus disabled={loading} open={openStatus} onClick={() => handleUpdate(row.id)} onClose={() => setOpenStatus(false)} children={"Maintenance Done?"} />
           </div>
           }
           {row.status === "On Maintenance" && <icons.edit className="cursor-pointer text-blue-300 text-xl" /> }
@@ -221,6 +227,7 @@ const handleUpdate = async (id:number) => {
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
+          disabled={loading}
             onClose={() => setOpenDelete(false)}
             onClick={() => handleDelete(row.id)}
             open={openDelete}
@@ -273,7 +280,7 @@ const handleUpdate = async (id:number) => {
             children="Add Maintenance"
             className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer "
           />
-          {open && <MaintenanceForm open={open} onClose={onClose} />}
+          {open && <MaintenanceForm open={open} onClose={onClose}  />}
         </div>
       </div>
 

@@ -12,29 +12,30 @@ export const useRestoreSession = () => {
     const initSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
-        setUser(data.session.user); 
+        setUser(data.session.user);
 
-        if(location.pathname === "/" || location.pathname === "/login"){
-          navigate("/dashboard", {replace:true});
-      } 
-      finishLoading()
-    };
-  }
-    initSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-
-      if(event === "PASSWORD_RECOVERY"){
-        useAuthStore.getState().setRecoveringPassword(true);
-        return;
-      }
-      if(session?.user){
-        setUser(session.user)
-      } else {
+        if (location.pathname === "/" || location.pathname === "/login") {
+          navigate("/dashboard", { replace: true });
+        }
         finishLoading();
       }
-    });
+    };
+    initSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          useAuthStore.getState().setRecoveringPassword(true);
+          return;
+        }
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          finishLoading();
+        }
+      }
+    );
 
     return () => listener.subscription.unsubscribe();
-  }, [setUser, finishLoading,navigate]);
+  }, [setUser, finishLoading, navigate]);
 };

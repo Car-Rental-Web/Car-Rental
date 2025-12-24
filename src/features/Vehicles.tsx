@@ -11,6 +11,7 @@ import { useModalStore } from "../store/useModalStore";
 import { toast } from "react-toastify";
 import { Card, SearchBar, TableData } from "../components";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
@@ -24,6 +25,7 @@ const Vehicles = () => {
   // const [selectToggle, setSelectToggle] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
+  const {loading, setLoading} = useLoadingStore()
 
   useEffect(() => {
     onClose();
@@ -32,6 +34,7 @@ const Vehicles = () => {
 
   // delete data or vehicle information based on id
   const handleDelete = async (vehicleId: number,) => { // plateNumber: string
+    setLoading(true)
     const { data, error } = await supabase
       .from("vehicle")
       .delete()
@@ -45,6 +48,7 @@ const Vehicles = () => {
     console.log("Deleted Successfully", data);
     toast.success("Delete Successfully");
     setOpenDelete(false);
+    setLoading(false)
 
     // const {data:bookingData, error:bookingError } = await supabase.from('booking').delete().eq("id", vehicleId)
     // if(error) {
@@ -212,6 +216,7 @@ const Vehicles = () => {
             selectedVehicleId !== null &&
             selectedPlate !== null && (
               <DeleteModal
+              disabled={loading}
                 open={openDelete}
                 onClose={() => setOpenDelete(false)}
                 onClick={() => handleDelete(selectedVehicleId)}

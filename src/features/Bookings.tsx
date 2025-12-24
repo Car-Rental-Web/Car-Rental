@@ -12,6 +12,7 @@ import to12Hour from "../utils/timeFormatter";
 import React from "react";
 import { Card, SearchBar, TableData } from "../components";
 import { DeleteModal, UpdateStatus } from "../modals";
+import { useLoadingStore } from "../store/useLoading";
 
 const BookingForm = React.lazy(() => import("../modals/BookingForm"));
 
@@ -25,6 +26,7 @@ const Bookings = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
   const [openStatus, setOpenStatus] = useState(false);
+  const {loading, setLoading} = useLoadingStore()
 
   useEffect(() => {
     onClose();
@@ -32,6 +34,7 @@ const Bookings = () => {
 
   //update action to completed if status = "On Service"
   const handleOnServiceUpdate = async (id: number) => { //, vehicleId: string
+    setLoading(true)
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "Completed" })
@@ -56,10 +59,12 @@ const Bookings = () => {
     toast.success("Update Successfully");
     console.log("Update Successfully", data);
     setOpenStatus(false);
+    setLoading(false)
   };
 
   //update action to completed if status = "On Reservation"
   const handleReserveUpdate = async (id: number) => { //, vehicleId: string
+    setLoading(true)
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "On Service" })
@@ -73,6 +78,7 @@ const Bookings = () => {
     console.log("Successfully Update to On Service", data);
     toast.success("Successfully Update to On Service");
     setOpenStatus(false);
+    setLoading(false)
     // update vehicle status
     // const { data: vehicleData, error: vehicleError } = await supabase
     //   .from("vehicle")
@@ -125,6 +131,7 @@ const Bookings = () => {
     setRecords: React.Dispatch<React.SetStateAction<any[]>>,
     setFilterRecords: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
+    setLoading(true)
     try {
       /*  Fetch booking first */
       const { data: booking, error: fetchError } = await supabase
@@ -196,6 +203,7 @@ const Bookings = () => {
       console.error("Delete booking error:", err);
       toast.error("Something went wrong");
     }
+    setLoading(false)
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
 
@@ -393,6 +401,7 @@ const Bookings = () => {
               />
 
               <UpdateStatus
+              disabled={loading}
                 children={"Transaction Complete?"}
                 onClick={() =>
                   handleOnServiceUpdate(row.id) //, row.car_plate_number
@@ -411,6 +420,7 @@ const Bookings = () => {
               />
 
               <UpdateStatus
+              disabled={loading}  
                 children={"Ready to Service?"}
                 onClick={() =>
                   handleReserveUpdate(row.id) //, row.car_plate_number
@@ -426,6 +436,7 @@ const Bookings = () => {
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
+          disabled={loading}
             open={openDelete}
             onClose={() => setOpenDelete(false)}
             onClick={() =>

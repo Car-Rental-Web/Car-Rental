@@ -7,6 +7,7 @@ interface UpdateProps {
   onClose: () => void;
   onClick: () => void;
   children: ReactNode;
+  disabled?: boolean;
 }
 
 const UpdateMaintenance: React.FC<UpdateProps> = ({
@@ -14,6 +15,7 @@ const UpdateMaintenance: React.FC<UpdateProps> = ({
   onClose,
   onClick,
   children,
+  disabled,
 }) => {
   if (!open) return;
   return createPortal(
@@ -23,6 +25,7 @@ const UpdateMaintenance: React.FC<UpdateProps> = ({
         <p className="text-white text-xl pt-6 txt-color">{children}</p>
         <div className="flex gap-3 pt-2">
           <button
+          disabled={disabled}
             onClick={onClick}
             className="text-white bg-red-600 py-2 px-6 rounded cursor-pointer"
           >

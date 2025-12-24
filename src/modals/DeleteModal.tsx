@@ -5,9 +5,10 @@ interface DeleteProps {
   open: boolean;
   onClose: () => void;
   onClick: () => void;
+  disabled: boolean;
 }
 
-const DeleteModal: React.FC<DeleteProps> = ({ open, onClose, onClick }) => {
+const DeleteModal: React.FC<DeleteProps> = ({ open, onClose, onClick,disabled }) => {
   if (!open) return;
   return createPortal(
     <div className="fixed inset-0 bg-[#032d44]/25 z-1000 flex  justify-center items-center ">
@@ -18,6 +19,7 @@ const DeleteModal: React.FC<DeleteProps> = ({ open, onClose, onClick }) => {
         </p>
         <div className="flex gap-3 pt-2">
           <button
+            disabled={disabled}
             onClick={onClick}
             className="text-white bg-red-600 py-2 px-6 rounded cursor-pointer"
           >

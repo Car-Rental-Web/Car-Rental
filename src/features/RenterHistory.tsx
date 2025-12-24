@@ -9,17 +9,20 @@ import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
 import { DeleteModal } from "../modals";
 import React from "react";
+import { useLoadingStore } from "../store/useLoading";
 
 const RenterHistory = () => {
   const [records, setRecords] = useState<DataRenterProps[]>([]);
   const [filterRecords, setFilterRecords] = useState<DataRenterProps[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const {open, onOpen, onClose} = useModalStore()
+  const {loading, setLoading} = useLoadingStore()
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   // delete data or renter's information based on id
   const handleDelete = async (id:number) => {
+    setLoading(true)
       const {data, error} = await supabase.from('renter').delete().eq("id", id)
 
       if(error){
@@ -31,6 +34,7 @@ const RenterHistory = () => {
       setRecords((records) => records.filter((row) => row.id !== id))
       setFilterRecords((records) => records.filter((row) => row.id !== id))
       onClose()
+      setLoading(false)
   }
 
   //fetch renter information that was insert in bookingform
@@ -60,6 +64,7 @@ const RenterHistory = () => {
       console.log("Fetch Renters", data);
       setFilterRecords(rowData);
       setRecords(rowData);
+
     };
     fetchRenter();
     return () => {
@@ -133,7 +138,7 @@ const RenterHistory = () => {
             className="cursor-pointer text-red-400 text-xl"
             onClick={onOpen}
           />
-          <DeleteModal open={open} onClose={onClose} onClick={() => handleDelete(row.id)}/>
+          <DeleteModal disabled={loading} open={open} onClose={onClose} onClick={() => handleDelete(row.id)}/>
         </div>
       ),
     },

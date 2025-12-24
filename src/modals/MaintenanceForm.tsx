@@ -218,8 +218,9 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             placeholder="EX:ABC-1234"
           />
         </div>
-        <div className="mt-15 mb-6">
+        <div className="mt-15 mb- 6">
           <button
+          disabled={loading}
             type="submit"
             className="hover:bg-[#4E8EA2] bg-[#1d596b] text-white w-full py-4 rounded cursor-pointer"
           >
