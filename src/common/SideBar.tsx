@@ -11,7 +11,7 @@ const SideBarData = [
     icon: <icons.availability />,
   },
   { label: "Bookings", path: "/bookings", icon: <icons.booking /> },
-  { label: "Renter History", path: "/renterhistory", icon: <icons.person /> },
+  { label: "Renter", path: "/renterhistory", icon: <icons.person /> },
   { label: "Vehicles", path: "/vehicle", icon: <icons.vehicle /> },
   { label: "Maintenance", path: "/maintenance", icon: <icons.onMaintenance /> },
 ];
@@ -79,7 +79,7 @@ const Sidebar = () => {
           bg-sidebar
           min-h-screen
           z-50
-          transition-all duration-300 ease-in-out
+          transform transition-transform duration-300 ease-in-out
           fixed md:relative
           top-0 left-0
           border-r border-[#032d44]

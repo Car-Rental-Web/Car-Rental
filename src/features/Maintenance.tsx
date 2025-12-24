@@ -1,18 +1,14 @@
-import Card from "../components/Card";
 import icons from "../constants/icon";
 import type { DataMaintenanceProps } from "../types/types";
-import TableData from "../components/TableData";
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
-import SearchBar from "../components/SearchBar";
-import { MaintenanceForm } from "../modals";
+import { DeleteModal, MaintenanceForm, UpdateStatus } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
-import DeleteModal from "../modals/DeleteModal";
-import UpdateStatus from "../modals/UpdateStatus";
+import { Card, SearchBar, TableData } from "../components";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);

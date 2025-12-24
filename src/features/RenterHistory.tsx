@@ -1,15 +1,13 @@
-import Card from "../components/Card";
 import icons from "../constants/icon";
 import type { DataRenterProps } from "../types/types";
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
-import TableData from "../components/TableData";
-import SearchBar from "../components/SearchBar";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
-import DeleteModal from "../modals/DeleteModal";
+import { Card, SearchBar, TableData } from "../components";
+import { DeleteModal } from "../modals";
 
 const RenterHistory = () => {
   const [records, setRecords] = useState<DataRenterProps[]>([]);

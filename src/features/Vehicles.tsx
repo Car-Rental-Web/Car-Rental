@@ -1,19 +1,15 @@
 import { BsThreeDots } from "react-icons/bs";
-// import Card from "../components/Card";
-import TableData from "../components/TableData";
 import icons from "../constants/icon";
 import type { DataVehicleProps } from "../types/types";
-import SearchBar from "../components/SearchBar";
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
-import { VehicleForm } from "../modals";
+import { DeleteModal, VehicleForm } from "../modals";
 import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { useModalStore } from "../store/useModalStore";
-import DeleteModal from "../modals/DeleteModal";
 import { toast } from "react-toastify";
-import Card from "../components/Card";
+import { Card, SearchBar, TableData } from "../components";
 
 const Vehicles = () => {
   const [records, setRecords] = useState<DataVehicleProps[]>([]);
@@ -117,7 +113,7 @@ const Vehicles = () => {
 
   //search filter
   useEffect(() => {
-    let result = filterData(debounceValue, filterRecords, [
+    const result = filterData(debounceValue, filterRecords, [
       "model",
       "brand",
       "type",

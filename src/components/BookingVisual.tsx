@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import icons from "../constants/icon";
 import ReactChartLine from "./ReactChartLine";
 import { supabase } from "../utils/supabase";
+import React from "react";
 
 const years = [2025, 2026, 2027, 2028, 2029, 2030];
 const BookingVisual = () => {
@@ -91,4 +92,4 @@ const BookingVisual = () => {
   );
 };
 
-export default BookingVisual;
+export default React.memo(BookingVisual);

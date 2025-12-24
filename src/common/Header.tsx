@@ -45,13 +45,13 @@ const Header = () => {
           onClick={(e) => {
             e.stopPropagation();
             setOpen((p) => !p)}}
-          className="lg:hidden flex items-center cursor-pointer text-white text-2xl"
+          className="md:hidden flex items-center cursor-pointer text-white text-2xl"
         >
           {open ? (<icons.up/>) : (<icons.down/>) }
         </div>
         {open && 
         <div className="absolute right-0  md:-right-15 lg:-right-15 xl:right-6 top-16 md:top-18 lg:top-16 z-1000 border border-gray-600 bg-sub rounded">
-        <button onClick={handleLogout} className=" py-2 px-4  text-white rounded cursor-pointer lg:text-md xl:text-base"><icons.logOut/> Logout</button>
+        <button onClick={handleLogout} className=" py-2 px-4  text-white rounded cursor-pointer lg:text-md xl:text-base flex items-center gap-3"><icons.logOut/> Logout</button>
         </div>
    }
        </header> 

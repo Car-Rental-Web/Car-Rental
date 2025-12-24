@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
-import TableData from "../components/TableData";
 import type { DataBookingProps } from "../types/types";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
-import SearchBar from "../components/SearchBar";
-import Card from "../components/Card";
 import icons from "../constants/icon";
 import { CustomButtons } from "../components/CustomButtons";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
-import DeleteModal from "../modals/DeleteModal";
 import to12Hour from "../utils/timeFormatter";
-import UpdateStatus from "../modals/../modals/UpdateStatus"
 import React from "react";
+import { Card, SearchBar, TableData } from "../components";
+import { DeleteModal, UpdateStatus } from "../modals";
+
 
 
 const BookingForm = React.lazy(() => import ('../modals/BookingForm'))
@@ -363,7 +361,7 @@ const Bookings = () => {
   ];
 
   return (
-    <div className="w-full relative min-h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 pb-2 px-6 bg-body">
+    <div className="w-full min-h-screen  overflow-y-auto  flex flex-col gap-5  pt-12 pb-2 px-6 bg-body">
       <div className="">
         <p className="text-5xl font-semibold text-gray-300 tracking-wide pb-5">
           Bookings

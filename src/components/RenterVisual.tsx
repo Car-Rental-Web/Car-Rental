@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ReactChartLine from "./ReactChartLine";
 import { supabase } from "../utils/supabase";
 import icons from "../constants/icon";
+import React from "react";
 
 const years = [2025, 2026, 2027, 2028, 2029, 2030];
 const RenterVisual = () => {
@@ -92,4 +93,4 @@ const RenterVisual = () => {
   );
 };
 
-export default RenterVisual;
+export default React.memo(RenterVisual);

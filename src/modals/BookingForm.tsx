@@ -315,7 +315,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                 </label>
                 <select
                   {...register("car_plate_number", { required: true })}
-                  className="appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+                  className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
                 >
                   <option value="" className="txt-color">
                     Select Vehicle
@@ -331,7 +331,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                   ))}
                 </select>
                 <div className="absolute bottom-5 right-4 txt-color flex items-center">
-                  {selectToggle ? <icons.up /> : <icons.down />}
+                  {selectToggle ? <icons.up className="hidden peer-focus:block" /> : <icons.down className="peer-focus:hidden" />}
                 </div>
 
                 {errors?.car_plate_number?.message && (
@@ -490,7 +490,7 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                     </label>
                     <select
                       {...register("type_of_rent", { required: true })}
-                      className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none outline-none"
+                      className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none peer outline-none"
                     >
                       <option value="" className="txt-color">
                         Type of Rent
@@ -502,13 +502,9 @@ const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
                         With Driver
                       </option>
                     </select>
-                    <div className="absolute top-12 right-3">
+                    <div className="absolute top-12 right-3 txt-color flex items-center">
                       {" "}
-                      {selectToggle ? (
-                        <icons.up className=" txt-color" />
-                      ) : (
-                        <icons.down className=" txt-color" />
-                      )}
+                     {selectToggle ? <icons.up className="hidden peer-focus:block" /> : <icons.down className="peer-focus:hidden" />}
                     </div>
                       {errors?.type_of_rent?.message && (
                       <p className="text-red-400 text-start text-sm ">

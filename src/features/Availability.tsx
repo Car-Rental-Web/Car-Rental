@@ -1,7 +1,7 @@
 import {useState } from "react";
-import Calendar from "../components/Calendar";
 import { supabase } from "../utils/supabase";
 import type { EventInput } from "@fullcalendar/core/index.js";
+import { Calendar } from "../components";
 
 const Availability = () => {
   const [events, setEvents] = useState<EventInput[]>([]);
