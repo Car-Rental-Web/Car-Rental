@@ -18,15 +18,17 @@ const RegisterForm = () => {
   };
 
   return (
-    <div>
+    <div className="flex justify-center items-center w-full h-screen ">
+      {/* bg-[url(assets/car.png)] bg-no-repeat bg-cover */}
       <form
+      className="border border-gray-400 px-4 py-2 rounded flex flex-col items-center gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit();
         }}
         action=""
       >
-        <div>
+        <div className="flex flex-col gap-2">
           <label htmlFor="">Email</label>
           <input
             value={email}
@@ -36,7 +38,7 @@ const RegisterForm = () => {
             placeholder="email"
           />
         </div>
-        <div>
+        <div className="flex flex-col gap-2">
           <label htmlFor="">password</label>
           <input
             value={password}
@@ -46,7 +48,7 @@ const RegisterForm = () => {
             placeholder="password"
           />
         </div>
-        <button type="submit" className="">
+        <button type="submit" className="border border-gray-400 rounded py-2 px-4  cursor-pointer w-full">
           Register
         </button>
       </form>
