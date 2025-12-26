@@ -1,5 +1,8 @@
 import icons from "../constants/icon";
-import type { DataMaintenanceProps } from "../types/types";
+import type {
+  DataMaintenanceProps,
+  MaintenanceFormValues,
+} from "../types/types";
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
@@ -11,6 +14,7 @@ import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
+import { MaintenanceMapper } from "../utils/MaintenanceMapper";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -21,34 +25,41 @@ const Maintenance = () => {
   const [selectValue, setSelectValue] = useState("");
   const [selectToggle, setSelectToggle] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openStatus, setOpenStatus] = useState(false)
+  const [openStatus, setOpenStatus] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
-  const {loading, setLoading} = useLoadingStore()
+  const { loading, setLoading } = useLoadingStore();
+  const [selectedMaintenanceId, setSelectedMaintenanceId] =
+    useState<MaintenanceFormValues | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
+    "create"
+  );
 
   useEffect(() => {
     onClose();
   }, [onClose]);
 
-
   // to update the status if the car is done on maintenance
-const handleUpdate = async (id:number) => {
-  setLoading(true)
-  const {data, error} = await supabase.from("maintenance").update({status:"Maintained"}).eq('id',id)
+  const handleUpdate = async (id: number) => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("maintenance")
+      .update({ status: "Maintained" })
+      .eq("id", id);
 
-  if(error){
-    toast.error('Update Failed')
-    console.log('Update Failed',error)
-  }
-  toast.success('Update Successfully')
-  console.log('Update Successfully', data)
-  setOpenStatus(false)
-  setLoading(false)
-}
+    if (error) {
+      toast.error("Update Failed");
+      console.log("Update Failed", error);
+    }
+    toast.success("Update Successfully");
+    console.log("Update Successfully", data);
+    setOpenStatus(false);
+    setLoading(false);
+  };
 
-
-// to delete data or information of the inserted information in maintenanceform
-  const handleDelete = async (id: number) => { //, vehicleId: string
-    setLoading(true)
+  // to delete data or information of the inserted information in maintenanceform
+  const handleDelete = async (id: number) => {
+    //, vehicleId: string
+    setLoading(true);
     const { data, error } = await supabase
       .from("maintenance")
       .delete()
@@ -59,12 +70,12 @@ const handleUpdate = async (id:number) => {
       toast.error("Failed to delete");
       return;
     }
-    // if !== id = delete the id 
+    // if !== id = delete the id
     setRecords((prev) => prev.filter((row) => row.id !== id));
     setFilterRecords((prev) => prev.filter((row) => row.id !== id));
     console.log("Deleted Successfully", data);
     toast.success("Deleted Successfully");
-    
+
     // to update vehicle status as available if done maintenance
     // const { data: vehicleData, error: errorStatus } = await supabase
     //   .from("vehicle")
@@ -81,8 +92,8 @@ const handleUpdate = async (id:number) => {
     //   console.log("Vehicle Update Successfully", vehicleData);
     //   toast.success("Update Successfully");
     // }
-    setOpenDelete(false)
-    setLoading(false)
+    setOpenDelete(false);
+    setLoading(false);
   };
 
   // const handleEdit = async () => {
@@ -212,22 +223,50 @@ const handleUpdate = async (id:number) => {
       name: "Action",
       cell: (row: DataMaintenanceProps) => (
         <div className="flex gap-2">
-          { row.status === "On Maintenance" && 
+          {row.status === "On Maintenance" && (
+            <div>
+              <icons.check
+                className="cursor-pointer text-green-400 text-xl"
+                onClick={() => setOpenStatus(true)}
+              />
+              <UpdateStatus
+                disabled={loading}
+                open={openStatus}
+                onClick={() => handleUpdate(row.id)}
+                onClose={() => setOpenStatus(false)}
+                children={"Maintenance Done?"}
+              />
+            </div>
+          )}
+
           <div>
-            <icons.check
-            className="cursor-pointer text-green-400 text-xl"
-            onClick={() => setOpenStatus(true)}
-          />
-          <UpdateStatus disabled={loading} open={openStatus} onClick={() => handleUpdate(row.id)} onClose={() => setOpenStatus(false)} children={"Maintenance Done?"} />
+            <icons.openEye
+              className="cursor-pointer text-green-400 text-xl"
+              onClick={() => {
+                setFormMode("view");
+                setSelectedMaintenanceId(MaintenanceMapper(row));
+                onOpen();
+              }}
+            />
           </div>
-          }
-          {row.status === "On Maintenance" && <icons.edit className="cursor-pointer text-blue-300 text-xl" /> }
+          {row.status === "On Maintenance" && (
+            <div>
+              <icons.edit
+                className="cursor-pointer text-green-400 text-xl"
+                onClick={() => {
+                  setFormMode("edit");
+                  setSelectedMaintenanceId(MaintenanceMapper(row));
+                  onOpen();
+                }}
+              />
+            </div>
+          )}
           <icons.trash
             className="cursor-pointer text-red-400 text-xl"
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
-          disabled={loading}
+            disabled={loading}
             onClose={() => setOpenDelete(false)}
             onClick={() => handleDelete(row.id)}
             open={openDelete}
@@ -275,12 +314,23 @@ const handleUpdate = async (id:number) => {
         </div>
         <div className="text-end mb-4 w-full flex justify-end">
           <CustomButtons
-            icons= {<icons.add className="text-white text-xl "/>}
-            handleclick={onOpen}
+            icons={<icons.add className="text-white text-xl " />}
+            handleclick={() => {
+              setFormMode("create");
+              setSelectedMaintenanceId(null);
+              onOpen();
+            }}
             children="Add Maintenance"
             className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer "
           />
-          {open && <MaintenanceForm open={open} onClose={onClose}  />}
+          {open && (
+            <MaintenanceForm
+              open={open}
+              onClose={onClose}
+              mode={formMode}
+              initialData={selectedMaintenanceId ?? undefined}
+            />
+          )}
         </div>
       </div>
 
@@ -333,5 +383,3 @@ const handleUpdate = async (id:number) => {
 };
 
 export default React.memo(Maintenance);
-
-

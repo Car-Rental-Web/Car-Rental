@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
 import { ModalButton } from "../components/CustomButtons";
 import icons from "../constants/icon";
@@ -11,87 +12,126 @@ import { toast } from "react-toastify";
 import { supabase } from "../utils/supabase";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
+import type { MaintenanceFormValues } from "../types/types";
 interface MaintenanceFormProps {
   open: boolean;
   onClose: () => void;
+  mode: "create" | "edit" | "view";
+  initialData?: MaintenanceFormValues & { id?: number };
 }
 
-const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
+const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
+  open,
+  onClose,
+  mode,
+  initialData,
+}) => {
   const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
     []
   );
   const [selectToggle, setSelectToggle] = useState(false);
-  const {loading, setLoading} = useLoadingStore()
-
+  const { loading, setLoading } = useLoadingStore();
+  const [vehicleLoaded, setVehicleLoaded] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({
+  } = useForm<MaintenanceFormValues>({
     resolver: zodResolver(MaintenanceFormSchema),
-    shouldUnregister:false,
-    mode:"onSubmit",
+    shouldUnregister: false,
+    mode: "onSubmit",
+    defaultValues: {
+      date: "",
+      car: "",
+      cost_of_maintenance: "",
+      type_of_maintenance: "",
+      location: "",
+      maintained_by: "",
+      status: "On Maintenance",
+    },
   });
-  
+
+  useEffect(() => {
+    if (initialData && vehicleLoaded) {
+      reset(initialData);
+    }
+  }, [initialData, vehicleLoaded, reset]);
+
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
+  const isCreate = mode === "create";
 
   // onsubmit function to add data
-  const onSubmit = useCallback( async (data: MaintenanceFormData) => {
-    setLoading(true);
-    console.log(data);
-    const { data: maintenance, error } = await supabase
-      .from("maintenance")
-      .insert({
-       ...data
-      })
-    
-    if (error) {
-      setLoading(false);
-      console.log("Error adding maintenance:", error.message);
-      toast.error("Error adding maintenance:" + error.message);
-      return;
-    }
-    // update vehicle status if on maintenance
+  const onSubmit = useCallback(
+    async (data: MaintenanceFormData) => {
+      setLoading(true);
 
-    // const { data: updateVehicle, error: errorUpdate } = await supabase
-    //   .from("vehicle")
-    //   .update({ status: "On Maintenance" })
-    //   .eq("plate_no", data.car);
+      try {
+        if (isCreate) {
+          const { error } = await supabase.from("maintenance").insert(data);
+          if (error) throw error;
+          toast.success("Maintenance added successfully");
+        }
 
-    // if (errorUpdate) {
-    //   setIsLoading(false);
-    //   console.log("Update error:", errorUpdate);
-    //   return
-    // }
-    // setIsLoading(true);
-    // console.log("Update Succesfully:", updateVehicle);
+        if (isEdit && initialData?.id) {
+          const { error } = await supabase
+            .from("maintenance")
+            .update(data)
+            .eq("id", initialData.id);
 
-    setLoading(false)
-    console.log("Maintenance added successfully:", maintenance);
-    toast.success("Maintenance added successfully");
-    onClose();
-    reset();
-  }, [onClose, reset, setLoading]);
+          if (error) throw error;
+          toast.success("Maintenance updated successfully");
+        }
+        // update vehicle status if on maintenance
+
+        // const { data: updateVehicle, error: errorUpdate } = await supabase
+        //   .from("vehicle")
+        //   .update({ status: "On Maintenance" })
+        //   .eq("plate_no", data.car);
+
+        // if (errorUpdate) {
+        //   setIsLoading(false);
+        //   console.log("Update error:", errorUpdate);
+        //   return
+        // }
+        // setIsLoading(true);
+        // console.log("Update Succesfully:", updateVehicle);
+        onClose();
+        reset();
+      } catch (error: Error | any) {
+        toast.error(error.message ?? "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isCreate, isEdit, initialData, onClose, reset, setLoading]
+  );
 
   //fetch vehicles to use in select options
   useEffect(() => {
     const fetchVehicles = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no")
+        .select("id, plate_no");
 
       if (error) {
         console.log("Error fetching vehicles:", error.message);
         return;
       }
+      setVehicleLoaded(true);
       setVehicles(data);
     };
     fetchVehicles();
   }, []);
 
   return (
-    <div className={`fixed inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center ${open ? "flex": "hidden"} `}>
+    <div
+      className={`fixed inset-0 bg-[#032d44]/25 z-999 flex justify-center items-center ${
+        open ? "flex" : "hidden"
+      } `}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -108,13 +148,16 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <input
             {...register("date")}
+            disabled={isView}
             className=" text-white border py-4 px-2 border-gray-400 rounded"
             type="date"
             placeholder="Ex:Civic Lx"
           />
-          {errors?.date?.message && 
-          <p className="text-red-400 text-start text-sm">Please Select a Date</p>
-          }
+          {errors?.date?.message && (
+            <p className="text-red-400 text-start text-sm">
+              Please Select a Date
+            </p>
+          )}
         </div>
         <div
           onClick={() => setSelectToggle(!selectToggle)}
@@ -125,6 +168,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           </label>
           <select
             {...register("car")}
+            disabled={isView}
             className="appearance-none outline-none border py-4 px-2 border-gray-400 rounded text-white"
           >
             <option value="" className="txt-color">
@@ -146,56 +190,68 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
             <icons.down className="absolute top-13 right-4 txt-color" />
           )}
         </div>
-        {errors?.car?.message &&
-        <p className="text-red-400 text-start text-sm">Please Select a Vehicle</p>
-        }
+        {errors?.car?.message && (
+          <p className="text-red-400 text-start text-sm">
+            Please Select a Vehicle
+          </p>
+        )}
         <div className="flex flex-col gap-1 pt-3 pb-3">
           <label htmlFor="" className="text-start text-white">
             Cost of Maintenance
           </label>
           <input
+            disabled={isView}
             {...register("cost_of_maintenance")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex: 1000 "
           />
-          {errors?.cost_of_maintenance?.message && 
-          <p className="text-red-400 text-start text-sm">Please Input a Price</p>
-          }
+          {errors?.cost_of_maintenance?.message && (
+            <p className="text-red-400 text-start text-sm">
+              Please Input a Price
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             Type of Maintenance
           </label>
           <input
+            disabled={isView}
             {...register("type_of_maintenance")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
-           {errors?.type_of_maintenance?.message && 
-          <p className="text-red-400 text-start text-sm">Please Input a Type</p>
-          }
+          {errors?.type_of_maintenance?.message && (
+            <p className="text-red-400 text-start text-sm">
+              Please Input a Type
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             location
           </label>
           <input
+            disabled={isView}
             {...register("location")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
             placeholder="Ex: Angeles"
           />
-           {errors?.location?.message && 
-          <p className="text-red-400 text-start text-sm">Please Input a Location</p>
-          }
+          {errors?.location?.message && (
+            <p className="text-red-400 text-start text-sm">
+              Please Input a Location
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
           <label htmlFor="" className="text-start text-white">
             Maintained By
           </label>
           <input
+            disabled={isView}
             {...register("maintained_by")}
             className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
             type="text"
@@ -203,7 +259,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
           />
           {errors.maintained_by && (
             <p className="text-red-400 text-sm text-start">
-                Please Input Maintained By
+              Please Input Maintained By
             </p>
           )}
         </div>
@@ -222,11 +278,19 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ open, onClose }) => {
         </div>
         <div className="mt-15 mb- 6">
           <button
-          disabled={loading}
+            disabled={loading}
             type="submit"
             className="hover:bg-[#4E8EA2] bg-[#1d596b] text-white w-full py-4 rounded cursor-pointer"
           >
-            {loading ? "Adding..." : "Add Maintenance"}
+            {loading
+              ? isEdit
+                ? "Updating..."
+                : "Submitting..."
+              : isEdit
+              ? "Update Maintenance"
+              : isView
+              ? "Close"
+              : "Add Maintenance"}
           </button>
         </div>
       </form>

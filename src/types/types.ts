@@ -104,8 +104,8 @@ export interface DataBookingProps {
     brand:string;
     type:string;
     color:string;
-    plateNumber:string;
-    status: string | null
+    plate_no:string;
+    status: string 
     action?:React.ReactNode
  }
 
@@ -122,11 +122,16 @@ export interface DataBookingProps {
     action?: React.ReactNode
  }
 
- export interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  
-}
+ export type MaintenanceFormValues = {
+  date: string;
+  car: string;
+  type_of_maintenance: string;
+  cost_of_maintenance: string;
+  location: string;
+  maintained_by: string;
+  status: string;
+};
+
 
 
 

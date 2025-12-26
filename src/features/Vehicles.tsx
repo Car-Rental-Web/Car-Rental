@@ -1,4 +1,3 @@
-import { BsThreeDots } from "react-icons/bs";
 import icons from "../constants/icon";
 import type { DataVehicleProps } from "../types/types";
 import { useEffect, useState } from "react";
@@ -26,6 +25,8 @@ const Vehicles = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
   const {loading, setLoading} = useLoadingStore()
+  const [selectedVehicle, setSelectedVehicle] = useState<DataVehicleProps | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">("create");
 
   useEffect(() => {
     onClose();
@@ -100,9 +101,8 @@ const Vehicles = () => {
         brand: item.brand,
         type: item.type,
         color: item.color,
-        plateNumber: item.plate_no,
-        status: item.status,
-        action: <BsThreeDots />,
+        plate_no: item.plate_no,
+        status: "On Available",
       }));
       setRecords(formattedData);
       setFilterRecords(formattedData);
@@ -123,7 +123,7 @@ const Vehicles = () => {
       "brand",
       "type",
       "color",
-      "plateNumber",
+      "plate_no",
       "status",
     ]);
 
@@ -172,7 +172,7 @@ const Vehicles = () => {
     },
     {
       name: "Plate #",
-      cell: (row: DataVehicleProps) => <div>{row.plateNumber}</div>,
+      cell: (row: DataVehicleProps) => <div>{row.plate_no}</div>,
     },
     // {
     //   name: "Status",
@@ -200,15 +200,29 @@ const Vehicles = () => {
       name: "Action",
       cell: (row: DataVehicleProps) => (
         <div className="flex gap-2">
+          <div>
+            <icons.openEye
+              className="cursor-pointer text-green-400 text-xl"
+              onClick={() => {
+                setFormMode("view");
+                setSelectedVehicle(row);
+                onOpen();
+              }}
+            />
+          </div>
           <icons.edit
             className="cursor-pointer text-green-400 text-xl"
-            // onClick={() => handleUpdate(row.id, row.car)}
+            onClick={() => {
+              setFormMode("edit");
+              setSelectedVehicle(row);
+              onOpen();
+            }}
           />
           <icons.trash
             className="cursor-pointer text-red-400 text-xl"
             onClick={() => {
               setSelectedVehicleId(row.id);
-              setSelectedPlate(row.plateNumber);
+              setSelectedPlate(row.plate_no);
               setOpenDelete(true);
             }}
           />
@@ -269,10 +283,16 @@ const Vehicles = () => {
         </div> */}
         <div className="text-end mb-4 flex justify-end">
           <CustomButtons
-            handleclick={onOpen}
+            handleclick={() => {
+              setFormMode("create");
+              setSelectedVehicle(null)
+              onOpen();
+            }}
             children="Add Vehicle"
             className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer" icons={<icons.add className="text-white text-xl"/>}          />
-          <VehicleForm open={open} onClose={onClose} />
+          <VehicleForm open={open} onClose={onClose} mode={formMode} initialData={
+            selectedVehicle ?? undefined
+          } />
         </div>
       </div>
       <div className="border border-[#055783] px-6 py-2 rounded ">
