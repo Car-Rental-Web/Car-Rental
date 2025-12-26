@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { DataBookingProps } from "../types/types";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
@@ -26,15 +26,16 @@ const Bookings = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
   const [openStatus, setOpenStatus] = useState(false);
-  const {loading, setLoading} = useLoadingStore()
+  const { loading, setLoading } = useLoadingStore();
 
   useEffect(() => {
     onClose();
   }, [onClose]);
 
   //update action to completed if status = "On Service"
-  const handleOnServiceUpdate = async (id: number) => { //, vehicleId: string
-    setLoading(true)
+  const handleOnServiceUpdate = async (id: number) => {
+    //, vehicleId: string
+    setLoading(true);
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "Completed" })
@@ -44,7 +45,7 @@ const Bookings = () => {
       toast.error("Failed to update");
       return;
     }
-// update vehicle status
+    // update vehicle status
     // const { data: vehicleData, error: vehicleError } = await supabase
     //   .from("vehicle")
     //   .update({ status: "Available" })
@@ -59,12 +60,13 @@ const Bookings = () => {
     toast.success("Update Successfully");
     console.log("Update Successfully", data);
     setOpenStatus(false);
-    setLoading(false)
+    setLoading(false);
   };
 
   //update action to completed if status = "On Reservation"
-  const handleReserveUpdate = async (id: number) => { //, vehicleId: string
-    setLoading(true)
+  const handleReserveUpdate = async (id: number) => {
+    //, vehicleId: string
+    setLoading(true);
     const { data, error } = await supabase
       .from("booking")
       .update({ status: "On Service" })
@@ -78,7 +80,7 @@ const Bookings = () => {
     console.log("Successfully Update to On Service", data);
     toast.success("Successfully Update to On Service");
     setOpenStatus(false);
-    setLoading(false)
+    setLoading(false);
     // update vehicle status
     // const { data: vehicleData, error: vehicleError } = await supabase
     //   .from("vehicle")
@@ -131,7 +133,7 @@ const Bookings = () => {
     setRecords: React.Dispatch<React.SetStateAction<any[]>>,
     setFilterRecords: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
-    setLoading(true)
+    setLoading(true);
     try {
       /*  Fetch booking first */
       const { data: booking, error: fetchError } = await supabase
@@ -203,7 +205,7 @@ const Bookings = () => {
       console.error("Delete booking error:", err);
       toast.error("Something went wrong");
     }
-    setLoading(false)
+    setLoading(false);
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
 
@@ -401,10 +403,10 @@ const Bookings = () => {
               />
 
               <UpdateStatus
-              disabled={loading}
+                disabled={loading}
                 children={"Transaction Complete?"}
-                onClick={() =>
-                  handleOnServiceUpdate(row.id) //, row.car_plate_number
+                onClick={
+                  () => handleOnServiceUpdate(row.id) //, row.car_plate_number
                 }
                 onClose={() => setOpenStatus(false)}
                 open={openStatus}
@@ -420,10 +422,10 @@ const Bookings = () => {
               />
 
               <UpdateStatus
-              disabled={loading}  
+                disabled={loading}
                 children={"Ready to Service?"}
-                onClick={() =>
-                  handleReserveUpdate(row.id) //, row.car_plate_number
+                onClick={
+                  () => handleReserveUpdate(row.id) //, row.car_plate_number
                 }
                 onClose={() => setOpenStatus(false)}
                 open={openStatus}
@@ -436,7 +438,7 @@ const Bookings = () => {
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
-          disabled={loading}
+            disabled={loading}
             open={openDelete}
             onClose={() => setOpenDelete(false)}
             onClick={() =>
@@ -502,7 +504,9 @@ const Bookings = () => {
             children="Add Booking"
             className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "
           />
-          <BookingForm open={open} onClose={onClose} />
+          <Suspense>
+            <BookingForm open={open} onClose={onClose} />
+          </Suspense>
         </div>
         <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
           <div className="flex pb-4 pt-4 w-full justify-end gap-3">
