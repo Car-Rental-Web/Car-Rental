@@ -26,7 +26,6 @@ export const VehicleFormSchema = z.object({
 });
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
-
 export const MaintenanceFormSchema = z.object({
   date: z.string().min(1),
   car: z.string().min(1, "Vehicle is required"),
@@ -65,10 +64,22 @@ export const RenterFormSchema = z.object({
   car_plate_number: z.string().min(1, "Please Select A Vehicle").min(1),
   car_model: z.string(),
   car_type: z.string(),
-  total_price_rent: z.string().min(1).transform((v) => Number(v)),
-  downpayment: z.z.string().min(1).transform((v) => Number(v)),
-  start_date: z.string().min(1).transform((v) => new Date(v)),
-  end_date: z.string().min(1).transform((v) => new Date(v)),
+  total_price_rent: z
+    .string()
+    .min(1)
+    .transform((v) => Number(v)),
+  downpayment: z.z
+    .string()
+    .min(1)
+    .transform((v) => Number(v)),
+  start_date: z
+    .string()
+    .min(1)
+    .transform((v) => new Date(v)),
+  end_date: z
+    .string()
+    .min(1)
+    .transform((v) => new Date(v)),
   start_time: z.string().min(1),
   end_time: z.string().min(1),
   type_of_rent: z.string().min(1),
