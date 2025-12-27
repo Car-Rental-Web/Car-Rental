@@ -64,6 +64,15 @@ const VehicleForm: React.FC<ModalProps> = ({
           toast.success("Vehicle Added Successfully");
         }
         if (isEdit && initialData?.id) {
+          const hasChanges = Object.keys(data).some(
+            (key) =>
+              data[key as keyof typeof data] !==
+              initialData[key as keyof typeof initialData]
+          );
+          if (!hasChanges) {
+            toast.info("No changes to update");
+            return;
+          }
           const { error } = await supabase
             .from("vehicle")
             .update({

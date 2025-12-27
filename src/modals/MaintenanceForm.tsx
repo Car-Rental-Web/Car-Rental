@@ -54,7 +54,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   });
 
   useEffect(() => {
-    if (initialData && vehicleLoaded) {
+    if (initialData) {
       reset(initialData);
     }
   }, [initialData, vehicleLoaded, reset]);
@@ -76,6 +76,15 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         }
 
         if (isEdit && initialData?.id) {
+          const hasChanges = Object.keys(data).some(
+           (key) =>
+              data[key as keyof typeof data] !==
+              initialData[key as keyof typeof initialData]
+          );
+          if (!hasChanges) {
+            toast.info("No changes to update");
+            return; 
+          } 
           const { error } = await supabase
             .from("maintenance")
             .update(data)

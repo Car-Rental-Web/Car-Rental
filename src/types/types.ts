@@ -163,15 +163,14 @@ export interface DataVehicleProps {
 }
 
 export interface DataMaintenanceProps {
-  id: number;
+  id: number 
   date: Date;
   car: string;
   type_of_maintenance: string;
   cost_of_maintenance: string;
   location: string;
   maintained_by: string;
-  status: string | null;
-  action?: React.ReactNode;
+  status: string ;
 }
 
 export type MaintenanceFormValues = {
