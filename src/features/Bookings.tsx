@@ -205,7 +205,9 @@ const Bookings = () => {
       console.error("Delete booking error:", err);
       toast.error("Something went wrong");
     }
-    setLoading(false);
+    finally{
+      setLoading(false);
+    }
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
 
