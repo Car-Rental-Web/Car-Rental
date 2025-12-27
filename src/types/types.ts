@@ -164,7 +164,7 @@ export interface DataVehicleProps {
 
 export interface DataMaintenanceProps {
   id: number 
-  date: Date;
+  date: string;
   car: string;
   type_of_maintenance: string;
   cost_of_maintenance: string;

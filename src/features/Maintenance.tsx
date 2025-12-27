@@ -14,7 +14,6 @@ import { useModalStore } from "../store/useModalStore";
 import { Card, SearchBar, TableData } from "../components";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
-import { MaintenanceMapper } from "../utils/MaintenanceMapper";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
@@ -114,10 +113,10 @@ const Maintenance = () => {
       const row = data ?? [];
       const rowsData = row.map((item) => ({
         id: item.id,
-        date: item.date,
+        date: new Date(item.date).toISOString().slice(0, 10),
         car: item.car,
         type_of_maintenance: item.type_of_maintenance,
-        cost_of_maintenance: item.cost_of_maintenance,
+        cost_of_maintenance: String(item.cost_of_maintenance),
         location: item.location,
         maintained_by: item.maintained_by,
         status: item.status,
@@ -244,7 +243,7 @@ const Maintenance = () => {
               className="cursor-pointer text-green-400 text-xl"
               onClick={() => {
                 setFormMode("view");
-                setSelectedMaintenanceId(MaintenanceMapper(row));
+                setSelectedMaintenanceId(row);
                 onOpen();
               }}
             />
@@ -255,7 +254,7 @@ const Maintenance = () => {
                 className="cursor-pointer text-green-400 text-xl"
                 onClick={() => {
                   setFormMode("edit");
-                  setSelectedMaintenanceId(MaintenanceMapper(row));
+                  setSelectedMaintenanceId(row);
                   onOpen();
                 }}
               />
