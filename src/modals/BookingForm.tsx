@@ -10,6 +10,7 @@ import { uploadFile } from "../utils/UploadFile";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
 import type { DataBookingRow } from "../types/types";
+import getPublicUrl from "../utils/getPublicUrl";
 
 interface ModalProps {
   open: boolean;
@@ -28,6 +29,11 @@ const BookingForm: React.FC<ModalProps> = ({
   const [vehicles, setVehicles] = useState<
     { id: string; plate_no: string; model: string; type: string }[]
   >([]);
+  const [existingPaths, setExistingPaths] = useState({
+    valid_id: "",
+    agreement_photo: "",
+    uploaded_proof: [] as string[],
+  });
   const { loading, setLoading } = useLoadingStore();
 
   const {
@@ -35,6 +41,7 @@ const BookingForm: React.FC<ModalProps> = ({
     handleSubmit,
     watch,
     reset,
+    resetField,
     setValue,
     formState: { errors },
   } = useForm<BookingFormValues>({
@@ -70,10 +77,44 @@ const BookingForm: React.FC<ModalProps> = ({
       status: "",
     },
   });
-
   const isView = mode === "view";
   const isEdit = mode === "edit";
   const isCreate = mode === "create";
+  useEffect(() => {
+    if (initialData) {
+      setExistingPaths({
+        valid_id: initialData.valid_id || "",
+        agreement_photo: initialData.agreement_photo || "",
+        uploaded_proof: Array.isArray(initialData.uploaded_proof)
+          ? initialData.uploaded_proof
+          : [],
+      });
+    } else {
+      // Reset for "Add Booking" mode
+      setExistingPaths({
+        valid_id: "",
+        agreement_photo: "",
+        uploaded_proof: [],
+      });
+    }
+  }, [initialData]);
+  const getDisplayUrl = (
+    fieldName: "valid_id" | "agreement_photo",
+    bucket: string
+  ) => {
+    const newFile = watch(fieldName);
+
+    // Priority 1: If user just selected a NEW file, show it
+    if (newFile instanceof FileList && newFile.length > 0) {
+      return URL.createObjectURL(newFile[0]);
+    }
+
+    // Priority 2: If no new file, show the existing path from our state
+    const path = existingPaths[fieldName];
+    if (path) return getPublicUrl(bucket, path);
+
+    return null;
+  };
 
   useEffect(() => {
     if (initialData && (mode === "view" || mode === "edit")) {
@@ -83,37 +124,37 @@ const BookingForm: React.FC<ModalProps> = ({
         agreement_photo: initialData.agreement_photo,
         uploaded_proof: initialData.uploaded_proof,
       });
-    } else if (mode === "create"){
+    } else if (mode === "create") {
       reset({
-      full_name: "",
-      address: "",
-      license_number: "",
-      valid_id: undefined,
-      pagibig_number: "",
-      sss_number: "",
-      tin_number: "",
-      philhealth_number: "",
-      car_plate_number: "",
-      car_type: "",
-      car_model: "",
-      total_price_rent: "",
-      downpayment: "",
-      start_date: "",
-      end_date: "",
-      start_time: "",
-      end_time: "",
-      type_of_rent: "",
-      location: "",
-      vehicle_left_plate_number: "",
-      vehicle_left_model: "",
-      vehicle_left_type: "",
-      agreement_photo: undefined,
-      notes: "",
-      uploaded_proof: undefined,
-      status: "",
-    });
+        full_name: "",
+        address: "",
+        license_number: "",
+        valid_id: undefined,
+        pagibig_number: "",
+        sss_number: "",
+        tin_number: "",
+        philhealth_number: "",
+        car_plate_number: "",
+        car_type: "",
+        car_model: "",
+        total_price_rent: "",
+        downpayment: "",
+        start_date: "",
+        end_date: "",
+        start_time: "",
+        end_time: "",
+        type_of_rent: "",
+        location: "",
+        vehicle_left_plate_number: "",
+        vehicle_left_model: "",
+        vehicle_left_type: "",
+        agreement_photo: undefined,
+        notes: "",
+        uploaded_proof: undefined,
+        status: "",
+      });
     }
-  }, [initialData,mode, reset]);
+  }, [initialData, mode, reset]);
 
   //fetching vehicle
   useEffect(() => {
@@ -148,119 +189,117 @@ const BookingForm: React.FC<ModalProps> = ({
   }, [selectedPlate, vehicles, setValue]);
 
   // onSubmit function to add data
+
   const onSubmit = useCallback(
-    async (data: BookingFormValues) => {
-      setLoading(true);
-      try {
-        const validIdUrl = data.valid_id?.[0]
-          ? await uploadFile(data.valid_id[0], "valid_id")
-          : null;
-        const agreementPhotoUrl = data.agreement_photo?.[0]
-          ? await uploadFile(data.agreement_photo[0], "agreement_photo")
-          : null;
-        const uploadedProofUrls = data.uploaded_proof
-          ? await Promise.all(
-              Array.from(data.uploaded_proof).map((file) =>
-                uploadFile(file, "uploaded_proof")
-              )
-            )
-          : null;
-        // for image handling
-        const finalData = {
-          ...data,
-          valid_id: validIdUrl,
-          agreement_photo: agreementPhotoUrl,
-          uploaded_proof: uploadedProofUrls,
-          // Ensure proof is handled correctly
-        };
-        console.log(data);
-        // to insert or add data in the booking table
+  async (data: BookingFormValues) => {
+    setLoading(true);
+    try {
+      // 1. TRACK DELETED FILES FOR STORAGE CLEANUP
+      // We find files that were in initialData but are no longer in existingPaths
+      const deletedFiles: { bucket: string; path: string }[] = [];
 
-        if (isCreate) {
-          const { data: bookings, error } = await supabase
-            .from("booking")
-            .insert({
-              ...data,
-              valid_id: validIdUrl?.path,
-              agreement_photo: agreementPhotoUrl?.path,
-              uploaded_proof: uploadedProofUrls?.map((f) => f.path),
-            });
-          if (error) {
-            console.log("Error adding booking:", error);
-            toast.error("Error adding booking:" + error.message);
-            return;
-          }
-          console.log("Booking added successfully:", bookings);
-          toast.success("Booking added successfully");
-        }
-        // edit table
-        if (isEdit && initialData?.id) {
-          const { valid_id, agreement_photo, uploaded_proof, ...textData } =
-            finalData;
-          const { error } = await supabase
-            .from("booking")
-            .update({
-              ...textData,
-              valid_id: validIdUrl,
-              agreement_photo: agreementPhotoUrl,
-              uploaded_proof: uploadedProofUrls,
-            })
-            .eq("id", initialData.id);
-          if (error) throw error;
-          toast.success("Updated!");
-        }
-
-        // avoid duplication of renter information
-        const { data: renter, error: renterError } = await supabase
-          .from("renter")
-          .select("id, times_rented")
-          .eq("license_number", data.license_number)
-          .maybeSingle();
-
-        if (renterError) {
-          console.log("Error", renterError);
-          toast.error("Error");
-        }
-        // if no same information, insert in the renter history table
-        if (!renter) {
-          await supabase.from("renter").insert({
-            full_name: data.full_name,
-            license_number: data.license_number,
-            times_rented: 1,
-            notes: data.notes,
-          });
-        }
-        // if yes, increment times rented by 1
-        else {
-          await supabase
-            .from("renter")
-            .update({ times_rented: renter.times_rented + 1 })
-            .eq("id", renter.id);
-        }
-        reset();
-        onClose();
-        // to change status in the vehicle table
-        // const bookingStatus = data.status as "On Service" | "On Reservation";
-        // const { data: vehicleData, error: vehicleError } = await supabase
-        //   .from("vehicle")
-        //   .update({ status: bookingStatus })
-        //   .eq("plate_no", data.car_plate_number);
-
-        // if (vehicleError) {
-        //   console.log("Error Updating In Vehicle", error);
-        //   toast.error("Error Updating In Vehicle");
-        //   return;
-        // }
-        // console.log("Successfully Updated In Vehicle", vehicleData);
-      } catch (error) {
-        console.log("Error adding renter:", error);
-        toast.error("Error adding renter");
-      } finally {
-        setLoading(false);
+      if (initialData?.valid_id && existingPaths.valid_id === "") {
+        deletedFiles.push({ bucket: "valid_id", path: initialData.valid_id });
       }
-    },
-    [isCreate, isEdit, initialData, onClose, reset, setLoading]
-  );
+      if (initialData?.agreement_photo && existingPaths.agreement_photo === "") {
+        deletedFiles.push({ bucket: "agreement_photo", path: initialData.agreement_photo });
+      }
+
+      const removedProofs = (initialData?.uploaded_proof || []).filter(
+        (path: string) => !existingPaths.uploaded_proof.includes(path)
+      );
+
+      // 2. HANDLE NEW UPLOADS
+      // Logic: If user picked a NEW file, use it. Otherwise, use what's left in existingPaths.
+      let finalValidId = existingPaths.valid_id;
+      if (data.valid_id?.[0] instanceof File) {
+        const upload = await uploadFile(data.valid_id[0], "valid_id");
+        finalValidId = upload.path;
+      }
+
+      let finalAgreementPhoto = existingPaths.agreement_photo;
+      if (data.agreement_photo?.[0] instanceof File) {
+        const upload = await uploadFile(data.agreement_photo[0], "agreement_photo");
+        finalAgreementPhoto = upload.path;
+      }
+
+      let newProofPaths: string[] = [];
+      if (data.uploaded_proof && data.uploaded_proof.length > 0) {
+        const results = await Promise.all(
+          Array.from(data.uploaded_proof).map((f) => uploadFile(f as File, "uploaded_proof"))
+        );
+        newProofPaths = results.map((r) => r.path);
+      }
+      const finalProofs = [...existingPaths.uploaded_proof, ...newProofPaths];
+
+      // 3. PREPARE PAYLOAD
+      const payload = {
+        ...data,
+        valid_id: finalValidId,
+        agreement_photo: finalAgreementPhoto,
+        uploaded_proof: finalProofs,
+      };
+
+      // 4. DATABASE OPERATIONS
+      if (isCreate) {
+        const { error } = await supabase.from("booking").insert(payload);
+        if (error) throw error;
+        toast.success("Booking created!");
+      } else if (isEdit && initialData?.id) {
+        const { error } = await supabase
+          .from("booking")
+          .update(payload)
+          .eq("id", initialData.id);
+        if (error) throw error;
+
+        // 5. PHYSICAL STORAGE CLEANUP (Only on successful Edit)
+        // Cleanup single files
+        if (deletedFiles.length > 0) {
+          await Promise.all(
+            deletedFiles.map(f => supabase.storage.from(f.bucket).remove([f.path]))
+          );
+        }
+        // Cleanup proof array
+        if (removedProofs.length > 0) {
+          await supabase.storage.from("uploaded_proof").remove(removedProofs);
+        }
+        
+        toast.success("Updated and storage cleaned!");
+      }
+
+      // 6. RENTER HISTORY LOGIC
+      const { data: renter } = await supabase
+        .from("renter")
+        .select("id, times_rented")
+        .eq("license_number", data.license_number)
+        .maybeSingle();
+
+      if (!renter) {
+        await supabase.from("renter").insert({
+          full_name: data.full_name,
+          license_number: data.license_number,
+          times_rented: 1,
+          notes: data.notes,
+        });
+      } else if (isCreate) { 
+        // Only increment if creating a NEW booking, not editing an old one
+        await supabase
+          .from("renter")
+          .update({ times_rented: (renter.times_rented || 0) + 1 })
+          .eq("id", renter.id);
+      }
+
+      reset();
+      onClose();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  },
+  [isCreate, isEdit, initialData, existingPaths, onClose, reset, setLoading]
+);
 
   return (
     <div
@@ -269,10 +308,7 @@ const BookingForm: React.FC<ModalProps> = ({
       }`}
     >
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(onSubmit)(e);
-        }}
+        onSubmit={handleSubmit(onSubmit)}
         className="h-full overflow-y-auto  border border-gray-400 rounded-xl  w-full md:w-3/5 bg-sub px-8 py-4"
       >
         <div className="flex flex-col gap-5">
@@ -338,25 +374,43 @@ const BookingForm: React.FC<ModalProps> = ({
               <label htmlFor="" className=" text-start text-white">
                 Valid id
               </label>
+              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white">
+                {getDisplayUrl("valid_id", "valid_id") && (
+                  <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
+                    <img
+                      src={getDisplayUrl("valid_id", "valid_id")!}
+                      className="w-full h-full object-contain"
+                    />
 
-              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
-                <input
-                  disabled={isView}
-                  {...register("valid_id")}
-                  className="text-gray-600 "
-                  type="file"
-                  accept="image/*"
-                />
-                {/* {mode === "view" &&
-                 <img src={valid_id} /> 
-                } */}
-                <icons.upload className="absolute right-3 txt-color" />
+                    {/* REMOVE BUTTON: Only show if NOT in View mode */}
+                    {!isView && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExistingPaths((prev) => ({
+                            ...prev,
+                            valid_id: "",
+                          })); // Clear state
+                          resetField("valid_id"); // Clear the <input>
+                        }}
+                        className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                      >
+                        <icons.trash size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* INPUT: Only show if adding/editing */}
+                {!isView && (
+                  <input
+                    type="file"
+                    {...register("valid_id")}
+                    className="text-gray-600 w-full"
+                    accept="image/*"
+                  />
+                )}
               </div>
-              {errors?.license_number?.message && (
-                <p className="text-red-400 text-start text-sm">
-                  Please input Valid Id
-                </p>
-              )}
             </div>
           </div>
           <div className="flex w-full justify-around items-center gap-5">
@@ -711,15 +765,50 @@ const BookingForm: React.FC<ModalProps> = ({
                       <label htmlFor="" className=" text-start text-white">
                         Agreement <span>(photo)</span>
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
-                        <input
-                          disabled={isView}
-                          {...register("agreement_photo")}
-                          className="text-gray-600 w-full"
-                          type="file"
-                          accept="image/*"
-                        />
-                        <icons.upload className="absolute right-3 txt-color" />
+                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white">
+                        {getDisplayUrl(
+                          "agreement_photo",
+                          "agreement_photo"
+                        ) && (
+                          <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
+                            <img
+                              src={
+                                getDisplayUrl(
+                                  "agreement_photo",
+                                  "agreement_photo"
+                                )!
+                              }
+                              className="w-full h-full object-contain"
+                            />
+
+                            {/* REMOVE BUTTON: Only show if NOT in View mode */}
+                            {!isView && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setExistingPaths((prev) => ({
+                                    ...prev,
+                                    agreement_photo: "",
+                                  })); // Clear state
+                                  resetField("agreement_photo"); // Clear the <input>
+                                }}
+                                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                              >
+                                <icons.trash size={16} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* INPUT: Only show if adding/editing */}
+                        {!isView && (
+                          <input
+                            type="file"
+                            {...register("agreement_photo")}
+                            className="text-gray-600 w-full"
+                            accept="image/*"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -739,16 +828,84 @@ const BookingForm: React.FC<ModalProps> = ({
                         Uploaded pictures of proof the whole transactions{" "}
                         <span>(others)</span>
                       </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white ">
-                        <input
-                          disabled={isView}
-                          {...register("uploaded_proof")}
-                          className="text-gray-600"
-                          type="file"
-                          accept="image/*"
-                          multiple
-                        />
-                        <icons.upload className="absolute right-3 txt-color" />
+                      <div className="flex flex-col gap-4 border border-gray-400 py-4 px-4 rounded bg-black/10 min-h-[100px]">
+                        {/* SECTION A: DATABASE IMAGES (Shows on View and Edit) */}
+                        {existingPaths.uploaded_proof.length > 0 ? (
+                          <div className="flex flex-wrap gap-3">
+                            {existingPaths.uploaded_proof.map((path, index) => (
+                              <div
+                                key={`existing-${index}`}
+                                className="relative group w-24 h-24 border border-gray-600 rounded overflow-hidden"
+                              >
+                                <img
+                                  src={getPublicUrl("uploaded_proof", path)}
+                                  alt="Existing Proof"
+                                  className="w-full h-full object-cover"
+                                />
+                                {!isView && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setExistingPaths((prev) => ({
+                                        ...prev,
+                                        uploaded_proof:
+                                          prev.uploaded_proof.filter(
+                                            (_, i) => i !== index
+                                          ),
+                                      }));
+                                    }}
+                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <icons.trash size={12} />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          isView && (
+                            <p className="text-gray-500 text-xs italic text-center">
+                              No proofs uploaded.
+                            </p>
+                          )
+                        )}
+
+                        {/* SECTION B: NEW LOCAL FILES (Shows only when user picks new files) */}
+                        {watch("uploaded_proof") instanceof FileList &&
+                          watch("uploaded_proof")!.length > 0 && (
+                            <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-700">
+                              <p className="w-full text-[10px] text-blue-400 uppercase font-bold">
+                                New files to upload:
+                              </p>
+                              {Array.from(
+                                watch("uploaded_proof") as FileList
+                              ).map((file, index) => (
+                                <div
+                                  key={`new-${index}`}
+                                  className="relative w-20 h-20 border border-blue-500 rounded overflow-hidden"
+                                >
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                        {/* SECTION C: THE INPUT */}
+                        {!isView && (
+                          <div className="relative flex items-center mt-2">
+                            <input
+                              {...register("uploaded_proof")}
+                              className="text-gray-400 text-xs w-full cursor-pointer"
+                              type="file"
+                              accept="image/*"
+                              multiple
+                            />
+                            <icons.upload className="absolute right-0 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
