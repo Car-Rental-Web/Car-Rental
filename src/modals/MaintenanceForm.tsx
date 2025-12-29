@@ -150,7 +150,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         action=""
         className="border border-gray-400 rounded-xl py-6 px-8 w-full md:w-2/5 bg-sub overflow-y-auto h-full   "
       >
-        <ModalButton onclick={onClose} />
+        <ModalButton type="button" onclick={onClose} />
         <div className="flex flex-col pb-3 w-full">
           <label htmlFor="" className="text-start text-white">
             Maintenance Date

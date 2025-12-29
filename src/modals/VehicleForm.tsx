@@ -104,7 +104,7 @@ const VehicleForm: React.FC<ModalProps> = ({
         action=""
         className="border border-gray-400 rounded-xl py-4 px-8  w-full md:w-2/5 bg-sub "
       >
-        <ModalButton onclick={onClose} />
+        <ModalButton type="button" onclick={onClose} />
         <div className="flex flex-col  mb-3">
           <label htmlFor="" className="text-start text-white">
             Model

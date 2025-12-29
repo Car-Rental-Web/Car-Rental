@@ -4,6 +4,7 @@ import type { CustomButtonTypes } from "../types/types"
 interface ModalButtonProps {
   className?:string
   onclick: () => void
+  type?: "button" | "submit" | "reset"
 }
 
 export const CustomButtons:React.FC<CustomButtonTypes> = ({
@@ -21,9 +22,9 @@ export const CustomButtons:React.FC<CustomButtonTypes> = ({
 }
 
 
- export const ModalButton:React.FC<ModalButtonProps> = ({onclick, className}) => {
+ export const ModalButton:React.FC<ModalButtonProps> = ({onclick, className, type}) => {
   return (
-     <button onClick={onclick} className={`cursor-pointer ${className}`}>
+     <button type={type} onClick={onclick} className={`cursor-pointer ${className}`}>
               <icons.closeModal className="text-[#4E8EA2] w-12 h-12" />
       </button>
   )

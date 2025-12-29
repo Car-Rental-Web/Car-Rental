@@ -98,23 +98,7 @@ const BookingForm: React.FC<ModalProps> = ({
       });
     }
   }, [initialData]);
-  const getDisplayUrl = (
-    fieldName: "valid_id" | "agreement_photo",
-    bucket: string
-  ) => {
-    const newFile = watch(fieldName);
-
-    // Priority 1: If user just selected a NEW file, show it
-    if (newFile instanceof FileList && newFile.length > 0) {
-      return URL.createObjectURL(newFile[0]);
-    }
-
-    // Priority 2: If no new file, show the existing path from our state
-    const path = existingPaths[fieldName];
-    if (path) return getPublicUrl(bucket, path);
-
-    return null;
-  };
+ 
 
   useEffect(() => {
     if (initialData && (mode === "view" || mode === "edit")) {
@@ -188,8 +172,26 @@ const BookingForm: React.FC<ModalProps> = ({
     }
   }, [selectedPlate, vehicles, setValue]);
 
-  // onSubmit function to add data
+  
+ const getDisplayUrl = (
+    fieldName: "valid_id" | "agreement_photo",
+    bucket: string
+  ) => {
+    const newFile = watch(fieldName);
 
+    // Priority 1: If user just selected a NEW file, show it
+    if (newFile instanceof FileList && newFile.length > 0) {
+      return URL.createObjectURL(newFile[0]);
+    }
+
+    // Priority 2: If no new file, show the existing path from our state
+    const path = existingPaths[fieldName];
+    if (path) return getPublicUrl(bucket, path);
+
+    return null;
+  };
+
+  // onSubmit function to add data
   const onSubmit = async (data: BookingFormValues) => {
     setLoading(true);
     try {
@@ -331,7 +333,7 @@ const BookingForm: React.FC<ModalProps> = ({
       >
         <div className="flex flex-col gap-5">
           <div>
-            <ModalButton onclick={onClose} />
+            <ModalButton type="button" onclick={onClose} />
             <p className=" text-start text-white text-primary">
               Renter Information
             </p>
