@@ -77,14 +77,14 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
 
         if (isEdit && initialData?.id) {
           const hasChanges = Object.keys(data).some(
-           (key) =>
+            (key) =>
               data[key as keyof typeof data] !==
               initialData[key as keyof typeof initialData]
           );
           if (!hasChanges) {
             toast.info("No changes to update");
-            return; 
-          } 
+            return;
+          }
           const { error } = await supabase
             .from("maintenance")
             .update(data)
@@ -285,21 +285,41 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             placeholder="EX:ABC-1234"
           />
         </div>
-        <div className="mt-15 mb- 6">
+        <div className="flex gap-4 mt-8 mb-4">
+          {/* Cancel Button - Only show if NOT in View mode */}
+          {!isView && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+
+          {/* Main Action Button */}
           <button
+            type={isView ? "button" : "submit"}
+            onClick={isView ? onClose : undefined}
             disabled={loading}
-            type="submit"
-            className="hover:bg-[#4E8EA2] bg-[#1d596b] text-white w-full py-4 rounded cursor-pointer"
+            className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors ${
+              isView
+                ? "bg-gray-600 hover:bg-gray-500"
+                : "button-color hover:opacity-90"
+            }`}
           >
-            {loading
-              ? isEdit
-                ? "Updating..."
-                : "Submitting..."
-              : isEdit
-              ? "Update Maintenance"
-              : isView
-              ? "Close"
-              : "Add Maintenance"}
+            {loading ? (
+              <span className="flex justify-center items-center gap-2">
+                {/* Simple inline spinner if you have one, or just text */}
+                {isEdit ? "Updating..." : "Submitting..."}
+              </span>
+            ) : (
+              <>
+                {isEdit && "Update Booking"}
+                {isCreate && "Add Booking"}
+                {isView && "Close"}
+              </>
+            )}
           </button>
         </div>
       </form>

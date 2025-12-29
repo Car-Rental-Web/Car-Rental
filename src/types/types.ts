@@ -58,57 +58,30 @@ export interface CustomTableProps<T> {
   direction?: Direction;
 }
 
-export interface DataBookingProps {
-  id: number;
-  full_name: string;
-  license_number: string;
-  car_plate_number: string;
-  car_type: string;
-  car_model: string;
-  start_date: Date;
-  end_date: Date;
-  start_time: string;
-  end_time: string;
-  location: string;
-  type_of_rent: string;
-  status: string;
-}
 // export interface DataBookingProps {
-//   id: number;
+//   id:number;
 //   full_name: string;
 //   license_number: string;
-//   valid_id: FileList | undefined;
-//   pagibig_no: string;
-//   sss_no: string;
-//   tin_no: string;
-//   philhealth_no: string;
 //   car_plate_number: string;
 //   car_type: string;
 //   car_model: string;
-//   total_price_rent: string;
-//   downpayment: string;
 //   start_date: string;
 //   end_date: string;
 //   start_time: string;
 //   end_time: string;
-//   type_of_rent: string;
 //   location: string;
-//   vehicle_left_plate_number?: string;
-//   vehicle_left_model?: string;
-//   vehicle_left_type?: string;
-//   agreement_photo: FileList | undefined;
-//   notes: string;
-//   uploaded_proof: FileList | undefined;
+//   type_of_rent: string;
 //   status: string;
 // }
-export interface DataBookingFormValues {
+export interface DataBookingRow{
+  id: number;
   full_name: string;
   license_number: string;
-  valid_id: FileList | undefined;
-  pagibig_no: string;
-  sss_no: string;
-  tin_no: string;
-  philhealth_no: string;
+  valid_id: any
+  pagibig_number: string;
+  sss_number: string;
+  tin_number: string;
+  philhealth_number: string;
   car_plate_number: string;
   car_type: string;
   car_model: string;
@@ -123,10 +96,47 @@ export interface DataBookingFormValues {
   vehicle_left_plate_number?: string;
   vehicle_left_model?: string;
   vehicle_left_type?: string;
-  agreement_photo: FileList | undefined;
+  agreement_photo: any
   notes: string;
-  uploaded_proof: FileList | undefined;
-  status: string| null
+  uploaded_proof: any
+  status: string;
+}
+export interface DataBookingFormValues {
+  id:number;
+  full_name: string;
+  address: string;
+  license_number: string;
+
+  valid_id?: any;
+  agreement_photo?: any;
+  uploaded_proof?: any;
+
+  pagibig_number: string;
+  sss_number: string;
+  tin_number: string;
+  philhealth_number: string;
+
+  car_plate_number: string;
+  car_type: string;
+  car_model: string;
+
+  total_price_rent: string;
+  downpayment: string;
+
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+
+  type_of_rent: string;
+  location: string;
+
+  vehicle_left_plate_number?: string;
+  vehicle_left_model?: string;
+  vehicle_left_type?: string;
+
+  notes: string;
+  status: string;
 }
 export interface CalendarEvent {
   id: string;

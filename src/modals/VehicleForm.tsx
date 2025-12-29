@@ -203,23 +203,43 @@ const VehicleForm: React.FC<ModalProps> = ({
             placeholder="Available"
           />
         </div>
-        <div className="mt-15 mb-6">
-          <button
-            disabled={loading}
-            type="submit"
-            className="bg-border text-white w-full py-4 rounded cursor-pointer"
-          >
-            {loading
-              ? isEdit
-                ? "Updating..."
-                : "Submitting"
-              : isEdit
-              ? "Update Vehicle"
-              : isView
-              ? "Close"
-              : "Add Vehicle"}
-          </button>
-        </div>
+        <div className="flex gap-4 mt-8 mb-4">
+                  {/* Cancel Button - Only show if NOT in View mode */}
+                  {!isView && (
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  {/* Main Action Button */}
+                  <button
+                    type={isView ? "button" : "submit"}
+                    onClick={isView ? onClose : undefined}
+                    disabled={loading}
+                    className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors ${
+                      isView
+                        ? "bg-gray-600 hover:bg-gray-500"
+                        : "button-color hover:opacity-90"
+                    }`}
+                  >
+                    {loading ? (
+                      <span className="flex justify-center items-center gap-2">
+                        {/* Simple inline spinner if you have one, or just text */}
+                        {isEdit ? "Updating..." : "Submitting..."}
+                      </span>
+                    ) : (
+                      <>
+                        {isEdit && "Update Booking"}
+                        {isCreate && "Add Booking"}
+                        {isView && "Close"}
+                      </>
+                    )}
+                  </button>
+                </div>
       </form>
     </div>
   );

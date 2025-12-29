@@ -54,47 +54,52 @@ export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;
 // };
 
 export const RenterFormSchema = z.object({
-  full_name: z.string().min(1),
+ full_name: z.string().min(1),
   address: z.string().min(1),
   license_number: z.string().min(1),
+
   valid_id: z.instanceof(FileList).optional(),
+  agreement_photo: z.instanceof(FileList).optional(),
+  uploaded_proof: z.instanceof(FileList).optional(),
+
   pagibig_number: z.string().optional(),
   sss_number: z.string().optional(),
   tin_number: z.string().optional(),
   philhealth_number: z.string().optional(),
-  car_plate_number: z.string().min(1, "Please Select A Vehicle").min(1),
+
+  car_plate_number: z.string().min(1, "Please Select A Vehicle"),
   car_model: z.string(),
   car_type: z.string(),
+
   total_price_rent: z
     .string()
-    .min(1)
-    .transform((v) => Number(v)),
-  downpayment: z.z
+    .min(1),
+  downpayment: z
     .string()
-    .min(1)
-    .transform((v) => Number(v)),
+    .min(1),
   start_date: z
     .string()
-    .min(1)
-    .transform((v) => new Date(v)),
+    .min(1),
+
   end_date: z
     .string()
-    .min(1)
-    .transform((v) => new Date(v)),
+    .min(1),
+
   start_time: z.string().min(1),
   end_time: z.string().min(1),
+
   type_of_rent: z.string().min(1),
   location: z.string().min(1),
+
   vehicle_left_plate_number: z.string().optional(),
   vehicle_left_model: z.string().optional(),
   vehicle_left_type: z.string().optional(),
-  agreement_photo: z.instanceof(FileList).optional(),
+
   notes: z.string().optional(),
-  uploaded_proof: z.instanceof(FileList).optional(),
   status: z.string().min(1),
 });
 
-export type RenterFormData = z.infer<typeof RenterFormSchema>;
+export type BookingFormValues= z.infer<typeof RenterFormSchema>;
 
 export const TestFormSchema = z.object({
   full_name: z.string(),
