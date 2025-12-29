@@ -1,3 +1,4 @@
+import React from "react";
 import {
   LineChart,
   Line,
@@ -41,4 +42,4 @@ const ReactChartLine = ({data ,maxHeight, maxWidth}:ChartProps) => {
   );
 };
 
-export default ReactChartLine;
+export default React.memo(ReactChartLine);

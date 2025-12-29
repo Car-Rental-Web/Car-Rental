@@ -1,4 +1,8 @@
-import type { Alignment, Direction, TableColumn } from "react-data-table-component";
+import type {
+  Alignment,
+  Direction,
+  TableColumn,
+} from "react-data-table-component";
 
 export interface LinksPath {
   className?: string;
@@ -8,7 +12,6 @@ export interface LinksPath {
   folder?: string;
   otherfolder?: string;
   urlFolder?: string;
-
 }
 
 export interface CustomLinksTypes {
@@ -24,7 +27,7 @@ export interface CustomButtonTypes {
   className?: string;
   children: React.ReactNode;
   handleclick?: () => void;
-  icons: React.ReactNode
+  icons: React.ReactNode;
 }
 
 export interface SideBarProps {
@@ -36,9 +39,9 @@ export interface SideBarProps {
 
 export interface CustomTableProps<T> {
   data: T[];
-  progressPending?: true | false
+  progressPending?: true | false;
   columns: TableColumn<T>[];
-  title?: React.ReactNode
+  title?: React.ReactNode;
   pagination?: true | false;
   striped?: true | false;
   highlightOnHover?: true | false;
@@ -55,87 +58,137 @@ export interface CustomTableProps<T> {
   direction?: Direction;
 }
 
-
 export interface DataBookingProps {
-  id:number
-  full_name:string
-  license_number:string
-  car_plate_number:string;
-  car_type:string
-  car_model:string
-  start_date: Date
-  end_date:Date
-  start_time:string;
-  end_time:string;
-  location:string
-  type_of_rent: string | null
-  status: string | null
-  action?: React.ReactNode
- }
-
- export interface CalendarEvent {
-  id:string;
+  id: number;
   full_name: string;
+  license_number: string;
   car_plate_number: string;
-  car_model:string,
+  car_type: string;
+  car_model: string;
   start_date: Date;
   end_date: Date;
   start_time: string;
-  end_time:string;
-  location:string;
+  end_time: string;
+  location: string;
+  type_of_rent: string;
+  status: string;
+}
+// export interface DataBookingProps {
+//   id: number;
+//   full_name: string;
+//   license_number: string;
+//   valid_id: FileList | undefined;
+//   pagibig_no: string;
+//   sss_no: string;
+//   tin_no: string;
+//   philhealth_no: string;
+//   car_plate_number: string;
+//   car_type: string;
+//   car_model: string;
+//   total_price_rent: string;
+//   downpayment: string;
+//   start_date: string;
+//   end_date: string;
+//   start_time: string;
+//   end_time: string;
+//   type_of_rent: string;
+//   location: string;
+//   vehicle_left_plate_number?: string;
+//   vehicle_left_model?: string;
+//   vehicle_left_type?: string;
+//   agreement_photo: FileList | undefined;
+//   notes: string;
+//   uploaded_proof: FileList | undefined;
+//   status: string;
+// }
+export interface DataBookingFormValues {
+  full_name: string;
+  license_number: string;
+  valid_id: FileList | undefined;
+  pagibig_no: string;
+  sss_no: string;
+  tin_no: string;
+  philhealth_no: string;
+  car_plate_number: string;
+  car_type: string;
+  car_model: string;
+  total_price_rent: string;
+  downpayment: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  type_of_rent: string;
+  location: string;
+  vehicle_left_plate_number?: string;
+  vehicle_left_model?: string;
+  vehicle_left_type?: string;
+  agreement_photo: FileList | undefined;
+  notes: string;
+  uploaded_proof: FileList | undefined;
+  status: string| null
+}
+export interface CalendarEvent {
+  id: string;
+  full_name: string;
+  car_plate_number: string;
+  car_model: string;
+  start_date: Date;
+  end_date: Date;
+  start_time: string;
+  end_time: string;
+  location: string;
   status: string | null;
- }
-
-
- export interface  DataRenterProps {
-  id:number;
-  full_name:string;
-  license_number:string;
-  // lastDateRented?:Date;
-  times_rented?:number;
-  notes:string;
-  action?:React.ReactNode 
- }
-
-
- export interface DataVehicleProps {
-    id:number;
-    model:string;
-    brand:string;
-    type:string;
-    color:string;
-    plateNumber:string;
-    status: string | null
-    action?:React.ReactNode
- }
-
-
- export interface DataMaintenanceProps {
-    id:number;
-    date: Date;
-    car:string;
-    type_of_maintenance: string;
-    cost_of_maintenance: string;
-    location:string;
-    maintained_by:string;
-    status: string | null
-    action?: React.ReactNode
- }
-
- export interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  
 }
 
+export interface DataRenterProps {
+  id: number;
+  full_name: string;
+  license_number: string;
+  // lastDateRented?:Date;
+  times_rented?: number;
+  notes: string;
+  action?: React.ReactNode;
+}
 
+export interface DataVehicleProps {
+  id: number;
+  model: string;
+  brand: string;
+  type: string;
+  color: string;
+  plate_no: string;
+  status: string;
+  action?: React.ReactNode;
+}
+
+export interface DataMaintenanceProps {
+  id: number 
+  date: string;
+  car: string;
+  type_of_maintenance: string;
+  cost_of_maintenance: string;
+  location: string;
+  maintained_by: string;
+  status: string ;
+}
+
+export type MaintenanceFormValues = {
+  date: string;
+  car: string;
+  type_of_maintenance: string;
+  cost_of_maintenance: string;
+  location: string;
+  maintained_by: string;
+  status: string;
+};
 
 export interface TestProps {
-  id:number;
-  full_name:string;
-  valid_id:string;
+  id: number;
+  full_name: string;
+  valid_id: string;
   plate_no: string;
-  car_model:string;
-  car_type:string;
-  action?: React.ReactNode
+  car_model: string;
+  car_type: string;
+  action?: React.ReactNode;
 }

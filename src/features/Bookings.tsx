@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import type { DataBookingProps } from "../types/types";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
@@ -205,7 +205,9 @@ const Bookings = () => {
       console.error("Delete booking error:", err);
       toast.error("Something went wrong");
     }
-    setLoading(false);
+    finally{
+      setLoading(false);
+    }
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
 
@@ -504,7 +506,9 @@ const Bookings = () => {
             children="Add Booking"
             className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "
           />
-          <BookingForm open={open} onClose={onClose} />
+          <Suspense>
+            <BookingForm open={open} onClose={onClose} />
+          </Suspense>
         </div>
         <div className="flex flex-col gap-2 px-6 border border-gray-400 py-2 rounded ">
           <div className="flex pb-4 pt-4 w-full justify-end gap-3">

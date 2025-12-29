@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import icons from "../constants/icon";
-import type { ModalProps } from "../types/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RenterFormSchema, type RenterFormData } from "../schema/schema";
@@ -10,6 +9,11 @@ import { toast } from "react-toastify";
 import { uploadFile } from "../utils/UploadFile";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
+
+interface ModalProps{
+  open: boolean;
+  onClose: () => void;
+}
 
 const BookingForm: React.FC<ModalProps> = ({ open, onClose }) => {
   const [selectToggle, setSelectToggle] = useState(false);

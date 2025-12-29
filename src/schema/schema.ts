@@ -26,6 +26,8 @@ export const VehicleFormSchema = z.object({
 });
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
+
+
 export const MaintenanceFormSchema = z.object({
   date: z.string().min(1),
   car: z.string().min(1, "Vehicle is required"),
@@ -35,7 +37,6 @@ export const MaintenanceFormSchema = z.object({
   maintained_by: z.string().min(1),
   status: z.string().min(1),
 });
-
 export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;
 
 // const MAX_FILE_SIZE = 5 * 1024 * 1024;

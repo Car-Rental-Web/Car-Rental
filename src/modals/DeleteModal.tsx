@@ -6,7 +6,7 @@ interface DeleteProps {
   open: boolean;
   onClose: () => void;
   onClick: () => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const DeleteModal: React.FC<DeleteProps> = ({ open, onClose, onClick,disabled }) => {
