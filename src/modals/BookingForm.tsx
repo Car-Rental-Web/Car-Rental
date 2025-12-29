@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import icons from "../constants/icon";
 import { useForm } from "react-hook-form";
@@ -190,116 +190,123 @@ const BookingForm: React.FC<ModalProps> = ({
 
   // onSubmit function to add data
 
-  const onSubmit = useCallback(
-  async (data: BookingFormValues) => {
-    setLoading(true);
-    try {
-      // 1. TRACK DELETED FILES FOR STORAGE CLEANUP
-      // We find files that were in initialData but are no longer in existingPaths
-      const deletedFiles: { bucket: string; path: string }[] = [];
+  const onSubmit = async (data: BookingFormValues) => {
+  setLoading(true);
+  try {
+    // 1. TRACK DELETED FILES FOR STORAGE CLEANUP (Pre-calculated)
+    const deletedFiles: { bucket: string; path: string }[] = [];
 
-      if (initialData?.valid_id && existingPaths.valid_id === "") {
-        deletedFiles.push({ bucket: "valid_id", path: initialData.valid_id });
-      }
-      if (initialData?.agreement_photo && existingPaths.agreement_photo === "") {
-        deletedFiles.push({ bucket: "agreement_photo", path: initialData.agreement_photo });
-      }
+    if (initialData?.valid_id && existingPaths.valid_id === "") {
+      deletedFiles.push({ bucket: "valid_id", path: initialData.valid_id });
+    }
+    if (initialData?.agreement_photo && existingPaths.agreement_photo === "") {
+      deletedFiles.push({ bucket: "agreement_photo", path: initialData.agreement_photo });
+    }
 
+    // 2. HANDLE NEW UPLOADS (Single Files)
+    let finalValidId = existingPaths.valid_id;
+    if (data.valid_id?.[0] instanceof File) {
+      const upload = await uploadFile(data.valid_id[0], "valid_id");
+      finalValidId = upload.path;
+    }
+
+    let finalAgreementPhoto = existingPaths.agreement_photo;
+    if (data.agreement_photo?.[0] instanceof File) {
+      const upload = await uploadFile(data.agreement_photo[0], "agreement_photo");
+      finalAgreementPhoto = upload.path;
+    }
+
+    // 3. HANDLE MULTIPLE UPLOADS (Proof Array)
+    let newProofPaths: string[] = [];
+    if (data.uploaded_proof && data.uploaded_proof.length > 0) {
+      // ✅ THE FIX: Convert FileList to Array and FILTER out strings/nulls
+      // This ensures uploadFile ONLY receives actual File objects
+      const validFiles = Array.from(data.uploaded_proof).filter(
+        (f) => f instanceof File
+      );
+
+      if (validFiles.length > 0) {
+        const results = await Promise.all(
+          validFiles.map((f) => uploadFile(f as File, "uploaded_proof"))
+        );
+        newProofPaths = results.map((r) => r.path);
+      }
+    }
+    
+    // Combine existing paths (the ones you didn't delete) with new ones
+    const finalProofs = [...existingPaths.uploaded_proof, ...newProofPaths];
+
+    // 4. PREPARE PAYLOAD
+    const payload = {
+      ...data,
+      valid_id: finalValidId,
+      agreement_photo: finalAgreementPhoto,
+      uploaded_proof: finalProofs,
+    };
+
+    // 5. DATABASE OPERATIONS
+    if (isCreate) {
+      const { error } = await supabase.from("booking").insert(payload);
+      if (error) throw error;
+      toast.success("Booking created!");
+    } else if (isEdit && initialData?.id) {
+      const { error } = await supabase
+        .from("booking")
+        .update(payload)
+        .eq("id", initialData.id);
+      if (error) throw error;
+
+      // 6. PHYSICAL STORAGE CLEANUP (Only on successful Edit)
+      // Cleanup single files
+      if (deletedFiles.length > 0) {
+        await Promise.all(
+          deletedFiles.map((f) => supabase.storage.from(f.bucket).remove([f.path]))
+        );
+      }
+      
+      // Calculate which proofs were actually removed from the original list
       const removedProofs = (initialData?.uploaded_proof || []).filter(
         (path: string) => !existingPaths.uploaded_proof.includes(path)
       );
 
-      // 2. HANDLE NEW UPLOADS
-      // Logic: If user picked a NEW file, use it. Otherwise, use what's left in existingPaths.
-      let finalValidId = existingPaths.valid_id;
-      if (data.valid_id?.[0] instanceof File) {
-        const upload = await uploadFile(data.valid_id[0], "valid_id");
-        finalValidId = upload.path;
+      if (removedProofs.length > 0) {
+        await supabase.storage.from("uploaded_proof").remove(removedProofs);
       }
 
-      let finalAgreementPhoto = existingPaths.agreement_photo;
-      if (data.agreement_photo?.[0] instanceof File) {
-        const upload = await uploadFile(data.agreement_photo[0], "agreement_photo");
-        finalAgreementPhoto = upload.path;
-      }
-
-      let newProofPaths: string[] = [];
-      if (data.uploaded_proof && data.uploaded_proof.length > 0) {
-        const results = await Promise.all(
-          Array.from(data.uploaded_proof).map((f) => uploadFile(f as File, "uploaded_proof"))
-        );
-        newProofPaths = results.map((r) => r.path);
-      }
-      const finalProofs = [...existingPaths.uploaded_proof, ...newProofPaths];
-
-      // 3. PREPARE PAYLOAD
-      const payload = {
-        ...data,
-        valid_id: finalValidId,
-        agreement_photo: finalAgreementPhoto,
-        uploaded_proof: finalProofs,
-      };
-
-      // 4. DATABASE OPERATIONS
-      if (isCreate) {
-        const { error } = await supabase.from("booking").insert(payload);
-        if (error) throw error;
-        toast.success("Booking created!");
-      } else if (isEdit && initialData?.id) {
-        const { error } = await supabase
-          .from("booking")
-          .update(payload)
-          .eq("id", initialData.id);
-        if (error) throw error;
-
-        // 5. PHYSICAL STORAGE CLEANUP (Only on successful Edit)
-        // Cleanup single files
-        if (deletedFiles.length > 0) {
-          await Promise.all(
-            deletedFiles.map(f => supabase.storage.from(f.bucket).remove([f.path]))
-          );
-        }
-        // Cleanup proof array
-        if (removedProofs.length > 0) {
-          await supabase.storage.from("uploaded_proof").remove(removedProofs);
-        }
-        
-        toast.success("Updated and storage cleaned!");
-      }
-
-      // 6. RENTER HISTORY LOGIC
-      const { data: renter } = await supabase
-        .from("renter")
-        .select("id, times_rented")
-        .eq("license_number", data.license_number)
-        .maybeSingle();
-
-      if (!renter) {
-        await supabase.from("renter").insert({
-          full_name: data.full_name,
-          license_number: data.license_number,
-          times_rented: 1,
-          notes: data.notes,
-        });
-      } else if (isCreate) { 
-        // Only increment if creating a NEW booking, not editing an old one
-        await supabase
-          .from("renter")
-          .update({ times_rented: (renter.times_rented || 0) + 1 })
-          .eq("id", renter.id);
-      }
-
-      reset();
-      onClose();
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Operation failed");
-    } finally {
-      setLoading(false);
+      toast.success("Updated and storage cleaned!");
     }
-  },
-  [isCreate, isEdit, initialData, existingPaths, onClose, reset, setLoading]
-);
+
+    // 7. RENTER HISTORY LOGIC
+    const { data: renter } = await supabase
+      .from("renter")
+      .select("id, times_rented")
+      .eq("license_number", data.license_number)
+      .maybeSingle();
+
+    if (!renter) {
+      await supabase.from("renter").insert({
+        full_name: data.full_name,
+        license_number: data.license_number,
+        times_rented: 1,
+        notes: data.notes,
+      });
+    } else if (isCreate) {
+      // Only increment if creating a NEW booking
+      await supabase
+        .from("renter")
+        .update({ times_rented: (renter.times_rented || 0) + 1 })
+        .eq("id", renter.id);
+    }
+
+    reset();
+    onClose();
+  } catch (error: any) {
+    console.error("Submit error:", error);
+    toast.error(error.message || "Operation failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div

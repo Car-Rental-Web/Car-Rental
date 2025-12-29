@@ -5,6 +5,10 @@ export const uploadFile = async (
   bucket: string,
   folder?: string
 ) => {
+  if (!file || !file.name) {
+    console.error("Upload failed: No file or filename provided.");
+    throw new Error("Invalid file object provided for upload.");
+  }
   const fileExt = file.name.split(".").pop();
   const fileName = `${crypto.randomUUID()}.${fileExt}`;
   const filePath = folder ? `${folder}/${fileName}` : fileName;

@@ -58,9 +58,9 @@ export const RenterFormSchema = z.object({
   address: z.string().min(1),
   license_number: z.string().min(1),
 
-  valid_id: z.instanceof(FileList).optional(),
-  agreement_photo: z.instanceof(FileList).optional(),
-  uploaded_proof: z.instanceof(FileList).optional(),
+  valid_id: z.any().optional(),
+  agreement_photo: z.any().optional(),
+  uploaded_proof: z.any().optional(),
 
   pagibig_number: z.string().optional(),
   sss_number: z.string().optional(),
