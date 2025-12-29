@@ -531,7 +531,6 @@ const Bookings = () => {
                 </option>
               </select>
               <div className="absolute top-2 xl:top-3 right-3 txt-color">
-                {" "}
                 {toggle ? <icons.up /> : <icons.down />}
               </div>
             </div>
