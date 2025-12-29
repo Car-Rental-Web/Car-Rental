@@ -191,122 +191,133 @@ const BookingForm: React.FC<ModalProps> = ({
   // onSubmit function to add data
 
   const onSubmit = async (data: BookingFormValues) => {
-  setLoading(true);
-  try {
-    // 1. TRACK DELETED FILES FOR STORAGE CLEANUP (Pre-calculated)
-    const deletedFiles: { bucket: string; path: string }[] = [];
+    setLoading(true);
+    try {
+      // 1. TRACK DELETED FILES FOR STORAGE CLEANUP (Pre-calculated)
+      const deletedFiles: { bucket: string; path: string }[] = [];
 
-    if (initialData?.valid_id && existingPaths.valid_id === "") {
-      deletedFiles.push({ bucket: "valid_id", path: initialData.valid_id });
-    }
-    if (initialData?.agreement_photo && existingPaths.agreement_photo === "") {
-      deletedFiles.push({ bucket: "agreement_photo", path: initialData.agreement_photo });
-    }
+      if (initialData?.valid_id && existingPaths.valid_id === "") {
+        deletedFiles.push({ bucket: "valid_id", path: initialData.valid_id });
+      }
+      if (
+        initialData?.agreement_photo &&
+        existingPaths.agreement_photo === ""
+      ) {
+        deletedFiles.push({
+          bucket: "agreement_photo",
+          path: initialData.agreement_photo,
+        });
+      }
 
-    // 2. HANDLE NEW UPLOADS (Single Files)
-    let finalValidId = existingPaths.valid_id;
-    if (data.valid_id?.[0] instanceof File) {
-      const upload = await uploadFile(data.valid_id[0], "valid_id");
-      finalValidId = upload.path;
-    }
+      // 2. HANDLE NEW UPLOADS (Single Files)
+      let finalValidId = existingPaths.valid_id;
+      if (data.valid_id?.[0] instanceof File) {
+        const upload = await uploadFile(data.valid_id[0], "valid_id");
+        finalValidId = upload.path;
+      }
 
-    let finalAgreementPhoto = existingPaths.agreement_photo;
-    if (data.agreement_photo?.[0] instanceof File) {
-      const upload = await uploadFile(data.agreement_photo[0], "agreement_photo");
-      finalAgreementPhoto = upload.path;
-    }
-
-    // 3. HANDLE MULTIPLE UPLOADS (Proof Array)
-    let newProofPaths: string[] = [];
-    if (data.uploaded_proof && data.uploaded_proof.length > 0) {
-      // ✅ THE FIX: Convert FileList to Array and FILTER out strings/nulls
-      // This ensures uploadFile ONLY receives actual File objects
-      const validFiles = Array.from(data.uploaded_proof).filter(
-        (f) => f instanceof File
-      );
-
-      if (validFiles.length > 0) {
-        const results = await Promise.all(
-          validFiles.map((f) => uploadFile(f as File, "uploaded_proof"))
+      let finalAgreementPhoto = existingPaths.agreement_photo;
+      if (data.agreement_photo?.[0] instanceof File) {
+        const upload = await uploadFile(
+          data.agreement_photo[0],
+          "agreement_photo"
         );
-        newProofPaths = results.map((r) => r.path);
+        finalAgreementPhoto = upload.path;
       }
-    }
-    
-    // Combine existing paths (the ones you didn't delete) with new ones
-    const finalProofs = [...existingPaths.uploaded_proof, ...newProofPaths];
 
-    // 4. PREPARE PAYLOAD
-    const payload = {
-      ...data,
-      valid_id: finalValidId,
-      agreement_photo: finalAgreementPhoto,
-      uploaded_proof: finalProofs,
-    };
-
-    // 5. DATABASE OPERATIONS
-    if (isCreate) {
-      const { error } = await supabase.from("booking").insert(payload);
-      if (error) throw error;
-      toast.success("Booking created!");
-    } else if (isEdit && initialData?.id) {
-      const { error } = await supabase
-        .from("booking")
-        .update(payload)
-        .eq("id", initialData.id);
-      if (error) throw error;
-
-      // 6. PHYSICAL STORAGE CLEANUP (Only on successful Edit)
-      // Cleanup single files
-      if (deletedFiles.length > 0) {
-        await Promise.all(
-          deletedFiles.map((f) => supabase.storage.from(f.bucket).remove([f.path]))
+      // 3. HANDLE MULTIPLE UPLOADS (Proof Array)
+      let newProofPaths: string[] = [];
+      if (data.uploaded_proof && data.uploaded_proof.length > 0) {
+        // ✅ THE FIX: Convert FileList to Array and FILTER out strings/nulls
+        // This ensures uploadFile ONLY receives actual File objects
+        const validFiles = Array.from(data.uploaded_proof).filter(
+          (f) => f instanceof File
         );
-      }
-      
-      // Calculate which proofs were actually removed from the original list
-      const removedProofs = (initialData?.uploaded_proof || []).filter(
-        (path: string) => !existingPaths.uploaded_proof.includes(path)
-      );
 
-      if (removedProofs.length > 0) {
-        await supabase.storage.from("uploaded_proof").remove(removedProofs);
+        if (validFiles.length > 0) {
+          const results = await Promise.all(
+            validFiles.map((f) => uploadFile(f as File, "uploaded_proof"))
+          );
+          newProofPaths = results.map((r) => r.path);
+        }
       }
 
-      toast.success("Updated and storage cleaned!");
-    }
+      // Combine existing paths (the ones you didn't delete) with new ones
+      const finalProofs = [...existingPaths.uploaded_proof, ...newProofPaths];
 
-    // 7. RENTER HISTORY LOGIC
-    const { data: renter } = await supabase
-      .from("renter")
-      .select("id, times_rented")
-      .eq("license_number", data.license_number)
-      .maybeSingle();
+      // 4. PREPARE PAYLOAD
+      const payload = {
+        ...data,
+        valid_id: finalValidId,
+        agreement_photo: finalAgreementPhoto,
+        uploaded_proof: finalProofs,
+      };
 
-    if (!renter) {
-      await supabase.from("renter").insert({
-        full_name: data.full_name,
-        license_number: data.license_number,
-        times_rented: 1,
-        notes: data.notes,
-      });
-    } else if (isCreate) {
-      // Only increment if creating a NEW booking
-      await supabase
+      // 5. DATABASE OPERATIONS
+      if (isCreate) {
+        const { error } = await supabase.from("booking").insert(payload);
+        if (error) throw error;
+        toast.success("Booking created!");
+      } else if (isEdit && initialData?.id) {
+        const { error } = await supabase
+          .from("booking")
+          .update(payload)
+          .eq("id", initialData.id);
+        if (error) throw error;
+
+        // 6. PHYSICAL STORAGE CLEANUP (Only on successful Edit)
+        // Cleanup single files
+        if (deletedFiles.length > 0) {
+          await Promise.all(
+            deletedFiles.map((f) =>
+              supabase.storage.from(f.bucket).remove([f.path])
+            )
+          );
+        }
+
+        // Calculate which proofs were actually removed from the original list
+        const removedProofs = (initialData?.uploaded_proof || []).filter(
+          (path: string) => !existingPaths.uploaded_proof.includes(path)
+        );
+
+        if (removedProofs.length > 0) {
+          await supabase.storage.from("uploaded_proof").remove(removedProofs);
+        }
+
+        toast.success("Updated and storage cleaned!");
+      }
+
+      // 7. RENTER HISTORY LOGIC
+      const { data: renter } = await supabase
         .from("renter")
-        .update({ times_rented: (renter.times_rented || 0) + 1 })
-        .eq("id", renter.id);
-    }
+        .select("id, times_rented")
+        .eq("license_number", data.license_number)
+        .maybeSingle();
 
-    reset();
-    onClose();
-  } catch (error: any) {
-    console.error("Submit error:", error);
-    toast.error(error.message || "Operation failed");
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!renter) {
+        await supabase.from("renter").insert({
+          full_name: data.full_name,
+          license_number: data.license_number,
+          times_rented: 1,
+          notes: data.notes,
+        });
+      } else if (isCreate) {
+        // Only increment if creating a NEW booking
+        await supabase
+          .from("renter")
+          .update({ times_rented: (renter.times_rented || 0) + 1 })
+          .eq("id", renter.id);
+      }
+
+      reset();
+      onClose();
+    } catch (error: any) {
+      console.error("Submit error:", error);
+      toast.error(error.message || "Operation failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -325,7 +336,7 @@ const BookingForm: React.FC<ModalProps> = ({
               Renter Information
             </p>
           </div>
-          <div className="flex w-full justify-around items-center gap-5 ">
+          <div className="md:flex w-full justify-around items-center gap-5 ">
             <div className="flex flex-col w-full gap-1 ">
               <label className=" text-start text-white">Fullname</label>
               <input
@@ -358,68 +369,27 @@ const BookingForm: React.FC<ModalProps> = ({
                 </p>
               )}
             </div>
-          </div>
-          <div className="xl:flex w-full  gap-5 ">
-            <div className="flex flex-col w-full  gap-1 ">
-              <label htmlFor="" className=" text-start text-white">
-                License id / Number
-              </label>
-              <input
-                disabled={isView}
-                {...register("license_number")}
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
-                type="text"
-                placeholder="Ex:N01-23-456789"
-              />
-              {errors?.license_number?.message && (
-                <p className="text-red-400 text-start text-sm">
-                  Please input License #
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col  gap-1 w-full">
-              <label htmlFor="" className=" text-start text-white">
-                Valid id
-              </label>
-              <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white">
-                {getDisplayUrl("valid_id", "valid_id") && (
-                  <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
-                    <img
-                      src={getDisplayUrl("valid_id", "valid_id")!}
-                      className="w-full h-full object-contain"
-                    />
-
-                    {/* REMOVE BUTTON: Only show if NOT in View mode */}
-                    {!isView && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setExistingPaths((prev) => ({
-                            ...prev,
-                            valid_id: "",
-                          })); // Clear state
-                          resetField("valid_id"); // Clear the <input>
-                        }}
-                        className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
-                      >
-                        <icons.trash size={16} />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* INPUT: Only show if adding/editing */}
-                {!isView && (
-                  <input
-                    type="file"
-                    {...register("valid_id")}
-                    className="text-gray-600 w-full"
-                    accept="image/*"
-                  />
+            <div className="xl:flex w-full  gap-5 ">
+              <div className="flex flex-col w-full  gap-1 ">
+                <label htmlFor="" className=" text-start text-white">
+                  License id / Number
+                </label>
+                <input
+                  disabled={isView}
+                  {...register("license_number")}
+                  className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                  type="text"
+                  placeholder="Ex:N01-23-456789"
+                />
+                {errors?.license_number?.message && (
+                  <p className="text-red-400 text-start text-sm">
+                    Please input License #
+                  </p>
                 )}
               </div>
             </div>
           </div>
+
           <div className="flex w-full justify-around items-center gap-5">
             <div className="flex flex-col w-full gap-1 ">
               <label htmlFor="" className=" text-start text-white">
@@ -729,8 +699,8 @@ const BookingForm: React.FC<ModalProps> = ({
                   </span>
                 </p>
                 <div className="flex flex-col gap-5">
-                  <div className="flex w-full gap-5">
-                    <div className="flex flex-col w-full">
+                  <div className="md:flex w-full gap-5">
+                    <div className="flex flex-col w-full gap-1">
                       <label htmlFor="" className=" text-start text-white">
                         Plate #
                       </label>
@@ -742,7 +712,7 @@ const BookingForm: React.FC<ModalProps> = ({
                         placeholder="Ex:ABC-1234"
                       />
                     </div>
-                    <div className="flex flex-col w-full">
+                    <div className="flex flex-col w-full gap-1">
                       <label htmlFor="" className=" text-start text-white">
                         Model
                       </label>
@@ -754,9 +724,7 @@ const BookingForm: React.FC<ModalProps> = ({
                         placeholder="Ex:Civic LX"
                       />
                     </div>
-                  </div>
-                  <div className="flex w-full gap-5 ">
-                    <div className="flex flex-col flex-1  gap-1 ">
+                    <div className="flex flex-col w-full gap-1  ">
                       <label htmlFor="" className=" text-start text-white">
                         Type
                       </label>
@@ -767,56 +735,6 @@ const BookingForm: React.FC<ModalProps> = ({
                         type="text"
                         placeholder="Ex: Sedan"
                       />
-                    </div>
-                    <div className="flex flex-col flex-1 gap-1  ">
-                      <label htmlFor="" className=" text-start text-white">
-                        Agreement <span>(photo)</span>
-                      </label>
-                      <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white">
-                        {getDisplayUrl(
-                          "agreement_photo",
-                          "agreement_photo"
-                        ) && (
-                          <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
-                            <img
-                              src={
-                                getDisplayUrl(
-                                  "agreement_photo",
-                                  "agreement_photo"
-                                )!
-                              }
-                              className="w-full h-full object-contain"
-                            />
-
-                            {/* REMOVE BUTTON: Only show if NOT in View mode */}
-                            {!isView && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setExistingPaths((prev) => ({
-                                    ...prev,
-                                    agreement_photo: "",
-                                  })); // Clear state
-                                  resetField("agreement_photo"); // Clear the <input>
-                                }}
-                                className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
-                              >
-                                <icons.trash size={16} />
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-                        {/* INPUT: Only show if adding/editing */}
-                        {!isView && (
-                          <input
-                            type="file"
-                            {...register("agreement_photo")}
-                            className="text-gray-600 w-full"
-                            accept="image/*"
-                          />
-                        )}
-                      </div>
                     </div>
                   </div>
                   <div className="w-full flex flex-col gap-5">
@@ -830,6 +748,114 @@ const BookingForm: React.FC<ModalProps> = ({
                         placeholder="Ex: Renter is on time"
                       ></textarea>
                     </div>
+                    <label htmlFor="" className="text-start text-white">
+                      Photos
+                    </label>
+                    <div className="md:flex w-full gap-2">
+                      <div className="flex flex-col  gap-1 w-full">
+                        <label htmlFor="" className=" text-start text-white">
+                          Valid id
+                        </label>
+                        <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white w-full">
+                          {getDisplayUrl("valid_id", "valid_id") ? (
+                            <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
+                              <img
+                                src={getDisplayUrl("valid_id", "valid_id")!}
+                                className="w-full h-full object-contain"
+                              />
+
+                              {/* REMOVE BUTTON: Only show if NOT in View mode */}
+                              {!isView && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExistingPaths((prev) => ({
+                                      ...prev,
+                                      valid_id: "",
+                                    })); // Clear state
+                                    resetField("valid_id"); // Clear the <input>
+                                  }}
+                                  className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                                >
+                                  <icons.trash size={16} />
+                                </button>
+                              )}
+                            </div>
+                          ) :( <div className="w-full h-40 flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mb-2">
+                              <p className="text-gray-500 text-xs italic">
+                                No valid id uploaded
+                              </p>
+                            </div>)}
+
+                          {/* INPUT: Only show if adding/editing */}
+                          {!isView && (
+                            <input
+                              type="file"
+                              {...register("valid_id")}
+                              className="text-gray-600 w-full"
+                              accept="image/*"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col  gap-1 w-full  ">
+                        <label htmlFor="" className=" text-start text-white">
+                          Agreement <span>(photo)</span>
+                        </label>
+                        <div className="relative flex  items-center border border-gray-400  py-4 px-4  rounded placeholder-gray-400 text-white w-full">
+                          {getDisplayUrl(
+                            "agreement_photo",
+                            "agreement_photo"
+                          ) ? (
+                            <div className="relative w-full h-40 border border-gray-600 rounded overflow-hidden bg-gray-900">
+                              <img
+                                src={
+                                  getDisplayUrl(
+                                    "agreement_photo",
+                                    "agreement_photo"
+                                  )!
+                                }
+                                className="w-full h-full object-contain"
+                              />
+
+                              {/* REMOVE BUTTON: Only show if NOT in View mode */}
+                              {!isView && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExistingPaths((prev) => ({
+                                      ...prev,
+                                      agreement_photo: "",
+                                    })); // Clear state
+                                    resetField("agreement_photo"); // Clear the <input>
+                                  }}
+                                  className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                                >
+                                  <icons.trash size={16} />
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-full h-40 flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mb-2">
+                              <p className="text-gray-500 text-xs italic">
+                                No agreement photo uploaded
+                              </p>
+                            </div>
+                          )}
+
+                          {/* INPUT: Only show if adding/editing */}
+                          {!isView && (
+                            <input
+                              type="file"
+                              {...register("agreement_photo")}
+                              className="text-gray-600 w-full"
+                              accept="image/*"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="w-full  text-start text-white flex flex-col gap-1">
                       <label htmlFor="" className="">
                         Uploaded pictures of proof the whole transactions{" "}
