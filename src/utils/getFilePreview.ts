@@ -16,4 +16,4 @@ const getFilePreview = (fileValue: any, bucket: string) => {
   return null;
 };
 
-export default getFilePreview
+export default getFilePreview;

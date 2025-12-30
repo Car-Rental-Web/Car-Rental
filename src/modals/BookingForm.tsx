@@ -783,7 +783,7 @@ const BookingForm: React.FC<ModalProps> = ({
                                 </button>
                               )}
                             </div>
-                          ) :( <div className="w-full h-40 flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mb-2">
+                          ) :( <div className="w-full  flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mt-1">
                               <p className="text-gray-500 text-xs italic">
                                 No valid id uploaded
                               </p>
@@ -838,7 +838,7 @@ const BookingForm: React.FC<ModalProps> = ({
                               )}
                             </div>
                           ) : (
-                            <div className="w-full h-40 flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mb-2">
+                            <div className="w-full flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mt-1">
                               <p className="text-gray-500 text-xs italic">
                                 No agreement photo uploaded
                               </p>

@@ -22,17 +22,16 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
-  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
   const [openStatus, setOpenStatus] = useState(false);
   const { loading, setLoading } = useLoadingStore();
   const [selectBookingId, setselectBookingId] =
-    useState<DataBookingRow | null>(null);
+  useState<DataBookingRow | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
     "create"
   );
-
+  
   useEffect(() => {
     onClose();
   }, [onClose]);
@@ -61,7 +60,7 @@ const Bookings = () => {
     //   return;
     // }
     // console.log("Success updating status of vehicle", vehicleData);
-
+    
     toast.success("Update Successfully");
     console.log("Update Successfully", data);
     setOpenStatus(false);
@@ -168,11 +167,11 @@ const Bookings = () => {
       if (booking.agreement_photo) {
         tasks.push(
           supabase.storage
-            .from("agreement_photo")
+          .from("agreement_photo")
             .remove(
               normalizePaths([booking.agreement_photo], "agreement_photo")
             )
-        );
+          );
       }
 
       if (booking.uploaded_proof?.length) {
@@ -180,8 +179,8 @@ const Bookings = () => {
           typeof booking.uploaded_proof === "string"
             ? JSON.parse(booking.uploaded_proof)
             : booking.uploaded_proof;
-
-        tasks.push(
+            
+            tasks.push(
           supabase.storage
             .from("uploaded_proof")
             .remove(normalizePaths(proofs, "uploaded_proof"))
@@ -214,7 +213,7 @@ const Bookings = () => {
     }
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
-
+  
   //fetch the data in that was inserted in booking form
   useEffect(() => {
     let isMounted = true;
@@ -225,7 +224,7 @@ const Bookings = () => {
 
         const row = data ?? [];
         const rowData = row.map((item) => ({
-        ...item
+          ...item
         }));
         setFilterRecords(rowData);
         setRecords(rowData);
@@ -246,6 +245,7 @@ const Bookings = () => {
   }, [open, openStatus]);
 
   //search filter
+  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
       "car_type",

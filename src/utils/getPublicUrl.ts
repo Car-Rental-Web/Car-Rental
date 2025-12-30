@@ -2,8 +2,8 @@ import { supabase } from "./supabase";
 
 const getPublicUrl = (bucket: string, path: string | null | undefined) => {
   if (!path || typeof path !== "string") return "";
-  const {data} = supabase.storage.from(bucket).getPublicUrl(path)
-  return data.publicUrl
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
 };
 
-export default getPublicUrl
+export default getPublicUrl;
