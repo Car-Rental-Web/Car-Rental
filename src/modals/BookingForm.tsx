@@ -99,7 +99,6 @@ const BookingForm: React.FC<ModalProps> = ({
     }
   }, [initialData]);
  
-
   useEffect(() => {
     if (initialData && (mode === "view" || mode === "edit")) {
       reset({
