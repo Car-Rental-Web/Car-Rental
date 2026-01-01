@@ -98,7 +98,7 @@ const BookingForm: React.FC<ModalProps> = ({
       });
     }
   }, [initialData]);
- 
+
   useEffect(() => {
     if (initialData && (mode === "view" || mode === "edit")) {
       reset({
@@ -171,8 +171,7 @@ const BookingForm: React.FC<ModalProps> = ({
     }
   }, [selectedPlate, vehicles, setValue]);
 
-  
- const getDisplayUrl = (
+  const getDisplayUrl = (
     fieldName: "valid_id" | "agreement_photo",
     bucket: string
   ) => {
@@ -782,11 +781,13 @@ const BookingForm: React.FC<ModalProps> = ({
                                 </button>
                               )}
                             </div>
-                          ) :( <div className="w-full  flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mt-1">
+                          ) : (
+                            <div className="w-full  flex flex-col items-center justify-center border border-dashed border-gray-600 rounded bg-black/20 mt-1">
                               <p className="text-gray-500 text-xs italic">
                                 No valid id uploaded
                               </p>
-                            </div>)}
+                            </div>
+                          )}
 
                           {/* INPUT: Only show if adding/editing */}
                           {!isView && (
@@ -857,14 +858,15 @@ const BookingForm: React.FC<ModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="w-full  text-start text-white flex flex-col gap-1">
-                      <label htmlFor="" className="">
+                    <div className="w-full text-start text-white flex flex-col gap-1">
+                      <label className="">
                         Uploaded pictures of proof the whole transactions{" "}
                         <span>(others)</span>
                       </label>
+
                       <div className="flex flex-col gap-4 border border-gray-400 py-4 px-4 rounded bg-black/10 min-h-[100px]">
-                        {/* SECTION A: DATABASE IMAGES (Shows on View and Edit) */}
-                        {existingPaths.uploaded_proof.length > 0 ? (
+                        {/* SECTION A: DATABASE IMAGES (Existing) */}
+                        {existingPaths.uploaded_proof.length > 0 && (
                           <div className="flex flex-wrap gap-3">
                             {existingPaths.uploaded_proof.map((path, index) => (
                               <div
@@ -888,7 +890,7 @@ const BookingForm: React.FC<ModalProps> = ({
                                           ),
                                       }));
                                     }}
-                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                   >
                                     <icons.trash size={12} />
                                   </button>
@@ -896,15 +898,9 @@ const BookingForm: React.FC<ModalProps> = ({
                               </div>
                             ))}
                           </div>
-                        ) : (
-                          isView && (
-                            <p className="text-gray-500 text-xs italic text-center">
-                              No proofs uploaded.
-                            </p>
-                          )
                         )}
 
-                        {/* SECTION B: NEW LOCAL FILES (Shows only when user picks new files) */}
+                        {/* SECTION B: NEW LOCAL FILES (The one you wanted corrected) */}
                         {watch("uploaded_proof") instanceof FileList &&
                           watch("uploaded_proof")!.length > 0 && (
                             <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-700">
@@ -916,19 +912,30 @@ const BookingForm: React.FC<ModalProps> = ({
                               ).map((file, index) => (
                                 <div
                                   key={`new-${index}`}
-                                  className="relative w-20 h-20 border border-blue-500 rounded overflow-hidden"
+                                  className="relative group w-20 h-20 border border-blue-500 rounded overflow-hidden"
                                 >
                                   <img
                                     src={URL.createObjectURL(file)}
                                     className="w-full h-full object-cover"
                                   />
+                                  {!isView && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        resetField("uploaded_proof")
+                                      }
+                                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                    >
+                                      <icons.trash size={10} />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
                           )}
 
-                        {/* SECTION C: THE INPUT */}
-                        {!isView && (
+                        {/* SECTION C: THE INPUT & EMPTY STATE */}
+                        {!isView ? (
                           <div className="relative flex items-center mt-2">
                             <input
                               {...register("uploaded_proof")}
@@ -937,8 +944,14 @@ const BookingForm: React.FC<ModalProps> = ({
                               accept="image/*"
                               multiple
                             />
-                            <icons.upload className="absolute right-0 text-gray-400" />
+                            <icons.upload className="absolute right-0 text-gray-400 pointer-events-none" />
                           </div>
+                        ) : (
+                          existingPaths.uploaded_proof.length === 0 && (
+                            <p className="text-gray-500 text-xs italic text-center">
+                              No proofs uploaded.
+                            </p>
+                          )
                         )}
                       </div>
                     </div>
