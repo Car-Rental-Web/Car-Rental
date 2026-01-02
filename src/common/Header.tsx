@@ -71,7 +71,7 @@ const Header = () => {
           onClear={() => setQuery("")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className=" border border-[#253745] pr-2 py-2 w-2xl rounded  text-gray-400"
+          className=" border border-[#253745] pr-2 py-2  rounded  text-gray-400"
           placeholder="search"
         />
         {showResult && filterPage.length > 0 && (
