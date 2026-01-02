@@ -6,7 +6,7 @@ import React from "react";
 
 const years = [2025, 2026, 2027, 2028, 2029, 2030];
 const BookingVisual = () => {
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [chartData, setChartData] = useState<
     { month: string; count: number }[]
   >([]);
