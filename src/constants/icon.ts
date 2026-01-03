@@ -33,6 +33,7 @@ import { CiEdit } from "react-icons/ci";
 import { FiPlus } from "react-icons/fi";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
+import { CiWarning } from "react-icons/ci";
 
 
 
@@ -72,7 +73,7 @@ const icons = {
     add: FiPlus,
     check: FaRegCheckCircle,
     logOut: BiLogOut,
-
+    warning:CiWarning,
 }
 
 export default icons
