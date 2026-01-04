@@ -58,7 +58,7 @@ const VehicleForm: React.FC<ModalProps> = ({
       try {
         if (isCreate) {
           const { error } = await supabase.from("vehicle").insert({
-            data,
+            ...data,
           });
           if (error) throw error;
           toast.success("Vehicle Added Successfully");
@@ -233,8 +233,8 @@ const VehicleForm: React.FC<ModalProps> = ({
                       </span>
                     ) : (
                       <>
-                        {isEdit && "Update Booking"}
-                        {isCreate && "Add Booking"}
+                        {isEdit && "Update Vehicle"}
+                        {isCreate && "Add Vehicle"}
                         {isView && "Close"}
                       </>
                     )}
