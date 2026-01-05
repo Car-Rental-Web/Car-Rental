@@ -61,10 +61,10 @@ const BookingVisual = () => {
     <div className=" flex flex-col w-full">
       <div>
         <div className="flex justify-between items-center px-4 py-4">
-          <p className="text-gray-200">Monthly Bookings</p>
+          <p className="text-gray-800">Monthly Bookings</p>
           <div onClick={() => setToggle((prev) => !prev)} className="relative">
             <select
-              className=" rounded appearance-none outline-none border border-gray-400 px-8 py-2 cursor-pointer text-xs xl:text-base text-white"
+              className=" rounded appearance-none outline-none border border-gray-400 px-8 py-2 cursor-pointer text-xs xl:text-base text-gray-800"
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
             >
@@ -74,7 +74,7 @@ const BookingVisual = () => {
                 </option>
               ))}
             </select>
-            <div className="absolute top-2 md:top-3 right-2 text-white">
+            <div className="absolute top-2 md:top-3 right-2 text-gray-800">
               {toggle ? <icons.up /> : <icons.down />}
             </div>
           </div>

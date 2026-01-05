@@ -7,6 +7,7 @@ import {
   Dashboard,
   Maintenance,
   RenterHistory,
+  VehicleHistory,
 } from "../features/index";
 import {
   ForgotPassword,
@@ -43,6 +44,7 @@ const AppRoutes = () => {
             <Route path="availability" element={<Aavailability />}></Route>
             <Route path="bookings" element={<Bookings />}></Route>
             <Route path="renterhistory" element={<RenterHistory />}></Route>
+            <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
             <Route path="vehicle" element={<Vehicles />}></Route>
             <Route path="maintenance" element={<Maintenance />}></Route>
           </Route>
