@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import icons from "../constants/icon";
@@ -284,7 +285,7 @@ const BookingForm: React.FC<ModalProps> = ({
           await supabase.storage.from("uploaded_proof").remove(removedProofs);
         }
 
-        toast.success("Updated and storage cleaned!");
+        toast.success("Updated ");
       }
 
       // 7. RENTER HISTORY LOGIC
@@ -977,7 +978,9 @@ const BookingForm: React.FC<ModalProps> = ({
                       <option value="On Reservation" className="txt-color">
                         On Reservation
                       </option>
-                      {/* <option value="Completed" className="txt-color">Completed</option> */}
+                      <option value="Completed" className="txt-color">
+                        Completed
+                      </option>
                     </select>
                     <div className="absolute top-12 right-3 txt-color">
                       {selectToggle ? <icons.up /> : <icons.down />}

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Suspense, useEffect, useState } from "react";
-import type {  DataBookingRow} from "../types/types";
+import type { DataBookingRow } from "../types/types";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { filterData } from "../utils/FilterData";
 import icons from "../constants/icon";
@@ -17,55 +17,43 @@ import { useLoadingStore } from "../store/useLoading";
 const BookingForm = React.lazy(() => import("../modals/BookingForm"));
 
 const Bookings = () => {
-  const [records, setRecords] = useState<DataBookingRow []>([]);
-  const [filterRecords, setFilterRecords] = useState<DataBookingRow []>([]);
+  const [records, setRecords] = useState<DataBookingRow[]>([]);
+  const [filterRecords, setFilterRecords] = useState<DataBookingRow[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [toggle, setToggle] = useState(false);
   const [selectValue, setSelectValue] = useState("");
   const [openDelete, setOpenDelete] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
-  const [openStatus, setOpenStatus] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<DataBookingRow | null>(null);
   const { loading, setLoading } = useLoadingStore();
-  const [selectBookingId, setselectBookingId] =
-  useState<DataBookingRow | null>(null);
+  const [selectBookingId, setselectBookingId] = useState<DataBookingRow | null>(
+    null
+  );
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
     "create"
   );
-  
+
   useEffect(() => {
     onClose();
   }, [onClose]);
 
   //update action to completed if status = "On Service"
   const handleOnServiceUpdate = async (id: number) => {
-    //, vehicleId: string
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("booking")
-      .update({ status: "Completed" })
-      .eq("id", id);
-    if (error) {
-      console.log("Failed to update");
-      toast.error("Failed to update");
-      return;
-    }
-    // update vehicle status
-    // const { data: vehicleData, error: vehicleError } = await supabase
-    //   .from("vehicle")
-    //   .update({ status: "Available" })
-    //   .eq("plate_no", vehicleId);
+  setLoading(true);
+  const { error } = await supabase
+    .from("booking")
+    .update({ status: "Completed" })
+    .eq("id", id);
 
-    // if (vehicleError) {
-    //   console.log("Failed to update Vehicle as Available");
-    //   return;
-    // }
-    // console.log("Success updating status of vehicle", vehicleData);
-    
-    toast.success("Update Successfully");
-    console.log("Update Successfully", data);
-    setOpenStatus(false);
-    setLoading(false);
-  };
+  if (error) {
+    toast.error("Failed to update");
+  } else {
+    toast.success("Succesfully Update to Completed");
+    await fetchBookingData(); 
+    setSelectedRow(null); 
+  }
+  setLoading(false);
+};
 
   //update action to completed if status = "On Reservation"
   const handleReserveUpdate = async (id: number) => {
@@ -83,7 +71,8 @@ const Bookings = () => {
 
     console.log("Successfully Update to On Service", data);
     toast.success("Successfully Update to On Service");
-    setOpenStatus(false);
+    await fetchBookingData()
+    setSelectedRow(null)
     setLoading(false);
     // update vehicle status
     // const { data: vehicleData, error: vehicleError } = await supabase
@@ -167,11 +156,11 @@ const Bookings = () => {
       if (booking.agreement_photo) {
         tasks.push(
           supabase.storage
-          .from("agreement_photo")
+            .from("agreement_photo")
             .remove(
               normalizePaths([booking.agreement_photo], "agreement_photo")
             )
-          );
+        );
       }
 
       if (booking.uploaded_proof?.length) {
@@ -179,8 +168,8 @@ const Bookings = () => {
           typeof booking.uploaded_proof === "string"
             ? JSON.parse(booking.uploaded_proof)
             : booking.uploaded_proof;
-            
-            tasks.push(
+
+        tasks.push(
           supabase.storage
             .from("uploaded_proof")
             .remove(normalizePaths(proofs, "uploaded_proof"))
@@ -213,36 +202,23 @@ const Bookings = () => {
     }
     handleDeleteBooking(id, setOpenDelete, setRecords, setFilterRecords);
   };
-  
+
   //fetch the data in that was inserted in booking form
+  const fetchBookingData = async () => {
+  try {
+    const { data, error } = await supabase.from("booking").select("*");
+    if (error) throw error;
+    
+    setFilterRecords(data || []);
+    setRecords(data || []);
+  } catch (error) {
+    console.log("Error Fetching Data", error);
+  }
+};
   useEffect(() => {
-    let isMounted = true;
-    const fetchBookingData = async () => {
-      try {
-        const { data, error } = await supabase.from("booking").select("*");
-        if (!isMounted) return;
-
-        const row = data ?? [];
-        const rowData = row.map((item) => ({
-          ...item
-        }));
-        setFilterRecords(rowData);
-        setRecords(rowData);
-        if (error) {
-          console.log("Error Fetching Data", error);
-          return;
-        }
-        console.log("Sucessful fetch data", data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchBookingData();
-    return () => {
-      isMounted = false;
-    };
-  }, [open, openStatus]);
+  fetchBookingData();
+}, [open]);
+  
 
   //search filter
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
@@ -283,43 +259,43 @@ const Bookings = () => {
   const columns = [
     {
       name: "No.",
-      cell: (_row: DataBookingRow , index: number) => (
+      cell: (_row: DataBookingRow, index: number) => (
         <div className="text-center font-semibold ">{index + 1}</div>
       ),
     },
     {
       name: "Name",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center font-semibold">{row.full_name}</div>
       ),
     },
     {
       name: "License #",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center font-semibold">{row.license_number}</div>
       ),
     },
     {
       name: "Car",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center font-semibold">{row.car_plate_number}</div>
       ),
     },
     {
       name: "Type",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center font-semibold">{row.car_type}</div>
       ),
     },
     {
       name: "Model",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center font-semibold">{row.car_model}</div>
       ),
     },
     {
       name: "Start Date",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center ">
           {new Date(row.start_date).toLocaleString("en-US", {
             month: "2-digit",
@@ -331,7 +307,7 @@ const Bookings = () => {
     },
     {
       name: "End Date",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center ">
           {new Date(row.end_date).toLocaleString("en-US", {
             month: "2-digit",
@@ -343,29 +319,29 @@ const Bookings = () => {
     },
     {
       name: "Pick up",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center ">{to12Hour(row.start_time)}</div>
       ),
     },
     {
       name: "Drop off",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center ">{to12Hour(row.end_time)}</div>
       ),
     },
     {
       name: "Location",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="text-center ">{row.location}</div>
       ),
     },
     {
       name: "Type of Rent",
-      cell: (row: DataBookingRow ) => <div>{row.type_of_rent}</div>,
+      cell: (row: DataBookingRow) => <div>{row.type_of_rent}</div>,
     },
     {
       name: "Status",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <span
           className={` rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10px] xl:text-[11px] ${
             row.status === "On Service"
@@ -383,23 +359,13 @@ const Bookings = () => {
     },
     {
       name: "Action",
-      cell: (row: DataBookingRow ) => (
+      cell: (row: DataBookingRow) => (
         <div className="flex gap-2">
           {row.status === "On Service" && (
             <div>
               <icons.check
                 className="cursor-pointer text-green-400 text-xl"
-                onClick={() => setOpenStatus(true)}
-              />
-
-              <UpdateStatus
-                disabled={loading}
-                children={"Transaction Complete?"}
-                onClick={
-                  () => handleOnServiceUpdate(row.id) //, row.car_plate_number
-                }
-                onClose={() => setOpenStatus(false)}
-                open={openStatus}
+                onClick={() => setSelectedRow(row)}
               />
             </div>
           )}
@@ -408,19 +374,29 @@ const Bookings = () => {
             <div>
               <icons.check
                 className="cursor-pointer text-green-400 text-xl"
-                onClick={() => setOpenStatus(true)}
-              />
-
-              <UpdateStatus
-                disabled={loading}
-                children={"Ready to Service?"}
-                onClick={
-                  () => handleReserveUpdate(row.id) //, row.car_plate_number
-                }
-                onClose={() => setOpenStatus(false)}
-                open={openStatus}
+                onClick={() => setSelectedRow(row)}
               />
             </div>
+          )}
+          {selectedRow && (
+            <UpdateStatus
+              disabled={loading}
+              children={
+                selectedRow.status === "On Service"
+                  ? "Transaction Complete?"
+                  : "Ready to Service?"
+              }
+              onClick={() => {
+                if (selectedRow.status === "On Service") {
+                  handleOnServiceUpdate(selectedRow.id);
+                } else {
+                  handleReserveUpdate(selectedRow.id);
+                }
+                setSelectedRow(null); // Close after action
+              }}
+              onClose={() => setSelectedRow(null)}
+              open={!!selectedRow}
+            />
           )}
           <div>
             <icons.openEye
@@ -510,9 +486,9 @@ const Bookings = () => {
           <CustomButtons
             icons={<icons.add className="text-xl text-white" />}
             handleclick={() => {
-              setFormMode('create')
-              setselectBookingId(null)
-              onOpen()
+              setFormMode("create");
+              setselectBookingId(null);
+              onOpen();
             }}
             children="Add Booking"
             className="py-1 md:py-2 px-2 md:px-4  rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer text-xs md:text-base "

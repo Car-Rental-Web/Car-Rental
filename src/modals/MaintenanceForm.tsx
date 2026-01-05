@@ -288,7 +288,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         <div className="flex gap-4 mt-8 mb-4">
           {/* Cancel Button - Only show if NOT in View mode */}
           {!isView && (
-            <button
+            <button 
               type="button"
               onClick={onClose}
               className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
