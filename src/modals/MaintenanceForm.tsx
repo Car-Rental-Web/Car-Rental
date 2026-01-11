@@ -26,7 +26,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   mode,
   initialData,
 }) => {
-  const [vehicles, setVehicles] = useState<{ id: string; plate_no: string }[]>(
+  const [vehicles, setVehicles] = useState<{ id: string; plate_number: string }[]>(
     []
   );
   const [selectToggle, setSelectToggle] = useState(false);
@@ -123,7 +123,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     const fetchVehicles = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no");
+        .select("id, plate_number");
 
       if (error) {
         console.log("Error fetching vehicles:", error.message);
@@ -187,9 +187,9 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
               <option
                 className="txt-color"
                 key={vehicle.id}
-                value={vehicle.plate_no}
+                value={vehicle.plate_number}
               >
-                {vehicle.plate_no}
+                {vehicle.plate_number}
               </option>
             ))}
           </select>

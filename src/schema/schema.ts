@@ -26,6 +26,17 @@ export const VehicleFormSchema = z.object({
 });
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
+export const VehicleHistorySchema = z.object({
+  car_image: z.any(),
+  model: z.string().min(1).max(24),
+  brand: z.string().min(1).max(24),
+  type: z.string().min(1).max(24),
+  color: z.string().min(1).max(24),
+  plate_number: z.string().min(1).max(24),
+  status: z.string(),
+});
+export type VehicleHistoryData = z.infer<typeof VehicleHistorySchema>;
+
 
 
 export const MaintenanceFormSchema = z.object({

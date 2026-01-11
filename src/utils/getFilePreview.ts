@@ -4,11 +4,16 @@ const getFilePreview = (fileValue: any, bucket: string) => {
   if (!fileValue) return null;
 
   // Case 1: It's an existing path from the database (String)
+ if (typeof fileValue === "string" && fileValue.startsWith("http")) {
+    return fileValue;
+  }
+
+  // Case 2: It's an existing path (if you only store "folder/image.png" in DB)
   if (typeof fileValue === "string") {
     return getPublicUrl(bucket, fileValue);
   }
 
-  // Case 2: It's a newly selected file (FileList)
+  // Case 3: It's a newly selected file (FileList from input)
   if (fileValue instanceof FileList && fileValue.length > 0) {
     return URL.createObjectURL(fileValue[0]);
   }

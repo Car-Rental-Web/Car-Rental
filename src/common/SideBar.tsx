@@ -11,9 +11,11 @@ const SideBarData = [
     icon: <icons.availability />,
   },
   { label: "Bookings", path: "/bookings", icon: <icons.booking /> },
-  { label: "Renter", path: "/renterhistory", icon: <icons.person /> },
+  // { label: "Renter", path: "/renterhistory", icon: <icons.person /> },
+  { label: "Renter Profile", path: "/renterprofile", icon: <icons.person /> },
+  { label: "Renter Profile", path: "/renteragreement", icon: <icons.person /> },
   // { label: "Vehicles", path: "/vehicle", icon: <icons.vehicle /> },
-  { label: "Vehicles", path: "/vehiclehistory", icon: <icons.vehicle /> },
+  { label: "Vehicle", path: "/vehiclehistory", icon: <icons.vehicle /> },
   { label: "Maintenance", path: "/maintenance", icon: <icons.onMaintenance /> },
 ];
 

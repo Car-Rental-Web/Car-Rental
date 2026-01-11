@@ -7,3 +7,4 @@ export { default as SearchBar } from "./SearchBar";
 export { default as SeePassword } from "./SeePassword";
 export { default as TableData } from "./TableData";
 export { default as Calendar } from "./Calendar";
+export { default as RenterAgreement } from "./RenterAgreement";

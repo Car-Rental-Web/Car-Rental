@@ -33,8 +33,8 @@ const Header = () => {
   const navigation_pages = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Maintenance", path: "/maintenance" },
-    { name: "Vehicles", path: "/vehicle" },
-    { name: "Renter", path: "/renterhistory" },
+    { name: "Vehicles", path: "/vehiclehistory" },
+    { name: "Renter", path: "/renterprofile" },
     { name: "Bookings", path: "/bookings" },
     { name: "Availability", path: "/availability" },
   ];
@@ -64,7 +64,7 @@ const Header = () => {
       className="p-6 gap-3  flex justify-between items-center w-full bg-header border-b  border-[#023a58]  "
     >
       <p className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold pl-1 lg:pl-6 xl:pl-12 text-center jakarta txt-color">
-        Emboss
+        Mboss
       </p>
       <div className="relative w-2xl">
         <SearchBar

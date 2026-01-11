@@ -34,6 +34,8 @@ import { FiPlus } from "react-icons/fi";
 import { FaRegCheckCircle } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { CiWarning } from "react-icons/ci";
+import { BsFillCircleFill } from "react-icons/bs";
+import { RiFolderHistoryLine } from "react-icons/ri";
 
 
 
@@ -74,6 +76,8 @@ const icons = {
     check: FaRegCheckCircle,
     logOut: BiLogOut,
     warning:CiWarning,
+    status:BsFillCircleFill,
+    history:RiFolderHistoryLine,
 }
 
 export default icons

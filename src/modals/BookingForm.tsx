@@ -28,7 +28,7 @@ const BookingForm: React.FC<ModalProps> = ({
 }) => {
   const [selectToggle, setSelectToggle] = useState(false);
   const [vehicles, setVehicles] = useState<
-    { id: string; plate_no: string; model: string; type: string }[]
+    { id: string; plate_number: string; model: string; type: string }[]
   >([]);
   const [existingPaths, setExistingPaths] = useState({
     valid_id: "",
@@ -145,8 +145,8 @@ const BookingForm: React.FC<ModalProps> = ({
     const fetchVehicle = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_no ,model, type")
-        .neq("status", "On Maintenance");
+        .select("id, plate_number, model, type")
+        // .neq("status", "On Maintenance");
 
       if (error) {
         console.log("Error fetching Vehicles", error);
@@ -165,7 +165,7 @@ const BookingForm: React.FC<ModalProps> = ({
       setValue("car_model", "");
       setValue("car_type", "");
     }
-    const selectedVehicle = vehicles.find((v) => v.plate_no === selectedPlate);
+    const selectedVehicle = vehicles.find((v) => v.plate_number === selectedPlate);
     if (selectedVehicle) {
       setValue("car_model", selectedVehicle.model);
       setValue("car_type", selectedVehicle.type);
@@ -467,9 +467,9 @@ const BookingForm: React.FC<ModalProps> = ({
                     <option
                       className="txt-color"
                       key={vehicle.id}
-                      value={vehicle.plate_no}
+                      value={vehicle.plate_number}
                     >
-                      {vehicle.plate_no}
+                      {vehicle.plate_number}
                     </option>
                   ))}
                 </select>

@@ -2,12 +2,13 @@ import { Route, Routes } from "react-router-dom";
 import RootLayout from "../layout/RootLayout";
 import {
   Aavailability,
-  Vehicles,
+  // Vehicles,
   Bookings,
   Dashboard,
   Maintenance,
-  RenterHistory,
+  // RenterHistory,
   VehicleHistory,
+  RenterProfile,
 } from "../features/index";
 import {
   ForgotPassword,
@@ -18,7 +19,7 @@ import {
 import PrivateRoutes from "./PrivateRoutes";
 import { useRestoreSession } from "../hooks/useRestoreSession";
 import { ToastContainer } from "react-toastify";
-import { NotFound } from "../components";
+import { NotFound, RenterAgreement } from "../components";
 import PublicRoutes from "./PublicRoutes";
 import TestForm from "../modals/testForm";
 
@@ -43,9 +44,11 @@ const AppRoutes = () => {
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
             <Route path="bookings" element={<Bookings />}></Route>
-            <Route path="renterhistory" element={<RenterHistory />}></Route>
+            {/* <Route path="renterhistory" element={<RenterHistory />}></Route> */}
+            <Route path="renteragreement" element={<RenterAgreement />}></Route>
+            <Route path="renterprofile" element={<RenterProfile />}></Route>
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
-            <Route path="vehicle" element={<Vehicles />}></Route>
+            {/* <Route path="vehicle" element={<Vehicles />}></Route> */}
             <Route path="maintenance" element={<Maintenance />}></Route>
           </Route>
         </Route>

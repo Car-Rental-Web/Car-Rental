@@ -76,6 +76,7 @@ export interface CustomTableProps<T> {
 export interface DataBookingRow{
   id: number;
   full_name: string;
+  created_at:string;
   license_number: string;
   valid_id: any
   pagibig_number: string;
@@ -104,6 +105,7 @@ export interface DataBookingRow{
 export interface DataBookingFormValues {
   id:number;
   full_name: string;
+  created_at:string;
   address: string;
   license_number: string;
 
@@ -161,6 +163,24 @@ export interface DataRenterProps {
   action?: React.ReactNode;
 }
 
+export interface DataRenterHistoryProps {
+  id: number;
+  created_at:string;
+  full_name: string;
+  address:string;
+  valid_id: any;
+  e_signature:any
+  pagibig_number: string;
+  sss_number: string;
+  tin_number: string;
+  philhealth_number: string;
+  license_number: string;
+  lastDateRented?:string;
+  times_rented?: number;
+  notes: string;
+  action?: React.ReactNode;
+}
+
 export interface DataVehicleProps {
   id: number;
   model: string;
@@ -200,5 +220,27 @@ export interface TestProps {
   plate_no: string;
   car_model: string;
   car_type: string;
+  action?: React.ReactNode;
+}
+
+export interface DataVehicleTypes{
+  id: number;
+  car_image:any;
+  model: string;
+  brand: string;
+  type: string;
+  color: string;
+  plate_number: string;
+  status: string;
+  action?: React.ReactNode;
+}
+export interface VehicleFormValues{
+  car_image:any;
+  model: string;
+  brand: string;
+  type: string;
+  color: string;
+  plate_number: string;
+  status: string;
   action?: React.ReactNode;
 }
