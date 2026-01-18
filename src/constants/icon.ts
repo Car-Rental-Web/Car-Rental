@@ -36,6 +36,7 @@ import { BiLogOut } from "react-icons/bi";
 import { CiWarning } from "react-icons/ci";
 import { BsFillCircleFill } from "react-icons/bs";
 import { RiFolderHistoryLine } from "react-icons/ri";
+import { MdBookmarkAdd } from "react-icons/md";
 
 
 
@@ -78,6 +79,7 @@ const icons = {
     warning:CiWarning,
     status:BsFillCircleFill,
     history:RiFolderHistoryLine,
+    rent:MdBookmarkAdd,
 }
 
 export default icons

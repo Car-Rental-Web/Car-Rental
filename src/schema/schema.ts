@@ -37,8 +37,6 @@ export const VehicleHistorySchema = z.object({
 });
 export type VehicleHistoryData = z.infer<typeof VehicleHistorySchema>;
 
-
-
 export const MaintenanceFormSchema = z.object({
   date: z.string().min(1),
   car: z.string().min(1, "Vehicle is required"),
@@ -65,7 +63,7 @@ export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;
 // };
 
 export const RenterFormSchema = z.object({
- full_name: z.string().min(1),
+  full_name: z.string().min(1),
   address: z.string().min(1),
   license_number: z.string().min(1),
 
@@ -82,19 +80,11 @@ export const RenterFormSchema = z.object({
   car_model: z.string(),
   car_type: z.string(),
 
-  total_price_rent: z
-    .string()
-    .min(1),
-  downpayment: z
-    .string()
-    .min(1),
-  start_date: z
-    .string()
-    .min(1),
+  total_price_rent: z.string().min(1),
+  downpayment: z.string().min(1),
+  start_date: z.string().min(1),
 
-  end_date: z
-    .string()
-    .min(1),
+  end_date: z.string().min(1),
 
   start_time: z.string().min(1),
   end_time: z.string().min(1),
@@ -110,7 +100,7 @@ export const RenterFormSchema = z.object({
   status: z.string().min(1),
 });
 
-export type BookingFormValues= z.infer<typeof RenterFormSchema>;
+export type BookingFormValues = z.infer<typeof RenterFormSchema>;
 
 export const TestFormSchema = z.object({
   full_name: z.string(),
@@ -121,6 +111,31 @@ export const TestFormSchema = z.object({
 });
 
 export type TestFormData = z.infer<typeof TestFormSchema>;
+
+export const RenterFormDataSchema = z.object({
+  full_name: z.string(),
+  address: z.string(),
+  license_number: z.string(),
+  pagibig_number: z.string().optional(),
+  sss_number: z.string().optional(),
+  tin_number: z.string().optional(),
+  philhealth_number: z.string().optional(),
+  car_model: z.string(),
+  car_plate_number: z.string(),
+  car_type: z.string(),
+  start_date: z.string().min(1),
+  end_date: z.string().min(1),
+  duration: z.string(),
+  start_time: z.string().min(1),
+  end_time: z.string().min(1),
+  type_of_rent: z.string().min(1),
+  location: z.string().min(1),
+  uploaded_proof: z.any().optional(),
+  status: z.string().min(1),
+
+});
+
+export type RenterFormValues = z.infer<typeof RenterFormDataSchema>;
 
 export default {
   TestFormSchema,

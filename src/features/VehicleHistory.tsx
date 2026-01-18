@@ -11,8 +11,12 @@ import { useModalStore } from "../store/useModalStore";
 import VehicleHistoryForm from "../modals/VehicleHistoryForm";
 import { toast } from "react-toastify";
 import { DeleteModal } from "../modals";
+import { VehicleRenterForm } from "../components";
 
 const VehicleHistory = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] =
+    useState<DataVehicleTypes | null>(null);
   const [vehicleCard, setVehicleCard] = useState<DataVehicleTypes[]>([]);
   const [isClicked, setIsClicked] = useState<number | null>(null);
   const [openAction, setopenAction] = useState<number | null>(null);
@@ -60,7 +64,7 @@ const VehicleHistory = () => {
 
   const fetchHistory = async (vehicle: DataVehicleTypes) => {
     const { data, error } = await supabase
-      .from("booking")
+      .from("renter_booking")
       .select("*")
       .eq("car_plate_number", vehicle.plate_number)
       .order("created_at", { ascending: false });
@@ -194,7 +198,12 @@ const VehicleHistory = () => {
                         History <icons.rightArrow />
                       </button>
                       {/* open form to book */}
-                      <button className="flex  items-center text-white border border-gray-200 text-xs p-2 rounded cursor-pointer">
+                      <button
+                        onClick={() => {
+                          setShowForm(true)
+                          setSelectedVehicle(vehicle)}}
+                        className="flex  items-center text-white border border-gray-200 text-xs p-2 rounded cursor-pointer"
+                      >
                         Rent <icons.rightArrow />
                       </button>
                     </div>
@@ -297,6 +306,16 @@ const VehicleHistory = () => {
             </table>
           </div>
         </div>
+      )}
+      {showForm && (
+        <VehicleRenterForm
+          selectedData={selectedVehicle}
+          open={showForm}
+          onClose={() => {
+            setShowForm(false);
+            setSelectedVehicle(null);
+          }}
+        />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import {
   // RenterHistory,
   VehicleHistory,
   RenterProfile,
+  RenterTable,
 } from "../features/index";
 import {
   ForgotPassword,
@@ -19,7 +20,7 @@ import {
 import PrivateRoutes from "./PrivateRoutes";
 import { useRestoreSession } from "../hooks/useRestoreSession";
 import { ToastContainer } from "react-toastify";
-import { NotFound, RenterAgreement } from "../components";
+import { NotFound} from "../components";
 import PublicRoutes from "./PublicRoutes";
 import TestForm from "../modals/testForm";
 
@@ -45,8 +46,9 @@ const AppRoutes = () => {
             <Route path="availability" element={<Aavailability />}></Route>
             <Route path="bookings" element={<Bookings />}></Route>
             {/* <Route path="renterhistory" element={<RenterHistory />}></Route> */}
-            <Route path="renteragreement" element={<RenterAgreement />}></Route>
+            {/* <Route path="renteragreement" element={<RenterAgreement />}></Route> */}
             <Route path="renterprofile" element={<RenterProfile />}></Route>
+            <Route path="historyofrent" element={<RenterTable />}></Route>
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
             {/* <Route path="vehicle" element={<Vehicles />}></Route> */}
             <Route path="maintenance" element={<Maintenance />}></Route>

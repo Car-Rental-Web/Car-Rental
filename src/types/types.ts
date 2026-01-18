@@ -73,12 +73,12 @@ export interface CustomTableProps<T> {
 //   type_of_rent: string;
 //   status: string;
 // }
-export interface DataBookingRow{
+export interface DataBookingRow {
   id: number;
   full_name: string;
-  created_at:string;
+  created_at: string;
   license_number: string;
-  valid_id: any
+  valid_id: any;
   pagibig_number: string;
   sss_number: string;
   tin_number: string;
@@ -97,15 +97,15 @@ export interface DataBookingRow{
   vehicle_left_plate_number?: string;
   vehicle_left_model?: string;
   vehicle_left_type?: string;
-  agreement_photo: any
+  agreement_photo: any;
   notes: string;
-  uploaded_proof: any
+  uploaded_proof: any;
   status: string;
 }
 export interface DataBookingFormValues {
-  id:number;
+  id: number;
   full_name: string;
-  created_at:string;
+  created_at: string;
   address: string;
   license_number: string;
 
@@ -165,20 +165,30 @@ export interface DataRenterProps {
 
 export interface DataRenterHistoryProps {
   id: number;
-  created_at:string;
+  created_at: string;
   full_name: string;
-  address:string;
+  address: string;
   valid_id: any;
-  e_signature:any
+  e_signature: any;
   pagibig_number: string;
   sss_number: string;
   tin_number: string;
   philhealth_number: string;
   license_number: string;
-  lastDateRented?:string;
+  lastDateRented?: string;
+  start_date:string;
+  end_date:string;
+  start_time:string;
+  end_time:string;
+  duration:string;
+  location:string;
+  type_of_rent:string;
+  status:string;
   times_rented?: number;
   notes: string;
   action?: React.ReactNode;
+  car_plate_number:string;
+  
 }
 
 export interface DataVehicleProps {
@@ -193,14 +203,14 @@ export interface DataVehicleProps {
 }
 
 export interface DataMaintenanceProps {
-  id: number 
+  id: number;
   date: string;
   car: string;
   type_of_maintenance: string;
   cost_of_maintenance: string;
   location: string;
   maintained_by: string;
-  status: string ;
+  status: string;
 }
 
 export type MaintenanceFormValues = {
@@ -223,9 +233,9 @@ export interface TestProps {
   action?: React.ReactNode;
 }
 
-export interface DataVehicleTypes{
+export interface DataVehicleTypes {
   id: number;
-  car_image:any;
+  car_image: any;
   model: string;
   brand: string;
   type: string;
@@ -234,8 +244,18 @@ export interface DataVehicleTypes{
   status: string;
   action?: React.ReactNode;
 }
-export interface VehicleFormValues{
-  car_image:any;
+export interface DataVehicleForm {
+  id: number;
+  car_plate_number:string;
+  model: string;
+  brand: string;
+  type: string;
+  color: string;
+  status: string;
+  action?: React.ReactNode;
+}
+export interface VehicleFormValues {
+  car_image: any;
   model: string;
   brand: string;
   type: string;
@@ -244,3 +264,17 @@ export interface VehicleFormValues{
   status: string;
   action?: React.ReactNode;
 }
+
+// renter
+export interface RenterFormValues {
+  id: number;
+  full_name: string;
+  address: string;
+  pagibig_number: string;
+  sss_number: string;
+  tin_number: string;
+  philhealth_number: string;
+  license_number: string;
+  uploaded_proof: any;
+}
+
