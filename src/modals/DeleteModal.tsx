@@ -6,7 +6,7 @@ import icons from "../constants/icon";
 interface DeleteProps {
   open: boolean;
   onClose: () => void;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
 }
 
@@ -14,7 +14,7 @@ const DeleteModal: React.FC<DeleteProps> = ({ open, onClose, onClick,disabled })
   const {loading} = useLoadingStore()
 
   return createPortal(
-    <div className={`fixed inset-0 bg-[#032d44]/25 z-1000 flex  justify-center items-center ${open ? "flex" : "hidden"}`}>
+    <div onClick={(e) => e.stopPropagation()} className={`fixed inset-0 bg-[#032d44]/25 z-1000 flex  justify-center items-center ${open ? "flex" : "hidden"}`}>
       <div className="relative w-96 h-48 border border-white flex flex-col justify-center items-center gap-3 rounded bg-white">
         <ModalButton className="absolute top-4 right-5" onclick={onClose} />
         <icons.warning className="absolute top-3 text-red-500 text-6xl"/>

@@ -172,7 +172,7 @@ const RenterProfile = () => {
           placeholder="Search Renter"
         />
       </div>
-      <div className="overflow-x-auto rounded-lg border border-gray-700 py-4 px-6  w-full">
+      <div className="overflow-x-auto rounded-lg border border-gray-700  w-full">
         <table className="min-w-[1600px] w-full table-fixed text-left    text-gray-200">
           <thead className="bg-[#032d44] text-gray-300 uppercase text-xs ">
             <tr className="text-center">
@@ -292,16 +292,20 @@ const RenterProfile = () => {
                         <icons.edit />
                       </button>
                       <button
-                        className="flex items-center gap-3 text-red-500"
-                        onClick={() => setOpenDelete(true)}
+                        className="flex items-center gap-3 text-red-500 z-1000"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenDelete(true)
+                        }}
                       >
                         <icons.trash className="cursor-pointer" />
                       </button>
+                      {openDelete && 
                       <DeleteModal
                         onClose={() => setOpenDelete(false)}
                         onClick={() => handleDelete(row.id)}
                         open={openDelete}
-                      />
+                      />}
                     </div>
                   </td>
                 </tr>
