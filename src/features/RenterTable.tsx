@@ -38,25 +38,70 @@ const Renter = () => {
   };
 
   //delete booking
-  const handleDelete = async (id: number) => {
-    const { data, error } = await supabase
+ const handleDelete = async (id: number) => {
+  try {
+    // 1. Fetch the paths from the database before deleting the row
+    const { data: booking, error: fetchError } = await supabase
+      .from("renter_booking")
+      .select("uploaded_proof")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError || !booking) {
+      toast.error("Booking not found");
+      return;
+    }
+
+    // 2. Prepare storage deletion tasks
+    const storageTasks: Promise<any>[] = [];
+
+    // Handle uploaded_proofs (Array of paths)
+    if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
+      const proofPaths = Array.isArray(booking.uploaded_proof) 
+        ? booking.uploaded_proof 
+        : JSON.parse(booking.uploaded_proof);
+
+      storageTasks.push(
+        supabase.storage
+          .from("uploaded_proof") // Make sure this bucket name is correct
+          .remove(proofPaths)
+      );
+    }
+
+    // Optional: Delete e_signature from storage if it's a path and not a base64 string
+    // If your signature is stored in a bucket, uncomment this:
+    /*
+    if (booking.e_signature) {
+       storageTasks.push(
+         supabase.storage.from("signatures").remove([booking.e_signature])
+       );
+    }
+    */
+
+    // 3. Execute Storage deletion
+    await Promise.all(storageTasks);
+
+    // 4. Delete the row from the database
+    const { error: deleteError } = await supabase
       .from("renter_booking")
       .delete()
       .eq("id", id);
 
-    if (error) {
-      console.log("Failed to delete", error);
-      toast.error("Failed to delete");
-      return;
+    if (deleteError) {
+      throw deleteError;
     }
-    // delete booking
-    setRenterData((prev) => prev.filter((row) => row.id !== id));
 
-    console.log("Deleted Successfully", data);
+    // 5. Update UI State
+    setRenterData((prev) => prev.filter((row) => row.id !== id));
     toast.success("Deleted Successfully");
     setOpenDelete(false);
     setSelectedData(null);
-  };
+
+  } catch (error) {
+    console.error("Failed to delete:", error);
+    toast.error("Failed to delete everything");
+  }
+};
   
 //handle print
 

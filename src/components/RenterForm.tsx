@@ -605,7 +605,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
               )}
 
             {/* SECTION C: THE INPUT & EMPTY STATE */}
-            {/* {!isView ? ( */}
+            {mode !== "view" ? (
             <div className="relative flex items-center mt-2">
               <input
                 disabled={isReadOnly}
@@ -617,13 +617,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
               />
               <icons.upload className="absolute right-0 text-gray-400 pointer-events-none" />
             </div>
-            {/* // ) : (
-                        //   existingPaths.uploaded_proof.length === 0 && (
-                        //     <p className="text-gray-500 text-xs italic text-center">
-                        //       No proofs uploaded.
-                        //     </p>
-                        //   )
-                        // )} */}
+            ) : (
+                           existingPaths.uploaded_proof.length === 0 && (
+                            <p className="text-gray-500 text-xs italic text-center">
+                               No proofs uploaded.
+                             </p>
+                           )
+                         )} 
           </div>
         </div>
 
@@ -700,7 +700,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
         {/* 2. ACTION BUTTONS SECTION */}
         <div className="flex gap-2">
-          {mode !== "view" && (
+          {mode !== "view" && mode !== "edit" && (
             <button
               type="button"
               onClick={onClose} // Make sure this calls your close/cancel function
