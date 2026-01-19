@@ -37,6 +37,7 @@ import { CiWarning } from "react-icons/ci";
 import { BsFillCircleFill } from "react-icons/bs";
 import { RiFolderHistoryLine } from "react-icons/ri";
 import { MdBookmarkAdd } from "react-icons/md";
+import { FaPrint } from "react-icons/fa6";
 
 
 
@@ -80,6 +81,7 @@ const icons = {
     status:BsFillCircleFill,
     history:RiFolderHistoryLine,
     rent:MdBookmarkAdd,
+    print:FaPrint ,
 }
 
 export default icons

@@ -132,6 +132,7 @@ export const RenterFormDataSchema = z.object({
   location: z.string().min(1),
   uploaded_proof: z.any().optional(),
   status: z.string().min(1),
+  e_signature : z.any(),
 
 });
 

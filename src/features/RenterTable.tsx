@@ -4,8 +4,19 @@ import type { DataRenterHistoryProps } from "../types/types";
 import { filterData } from "../utils/FilterData";
 import { useDebouncedValue } from "../utils/useDebounce";
 import { SearchBar } from "../components";
+import icons from "../constants/icon";
+import RenterForm from "../components/RenterForm";
+import { DeleteModal } from "../modals";
+import { toast } from "react-toastify";
 
 const Renter = () => {
+  const [openForm, setOpenForm] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
+    "create",
+  );
+  const [selectedData, setSelectedData] =
+    useState<DataRenterHistoryProps | null>(null);
   const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
   const [filterRenterData, setFilterRenterData] = useState<
     DataRenterHistoryProps[]
@@ -20,6 +31,34 @@ const Renter = () => {
   const [searchTerm, setSearchTerm] = useState("");
   //debounce
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+  const handleAction = (mode: "create" | "view" | "edit", data: any) => {
+    setFormMode(mode);
+    setSelectedData(data);
+    setOpenForm(true);
+  };
+
+  //delete booking
+  const handleDelete = async (id: number) => {
+    const { data, error } = await supabase
+      .from("renter_booking")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.log("Failed to delete", error);
+      toast.error("Failed to delete");
+      return;
+    }
+    // delete booking
+    setRenterData((prev) => prev.filter((row) => row.id !== id));
+
+    console.log("Deleted Successfully", data);
+    toast.success("Deleted Successfully");
+    setOpenDelete(false);
+    setSelectedData(null);
+  };
+  
+//handle print
 
   //fetch renter
   useEffect(() => {
@@ -34,9 +73,52 @@ const Renter = () => {
       setFilterRenterData(data);
     };
     fetchRenter();
-  }, []);
+    // to fetch data from googleform to supabase to website realtime
+    const subscription = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "renter_booking",
+        },
+        (payload) => {
+          const eventType = payload.eventType;
+          if (eventType === "INSERT") {
+            const newData = payload.new as DataRenterHistoryProps;
+            setRenterData((prev) => [newData, ...prev]);
+            setFilterRenterData((prev) => [newData, ...prev]); // Sync source of truth
+          } else if (eventType === "UPDATE") {
+            const updatedData = payload.new as DataRenterHistoryProps;
+            const updateFn = (prev: DataRenterHistoryProps[]) =>
+              prev.map((item) =>
+                item.id === updatedData.id ? updatedData : item,
+              );
+
+            setRenterData(updateFn);
+            setFilterRenterData(updateFn); // Sync source of truth
+          } else if (eventType === "DELETE") {
+            const deleteFn = (prev: DataRenterHistoryProps[]) =>
+              prev.filter((item) => item.id !== payload.old.id);
+
+            setRenterData(deleteFn);
+            setFilterRenterData(deleteFn); // Sync source of truth
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [openForm]);
 
   useEffect(() => {
+    if (!debounceSearchTerm) {
+      setRenterData(filterRenterData);
+      return;
+    }
     let result = filterData(debounceSearchTerm, filterRenterData, [
       "full_name",
       "address",
@@ -49,8 +131,6 @@ const Renter = () => {
     setRenterData(result);
     setCurrentPage(1);
   }, [debounceSearchTerm, filterRenterData]);
-
- 
 
   return (
     <div className="bg-body min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
@@ -108,10 +188,7 @@ const Renter = () => {
           <tbody className="divide-y divide-gray-700 ">
             {currentItems.length > 0 ? (
               currentItems.map((row) => (
-                <tr
-                  key={row.id}
-                  className="hover:bg-white/5 transition-colors"
-                >
+                <tr key={row.id} className="hover:bg-white/5 transition-colors">
                   <td className="text-center text-xs font-medium p-4">
                     {row.full_name}
                   </td>
@@ -148,17 +225,52 @@ const Renter = () => {
                         row.status === "Completed"
                           ? "bg-red-500"
                           : row.status === "On Service"
-                          ? "bg-green-500"
-                          : row.status === "On Reservation"
-                          ? "bg-blue-500"
-                          : "bg-gray-400"
+                            ? "bg-green-500"
+                            : row.status === "On Reservation"
+                              ? "bg-blue-500"
+                              : "bg-gray-400"
                       }`}
                     >
                       {row.status}
                     </p>
                   </td>
                   <td className="text-center text-xs font-medium p-4">
-                    {row.action}
+                    <div className="flex gap-2 mx-auto  justify-center">
+                      {/* <button
+                        onClick={() => handlePrint(row)}
+                        className="flex items-center gap-3 cursor-pointer"
+                      >
+                        <icons.print className="text-xl cursor-pointer" />
+                      </button> */}
+                      <button
+                        onClick={() => handleAction("view", row)}
+                        className="flex items-center gap-3 cursor-pointer"
+                      >
+                        <icons.openEye className="text-xl cursor-pointer" />
+                      </button>
+                      <button
+                        onClick={() => handleAction("edit", row)}
+                        className="flex items-center gap-3"
+                      >
+                        <icons.edit className="text-xl cursor-pointer" />
+                      </button>
+                      <button
+                        className="flex items-center gap-3 text-red-500 "
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenDelete(true);
+                        }}
+                      >
+                        <icons.trash className="text-xl cursor-pointer" />
+                      </button>
+                      {openDelete && (
+                        <DeleteModal
+                          onClose={() => setOpenDelete(false)}
+                          onClick={() => handleDelete(row.id)}
+                          open={openDelete}
+                        />
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -175,7 +287,6 @@ const Renter = () => {
             )}
           </tbody>
         </table>
-        
       </div>
       <div className=" flex w-full justify-between items-center mt-4 text-white px-2 pb-6 gap-3">
         <div className="flex items-center sm:justify-start gap-3 w-full">
@@ -228,6 +339,12 @@ const Renter = () => {
           </button>
         </div>
       </div>
+      <RenterForm
+        open={openForm}
+        mode={formMode}
+        selectedData={selectedData}
+        onClose={() => setOpenForm(false)}
+      />
     </div>
   );
 };

@@ -95,14 +95,14 @@ const VehicleHistory = () => {
         onClose={onClose}
         initialData={selectVehicleId ?? undefined}
       />
-      <div className="flex flex-wrap justify-center md:justify-start gap-3 w-full ">
+      <div className="flex flex-wrap justify-center md:justify-start gap-2 w-full ">
         {vehicleCard.length === 0 ? (
           <p className="text-gray-400">No vehicles available</p>
         ) : (
           vehicleCard.map((vehicle) => (
             <div
               key={vehicle.id}
-              className="flex flex-col border border-gray-200 rounded relative w-xl"
+              className="flex flex-col border border-gray-700 hover:border-gray-200 rounded relative w-xl"
             >
               <div className="w-full">
                 <div className="flex justify-between w-full pr-3 pl-1 pt-1">
@@ -121,9 +121,9 @@ const VehicleHistory = () => {
                       <icons.action className="text-gray-200 text-xl" />
                     </button>
                     {openAction === vehicle.id && (
-                      <div className="absolute right-0 top-7 bg-white flex flex-col z-50 rounded">
+                      <div className="absolute right-0 top-7 bg-gray-800 border border-gray-500 flex flex-col z-50 rounded">
                         <button
-                          className="hover:bg-gray-200 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-1 px-4"
+                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
                           onClick={() => {
                             setFormMode("view");
                             setSelectVehicleId(vehicle);
@@ -134,7 +134,7 @@ const VehicleHistory = () => {
                           View
                         </button>
                         <button
-                          className="hover:bg-gray-200 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-1 px-4"
+                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
                           onClick={() => {
                             setFormMode("edit");
                             setSelectVehicleId(vehicle);
@@ -145,7 +145,7 @@ const VehicleHistory = () => {
                           Edit
                         </button>
                         <button
-                          className="hover:bg-gray-200 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-1 px-4"
+                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
                           onClick={() => {
                             setOpenDelete(true);
                           }}
@@ -163,12 +163,12 @@ const VehicleHistory = () => {
                   </div>
                 </div>
 
-                <div className="relative flex w-full justify-evenly">
-                  <div>
+                <div className="flex w-full justify-evenly">
+                  <div className="">
                     <img
                       src={vehicle.car_image}
                       alt="car"
-                      className="object-contain w-[200px] h-[150px]"
+                      className="object-contain w-[200px] h-[150px] "
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -177,10 +177,10 @@ const VehicleHistory = () => {
                     <p className="text-gray-300 text-xs">
                       {vehicle.type} • {vehicle.color}
                     </p>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-gray-300 text-sm p-0.5 inline-block text-center bg-gray-700/50 rounded">
                       {vehicle.plate_number}
                     </p>
-                    <div className="flex items-center w-full gap-3">
+                    <div className="flex items-center w-full gap-1">
                       <button
                         disabled={isClicked === vehicle.id}
                         onClick={() => {
@@ -189,22 +189,22 @@ const VehicleHistory = () => {
                             prev === vehicle.id ? null : vehicle.id
                           );
                         }}
-                        className={`${
+                        className={`gap-4 border ${
                           isClicked === vehicle.id
-                            ? "border border-green-400"
-                            : " border border-gray-200 "
-                        } flex items-center  text-xs  text-white rounded p-2 cursor-pointer`}
+                            ? " border-green-400"
+                            : "  border-gray-600  "
+                        } hover:border-gray-400 flex items-center  text-xs  text-white rounded p-2 cursor-pointer`}
                       >
-                        History <icons.rightArrow />
+                        History <icons.rightArrow className="text-sm" />
                       </button>
                       {/* open form to book */}
                       <button
                         onClick={() => {
                           setShowForm(true)
                           setSelectedVehicle(vehicle)}}
-                        className="flex  items-center text-white border border-gray-200 text-xs p-2 rounded cursor-pointer"
+                        className="flex  items-center hover:text-gray-800 text-gray-200 gap-4 border border-gray-600 bg-gray-600 hover:bg-gray-300 text-xs p-2 rounded cursor-pointer"
                       >
-                        Rent <icons.rightArrow />
+                        Rent <icons.rightArrow className="text-sm" />
                       </button>
                     </div>
                   </div>

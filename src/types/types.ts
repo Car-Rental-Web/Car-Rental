@@ -173,6 +173,8 @@ export interface DataRenterHistoryProps {
   pagibig_number: string;
   sss_number: string;
   tin_number: string;
+  car_model:string;
+  car_type:string
   philhealth_number: string;
   license_number: string;
   lastDateRented?: string;
@@ -188,6 +190,7 @@ export interface DataRenterHistoryProps {
   notes: string;
   action?: React.ReactNode;
   car_plate_number:string;
+  uploaded_proof: any
   
 }
 

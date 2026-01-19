@@ -23,6 +23,8 @@ const RenterProfile = () => {
 
   const {
     currentPage,
+    itemsPerPage,
+    setItemsPerPage,
     setCurrentPage,
     currentItems,
     totalPages,
@@ -32,7 +34,6 @@ const RenterProfile = () => {
 
   const mainPagination = usePagination(renterData, 5);
   const historyPagination = usePagination(renterHistory, 5);
-  const { itemsPerPage, setItemsPerPage } = historyPagination;
 
   //debounce
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
@@ -110,7 +111,7 @@ const RenterProfile = () => {
             payload.new as DataRenterHistoryProps,
             ...prev,
           ]);
-        }
+        },
       )
       .subscribe();
 
@@ -122,16 +123,14 @@ const RenterProfile = () => {
   // all renters count
   let allRenter = totalRenter.length;
 
-//fetch renter history
+  //fetch renter history
   useEffect(() => {
     const fetchRenterHistory = async () => {
       const { data, error } = await supabase
         .from("renter_booking")
         .select("*")
         .eq("full_name", selectedName);
-
       if (!selectedName) return;
-
       if (error) {
         console.log("Error Fetching Renter History", error);
         return;
@@ -222,7 +221,7 @@ const RenterProfile = () => {
           </thead>
           <tbody className="divide-y divide-gray-700 relative ">
             {currentItems.length > 0 ? (
-              currentItems.map((row, index) => (
+              mainPagination.currentItems.map((row, index) => (
                 <tr
                   onClick={() => setSelectedName(row.full_name)}
                   key={row.id}
@@ -274,9 +273,10 @@ const RenterProfile = () => {
                   </td>
                   <td className="p-4 text-center">
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
                         setSelectedRenter(row);
                         setShowForm(true);
+                        e.stopPropagation()
                       }}
                     >
                       <icons.rent className="mx-auto text-xl text-green-500 cursor-pointer" />
@@ -292,20 +292,21 @@ const RenterProfile = () => {
                         <icons.edit />
                       </button>
                       <button
-                        className="flex items-center gap-3 text-red-500 z-1000"
+                        className="flex items-center gap-3 text-red-500 "
                         onClick={(e) => {
-                          e.stopPropagation()
-                          setOpenDelete(true)
+                          e.stopPropagation();
+                          setOpenDelete(true);
                         }}
                       >
                         <icons.trash className="cursor-pointer" />
                       </button>
-                      {openDelete && 
-                      <DeleteModal
-                        onClose={() => setOpenDelete(false)}
-                        onClick={() => handleDelete(row.id)}
-                        open={openDelete}
-                      />}
+                      {openDelete && (
+                        <DeleteModal
+                          onClose={() => setOpenDelete(false)}
+                          onClick={() => handleDelete(row.id)}
+                          open={openDelete}
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -324,7 +325,7 @@ const RenterProfile = () => {
           </tbody>
         </table>
       </div>
-      
+
       <div className=" flex w-full justify-between items-center mt-4 text-white px-2 pb-6 gap-3">
         <div className="flex items-center sm:justify-start gap-3 w-full">
           <span className="text-sm text-gray-400">
@@ -392,7 +393,7 @@ const RenterProfile = () => {
               onClick={() => setSelectedName("")}
               className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-md transition-all text-sm flex items-center gap-3 justify-center cursor-pointer"
             >
-              Close View <icons.closeModal/>
+              Close View <icons.closeModal />
             </button>
           </div>
 

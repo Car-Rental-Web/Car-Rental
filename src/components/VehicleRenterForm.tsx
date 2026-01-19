@@ -140,13 +140,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   return (
     <div>
       <div
-        className={`fixed inset-0 bg-[#032d44]/25 z-999 justify-center items-center ${
+        className={`fixed py-4 inset-0 bg-[#032d44]/25 z-999 justify-center items-center ${
           open ? "flex" : "hidden"
         }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className=" h-full overflow-y-auto border border-white bg-body w-1/2 p-6 rounded"
+          className=" h-full overflow-y-auto border border-white bg-body w-full md:w-1/2 p-6 rounded"
         >
           <ModalButton type="button" onclick={onClose} />
           <div className="flex w-full gap-3">
@@ -191,6 +191,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("address")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="address"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
@@ -202,6 +203,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("license_number")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="license #"
               />
             </div>
           </div>
@@ -215,6 +217,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("philhealth_number")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="philhealth #"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
@@ -226,6 +229,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("tin_number")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="tin #"
               />
             </div>
           </div>
@@ -239,6 +243,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("sss_number")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="sss #"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
@@ -250,6 +255,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("pagibig_number")}
                 type="text"
                 className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                placeholder="pagibig #"
               />
             </div>
           </div>
@@ -308,7 +314,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
           </div>
-          <div className="flex w-full justify-around gap-3">
+          <div className="flex-col md:flex w-full justify-around gap-3">
             <div className="flex flex-col flex-1 w-full gap-1">
               <label htmlFor="" className=" text-start text-white">
                 Start Date

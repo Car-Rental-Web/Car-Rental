@@ -1,10 +1,18 @@
-const RenterAgreement = () => (
+interface RenterAgreementProps {
+  full_name: string;
+  signatureUrl: string | any;
+}
+
+const RenterAgreement: React.FC<RenterAgreementProps> = ({
+  full_name,
+  signatureUrl,
+}) => (
   <div className="w-full min-h-screen flex justify-center items-center pt-3">
     <div className="flex flex-col w-1/2 justify-center items-center gap-3">
       <p>Renter Waiver and Agreement</p>
       <p className="leading-relaxed">
         I,{" "}
-        <span className="inline-block border-b border-black w-96 translate-y-1 mx-1"></span>
+        <span className="inline-block border-b border-black w-96 translate-y-1 mx-1">{full_name}</span>
         , legal age, Agree as follows;
       </p>
       <ol className="list-decimal list-outside space-y-2  flex flex-col gap-1">
@@ -62,29 +70,46 @@ const RenterAgreement = () => (
       </p>
       <div className="flex flex-col pt-15 gap-15 w-full">
         <div className="flex justify-between gap-12">
-          <div className="flex flex-col w-full">
-            <p></p>
-            <p className="border-t border-black w-full">
-              RENTER/SIGNATURE OVER PRINTED NAME
+          <div className="w-full relative flex flex-col items-center ">
+            {/* THE AUTOMATIC SIGNATURE */}
+            {signatureUrl ? (
+              <img
+                src={signatureUrl}
+                alt="Renter Signature"
+                className="h-16 object-contain -mb-2.5 absolute bottom-8"
+              />
+            ) : (
+              <div className="h-16"></div> /* Spacer if no signature */
+            )}
+
+            <p className="absolute  w-full text-center text-xs pt-1 font-bold bottom-8">
+              {full_name.toUpperCase() || "RENTER"}
+            </p>
+            <p className=" border-t border-black w-full text-center text-xs">
+              Signature Over Printed NAME
             </p>
           </div>
-          <div className="w-full">
-            <p className="border-t border-black w-full">
+          <div className="w-full ">
+            <p className="border-t border-black w-full text-center text-xs">
               TYPE OF VEHICLE/PLATE#/COLOR
             </p>
           </div>
         </div>
-        <div className="flex justify-between gap-12">
-          <p className="border-t border-black w-full">
-            OWNER/OPERATOR/DISPATCHER
-          </p>
-          <p className="border-t border-black w-full">
-            DATE/TIME-DATE/TIME OF RETURN
-          </p>
+        <div className=" w-full flex justify-between gap-12">
+          <div className="w-full">
+            <p className="border-t border-black w-full text-xs text-center">
+              OWNER/OPERATOR/DISPATCHER
+            </p>
+          </div>
+          <div className="w-full">
+            <p className="border-t border-black w-full text-xs text-center ">
+              DATE/TIME-DATE/TIME OF RETURN
+            </p>
+          </div>
         </div>
-        <div className="flex justify-between gap-12 ">
-          <p className="border-t border-black w-full">WITNESS</p>
-          <p className="border-t border-black w-full">
+        <div className="w-full flex justify-between gap-12 ">
+          <p className="border-t border-black w-full text-center text-xs">WITNESS</p>
+          <p className="border-t border-black w-full text-center text-xs ">
             HOURS/DAILY/MONTHLY/RENT
           </p>
         </div>
