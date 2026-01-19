@@ -29,6 +29,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
 }) => {
   const [selectToggle, setSelectToggle] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
   const [vehicles, setVehicles] = useState<
     { id: string; plate_number: string; model: string; type: string }[]
   >([]);
@@ -499,31 +500,35 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
         </div>
+        <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-white p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2">
+         {showSignature ? "Hide Signature" : "Show Signature"}
+        </button>
         <div className="flex flex-col gap-2 border p-4 rounded bg-gray-800/50">
           <label className="text-sm text-gray-400">Renter Signature</label>
 
           {/* Show current signature from Supabase if it exists */}
-          {selectedData?.e_signature && (
-            <div className="mb-2">
-              <p className="text-[10px] text-blue-400 uppercase mb-1">
-                Current Signature:
-              </p>
-              <img
-                src={selectedData.e_signature}
-                alt="Signature Preview"
-                className="h-20 object-contain bg-white rounded p-2"
+          {showSignature && selectedData?.e_signature && (
+            <div>
+              <div className="mb-2">
+                <p className="text-[10px] text-blue-400 uppercase mb-1">
+                  Current Signature:
+                </p>
+                <img
+                  src={selectedData.e_signature}
+                  alt="Signature Preview"
+                  className="h-20 object-contain bg-white rounded p-2"
+                />
+              </div>
+              {/* File input for UPDATING or NEW signatures */}
+              <input
+                {...register("e_signature")}
+                disabled={isReadOnly}
+                type="file"
+                className="text-xs text-gray-300"
+                accept="image/*"
               />
             </div>
           )}
-
-          {/* File input for UPDATING or NEW signatures */}
-          <input
-            {...register("e_signature")}
-            disabled={isReadOnly}
-            type="file"
-            className="text-xs text-gray-300"
-            accept="image/*"
-          />
         </div>
         <div className="w-full text-start text-white flex flex-col gap-1">
           <label className="">
@@ -695,6 +700,15 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
         {/* 2. ACTION BUTTONS SECTION */}
         <div className="flex gap-2">
+          {mode !== "view" && (
+            <button
+              type="button"
+              onClick={onClose} // Make sure this calls your close/cancel function
+              className="w-full bg-gray-600 py-5 mt-2 rounded text-white cursor-pointer hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+          )}
           {mode === "edit" && (
             <button
               type="button"

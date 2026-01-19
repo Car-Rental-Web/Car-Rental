@@ -523,7 +523,7 @@ const RenterProfile = () => {
           setSelectedRenter(null);
         }}
         selectedData={selectedRenter}
-      />
+      /> 
     </div>
   );
 };

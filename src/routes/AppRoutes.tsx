@@ -3,7 +3,7 @@ import RootLayout from "../layout/RootLayout";
 import {
   Aavailability,
   // Vehicles,
-  Bookings,
+  // Bookings,
   Dashboard,
   Maintenance,
   // RenterHistory,
@@ -44,7 +44,7 @@ const AppRoutes = () => {
           <Route path="test" element={<TestForm/>}></Route>
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
-            <Route path="bookings" element={<Bookings />}></Route>
+            {/* <Route path="bookings" element={<Bookings />}></Route> */}
             {/* <Route path="renterhistory" element={<RenterHistory />}></Route> */}
             {/* <Route path="renteragreement" element={<RenterAgreement />}></Route> */}
             <Route path="renterprofile" element={<RenterProfile />}></Route>
