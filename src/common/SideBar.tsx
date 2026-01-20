@@ -76,13 +76,13 @@ const Sidebar = () => {
       <aside
         ref={sidebarRef}
         className={`
-          bg-sidebar
+          bg-white
           min-h-screen
           z-50
           transform transition-transform duration-300 ease-in-out
           fixed md:relative
           top-0 left-0
-          border-r border-[#032d44]
+          border-r border-gray-200
 
           ${
             isSidebarOpen
@@ -104,7 +104,7 @@ const Sidebar = () => {
         </button>
 
         {/* Logo */}
-        <div className=" h-20 flex items-center justify-center text-white text-3xl">
+        <div className=" h-20 flex items-center justify-center text-gray-800 text-3xl">
           {isSidebarOpen ? <icons.car /> : <icons.car />}
         </div>
 
@@ -125,7 +125,7 @@ const Sidebar = () => {
                   className={`
                     flex items-center justify-center gap-3 p-2 rounded-md text-xl
                     transition-all duration-200
-                    ${active ? "text-gray-400 bg-body" : " text-white"}
+                    ${active ? "text-gray-200 bg-gray-400" : " text-gray-800"}
                     ${!isSidebarOpen && "justify-start"}
                   `}
                 >

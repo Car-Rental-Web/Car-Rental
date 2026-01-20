@@ -2,7 +2,7 @@ import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/render
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", lineHeight: 1.4 },
-  title: { fontSize: 14, textAlign: "center", marginBottom: 15, fontWeight: "bold" },
+  title: { fontSize: 14, textAlign: "center", marginBottom: 15, fontWeight: "bold",},
   intro: { marginBottom: 15 },
   underline: { borderBottomWidth: 1, borderBottomColor: "#000", minWidth: 200, display: "flex" },
   list: { marginBottom: 15 },

@@ -25,7 +25,7 @@ export const CustomButtons:React.FC<CustomButtonTypes> = ({
  export const ModalButton:React.FC<ModalButtonProps> = ({onclick, className, type}) => {
   return (
      <button type={type} onClick={onclick} className={`cursor-pointer ${className}`}>
-              <icons.closeModal className="text-[#4E8EA2] w-12 h-12" />
+              <icons.closeModal className="text-gray-400 w-12 h-12" />
       </button>
   )
 }

@@ -148,17 +148,17 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
         action=""
-        className="border border-gray-400 rounded-xl py-6 px-8 w-full md:w-2/5 bg-sub overflow-y-auto  "
+        className="border border-gray-400 rounded-xl py-6 px-8 w-full md:w-2/5 bg-white overflow-y-auto  "
       >
         <ModalButton type="button" onclick={onClose} />
         <div className="flex flex-col pb-3 w-full">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Maintenance Date
           </label>
           <input
             {...register("date")}
             disabled={isView}
-            className=" text-white border py-4 px-2 border-gray-400 rounded"
+            className=" text-gray-800- border py-4 px-2 border-gray-400 rounded"
             type="date"
             placeholder="Ex:Civic Lx"
           />
@@ -172,20 +172,20 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           onClick={() => setSelectToggle(!selectToggle)}
           className="flex flex-col gap-1  relative"
         >
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Registered Vehicles
           </label>
           <select
             {...register("car")}
             disabled={isView}
-            className="appearance-none outline-none border py-4 px-2 border-gray-400 rounded text-white"
+            className="appearance-none outline-none border py-4 px-2 border-gray-400 rounded text-gray-800-"
           >
-            <option value="" className="txt-color">
+            <option value="" className="txt-gray-800">
               Select Vehicle
             </option>
             {vehicles.map((vehicle) => (
               <option
-                className="txt-color"
+                className="txt-gray-800"
                 key={vehicle.id}
                 value={vehicle.plate_number}
               >
@@ -205,13 +205,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           </p>
         )}
         <div className="flex flex-col gap-1 pt-3 pb-3">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Cost of Maintenance
           </label>
           <input
             disabled={isView}
             {...register("cost_of_maintenance")}
-            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
+            className="placeholder-gray-800 border py-4 px-2 border-gray-400 rounded text-gray-800-"
             type="text"
             placeholder="Ex: 1000 "
           />
@@ -222,13 +222,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Type of Maintenance
           </label>
           <input
             disabled={isView}
             {...register("type_of_maintenance")}
-            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
+            className="placeholder-gray-800 border py-4 px-2 border-gray-400 rounded text-gray-800-"
             type="text"
             placeholder="Ex:Midnight Blue"
           />
@@ -239,13 +239,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             location
           </label>
           <input
             disabled={isView}
             {...register("location")}
-            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
+            className="placeholder-gray-800 border py-4 px-2 border-gray-400 rounded text-gray-800-"
             type="text"
             placeholder="Ex: Angeles"
           />
@@ -256,13 +256,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           )}
         </div>
         <div className="flex flex-col gap-1 pb-3">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Maintained By
           </label>
           <input
             disabled={isView}
             {...register("maintained_by")}
-            className="placeholder-white border py-4 px-2 border-gray-400 rounded text-white"
+            className="placeholder-gray-800 border py-4 px-2 border-gray-400 rounded text-gray-800-"
             type="text"
             placeholder="Ex: Nicko"
           />
@@ -273,14 +273,14 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           )}
         </div>
         <div className="flex flex-col gap-1 ">
-          <label htmlFor="" className="text-start text-white">
+          <label htmlFor="" className="text-start text-gray-800-">
             Status
           </label>
           <input
             defaultValue={"On Maintenance"}
             {...register("status")}
             disabled
-            className="placeholder-white  text-white border py-4 px-2 border-gray-400 rounded"
+            className="placeholder-gray-800  text-gray-800- border py-4 px-2 border-gray-400 rounded"
             type="text"
             placeholder="EX:ABC-1234"
           />
@@ -291,7 +291,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             <button 
               type="button"
               onClick={onClose}
-              className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
+              className="flex-1 text-gray-800- py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
             >
               Cancel
             </button>
@@ -302,14 +302,14 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             type={isView ? "button" : "submit"}
             onClick={isView ? onClose : undefined}
             disabled={loading}
-            className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors ${
+            className={`flex-1 text-gray-200 py-4 cursor-pointer rounded bg-gray-800 ${
               isView
                 ? "bg-gray-600 hover:bg-gray-500"
-                : "button-color hover:opacity-90"
+                : " hover:opacity-90"
             }`}
           >
             {loading ? (
-              <span className="flex justify-center items-center gap-2">
+              <span className="flex justify-center items-center gap-2 ">
                 {/* Simple inline spinner if you have one, or just text */}
                 {isEdit ? "Updating..." : "Submitting..."}
               </span>

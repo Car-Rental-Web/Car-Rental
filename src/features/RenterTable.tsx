@@ -178,19 +178,19 @@ const Renter = () => {
   }, [debounceSearchTerm, filterRenterData]);
 
   return (
-    <div className="bg-body min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
+    <div className=" min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
       <div className="flex justify-end w-full">
         <SearchBar
           onClear={() => setSearchTerm("")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="py-2  border border-gray-400 placeholder-white text-white rounded"
+          className="py-2  border border-gray-400 placeholder-white text-gray-800 rounded"
           placeholder="Search Renter"
         />
       </div>
       <div className="overflow-x-auto border border-gray-700 w-full">
         <table className="min-w-[1600px] w-full table-fixed text-left    text-gray-200">
-          <thead className="bg-[#032d44] text-gray-300 uppercase text-xs">
+          <thead className="bg-gray-800 text-gray-300 uppercase text-xs">
             <tr>
               <th className="w-full p-4 text-xs border-b text-center border-gray-700">
                 Fullname
@@ -234,34 +234,34 @@ const Renter = () => {
             {currentItems.length > 0 ? (
               currentItems.map((row) => (
                 <tr key={row.id} className="hover:bg-white/5 transition-colors">
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.full_name}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.address}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.license_number}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.car_plate_number}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.start_date}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.end_date}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.start_time}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.end_time}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.duration}
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 text-gray-800">
                     {row.type_of_rent}
                   </td>
                   <td>
@@ -279,7 +279,7 @@ const Renter = () => {
                       {row.status}
                     </p>
                   </td>
-                  <td className="text-center text-xs font-medium p-4">
+                  <td className="text-center text-xs font-medium p-4 ">
                     <div className="flex gap-2 mx-auto  justify-center">
                       {/* <button
                         onClick={() => handlePrint(row)}
@@ -291,13 +291,13 @@ const Renter = () => {
                         onClick={() => handleAction("view", row)}
                         className="flex items-center gap-3 cursor-pointer"
                       >
-                        <icons.openEye className="text-xl cursor-pointer" />
+                        <icons.openEye className="text-xl cursor-pointer text-green-500" />
                       </button>
                       <button
                         onClick={() => handleAction("edit", row)}
                         className="flex items-center gap-3"
                       >
-                        <icons.edit className="text-xl cursor-pointer" />
+                        <icons.edit className="text-xl cursor-pointer text-blue-500" />
                       </button>
                       <button
                         className="flex items-center gap-3 text-red-500 "
@@ -348,7 +348,7 @@ const Renter = () => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1); // Reset
               }}
-              className="bg-[#032d44] border border-gray-600 rounded px-2 py-1 text-white outline-none focus:border-blue-500"
+              className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800 outline-none focus:border-blue-500"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -369,7 +369,7 @@ const Renter = () => {
             Previous
           </button>
 
-          <p className="text-sm">
+          <p className="text-sm text-gray-800">
             Page {currentPage} of {totalPages || 1}
           </p>
 

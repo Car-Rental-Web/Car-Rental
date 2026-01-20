@@ -132,13 +132,13 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
           handleSubmit(onSubmit)(e);
         }}
         action=""
-        className=" border border-white bg-body w-1/2 p-6 rounded"
+        className=" border border-white bg-white w-1/2 p-6 rounded"
       >
         <ModalButton type="button" onclick={onClose} />
         <div className="flex gap-3">
           <div className="">
-            <label className="text-white">Car Image</label>
-            <div className="border border-gray-400 rounded h-64 w-64 overflow-hidden bg-gray-800 mb-2">
+            <label className="text-gray-800">Car Image</label>
+            <div className="border border-gray-400 rounded h-64 w-64 overflow-hidden bg-gray-200 mb-2">
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -156,7 +156,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               {...register("car_image")}
               type="file"
               accept="image/*"
-              className="text-white text-xs"
+              className="text-gray-800 text-xs"
             />
             {errors.car_image && (
               <p className="text-red-500 text-sm text-start">
@@ -166,7 +166,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
           </div>
           <div className="flex flex-col w-full">
             <div className="flex flex-col w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Brand
               </label>
               <input
@@ -174,7 +174,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 {...register("brand")}
                 type="text"
                 placeholder="Brand"
-                className="placeholder-white border py-4 px-4 border-gray-600 rounded  text-white w-full"
+                className="placeholder-gray-800 border py-4 px-4 border-gray-600 rounded  text-gray-800 w-full"
               />
               {errors.brand && (
                 <p className="text-red-500 text-sm text-start">
@@ -183,7 +183,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Model
               </label>
               <input
@@ -191,7 +191,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 {...register("model")}
                 type="text"
                 placeholder="Model"
-                className="placeholder-white border py-4 px-4 border-gray-600 rounded  text-white w-full"
+                className="placeholder-gray-800 border py-4 px-4 border-gray-600 rounded  text-gray-800 w-full"
               />
               {errors.model && (
                 <p className="text-red-500 text-sm text-start">
@@ -200,7 +200,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Type
               </label>
               <input
@@ -208,7 +208,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 {...register("type")}
                 type="text"
                 placeholder="Type"
-                className="placeholder-white border py-4 px-4 border-gray-600 rounded  text-white w-full"
+                className="placeholder-gray-800 border py-4 px-4 border-gray-600 rounded  text-gray-800 w-full"
               />
               {errors.type && (
                 <p className="text-red-500 text-sm text-start">
@@ -217,7 +217,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Color
               </label>
               <input
@@ -225,7 +225,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 {...register("color")}
                 type="text"
                 placeholder="Color"
-                className="placeholder-white border py-4 px-4 border-gray-600 rounded  text-white w-full"
+                className="placeholder-gray-800 border py-4 px-4 border-gray-600 rounded  text-gray-800 w-full"
               />
               {errors.color && (
                 <p className="text-red-500 text-sm text-start">
@@ -234,7 +234,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 plate_number
               </label>
               <input
@@ -242,7 +242,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 {...register("plate_number")}
                 type="text"
                 placeholder="plate_number"
-                className="placeholder-white border py-4 px-4 border-gray-600 rounded  text-white w-full"
+                className="placeholder-gray-800 border py-4 px-4 border-gray-600 rounded  text-gray-800 w-full"
               />
               {errors.plate_number && (
                 <p className="text-red-500 text-sm text-start">
@@ -251,7 +251,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               )}
             </div>
             <div className="  mb-3 hidden">
-              <label htmlFor="" className="text-start text-white">
+              <label htmlFor="" className="text-start text-gray-800">
                 Status
               </label>
               <input
@@ -259,7 +259,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
                 defaultValue={"Available"}
                 {...register("status")}
                 type="text"
-                className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full "
+                className="border py-4 px-4 border-gray-600 rounded placeholder-gray-800 text-gray-800 w-full "
                 placeholder="Available"
               />
             </div>
@@ -270,10 +270,10 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
             type={isView ? "button" : "submit"}
             onClick={isView ? onClose : undefined}
             disabled={loading}
-            className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors w-full ${
+            className={`flex-1 text-gray-200 py-4 cursor-pointer rounded transition-colors w-full bg-gray-800 ${
               isView
                 ? "bg-gray-600 hover:bg-gray-500"
-                : "button-color hover:opacity-90"
+                : " hover:opacity-90"
             }`}
           >
             {loading ? (

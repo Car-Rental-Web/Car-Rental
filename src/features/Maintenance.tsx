@@ -262,7 +262,7 @@ const Maintenance = () => {
             </div>
           )}
           <icons.trash
-            className="cursor-pointer text-red-400 text-xl"
+            className="cursor-pointer  text-red-500 text-xl"
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
@@ -277,37 +277,37 @@ const Maintenance = () => {
   ];
 
   return (
-    <div className="px-6 pt-12 w-full relative min-h-screen  overflow-y-auto gap-2 bg-body pb-2">
-      <p className=" text-5xl font-semibold text-gray-300 tracking-wide mb-5 ">
+    <div className="px-6 pt-12 w-full relative min-h-screen  overflow-y-auto gap-2  pb-2">
+      <p className=" text-5xl font-semibold text-gray-800 tracking-wide mb-5 ">
         Maintenance
       </p>
       <div className="flex flex-col gap-10 w-full">
         <div className="flex flex-col xl:flex-row gap-2">
           <Card
-            className="bg-border w-full"
-            title={<span className="text-md xl:text-2xl">Expense</span>}
+            className="border border-red-600 bg-red-500 w-full"
+            title={<span className="text-md xl:text-2xl text-white">Expense</span>}
             url={""}
-            amount={<span className="text-6xl">{totalExpense}</span>}
+            amount={<span className="text-6xl text-white  ">{totalExpense}</span>}
             description="Total Maintenance Expense"
-            topIcon={<icons.money className="text-white text-2xl" />}
+            topIcon={<icons.money className=" text-2xl text-white " />}
           />
           <Card
-            className="bg-border w-full"
+            className="bg-gray-800 w-full"
             title={
               <span className="text-md xl:text-2xl">Maintenance Count</span>
             }
             url={""}
-            amount={<span className="text-6xl">{maintained}</span>}
+            amount={<span className="text-6xl text-white">{maintained}</span>}
             description="Total Maintenance Count"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />
           <Card
-            className="bg-border w-full"
+            className="bg-blue-900 w-full"
             title={
               <span className="text-md xl:text-2xl">Ongoing Maintenance</span>
             }
             url={""}
-            amount={<span className="text-6xl">{ongoing}</span>}
+            amount={<span className="text-6xl text-white">{ongoing}</span>}
             description="Total Ongoing Maintenance"
             topIcon={<icons.onMaintenance className="text-white text-2xl" />}
           />
@@ -321,7 +321,7 @@ const Maintenance = () => {
               onOpen();
             }}
             children="Add Maintenance"
-            className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer "
+            className="py-2 px-4 rounded bg-gray-800 hover:bg-gray-400 text-white hover:text-gray-800 cursor-pointer "
           />
           {open && (
             <MaintenanceForm
@@ -334,24 +334,24 @@ const Maintenance = () => {
         </div>
       </div>
 
-      <div className="border border-[#055783] px-6 py-2 rounded ">
+      <div className="px-6 py-2 rounded ">
         <div className="pb-4 pt-4 flex justify-end items-center gap-3">
           <div
             onClick={() => setSelectToggle((t) => !t)}
             className=" flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
           >
             <select
-              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base text-white "
+              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base text-gray-800 "
               value={selectValue}
               onChange={(e) => setSelectValue(e.target.value)}
             >
-              <option value="" className="txt-color">
+              <option value="" className="text-gray-800">
                 All
               </option>
-              <option value="On Maintenance" className="txt-color">
+              <option value="On Maintenance" className="text-gray-800">
                 On Maintenance
               </option>
-              <option value="Maintained" className="txt-color">
+              <option value="Maintained" className="text-gray-800">
                 Maintained
               </option>
             </select>
@@ -364,7 +364,7 @@ const Maintenance = () => {
               value={searchTerm}
               onClear={() => setSearchTerm("")}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-border text-white  rounded py-2 w-60 "
+              className="border border-gray-200 text-gray-800  rounded py-2 w-60 "
               placeholder="search"
             />
           </div>

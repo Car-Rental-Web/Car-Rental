@@ -89,21 +89,21 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
   const selectedRenter = watch("full_name");
   const getGoogleDirectLink = (url: string) => {
-  if (!url) return "";
-  
-  // Handle both /d/ and /open?id= formats used by Google Forms/Drive
-  let fileId = "";
-  if (url.includes("/d/")) {
-    fileId = url.split("/d/")[1]?.split("/")[0];
-  } else if (url.includes("id=")) {
-    fileId = url.split("id=")[1]?.split("&")[0];
-  }
+    if (!url) return "";
 
-  if (!fileId) return url;
+    // Handle both /d/ and /open?id= formats used by Google Forms/Drive
+    let fileId = "";
+    if (url.includes("/d/")) {
+      fileId = url.split("/d/")[1]?.split("/")[0];
+    } else if (url.includes("id=")) {
+      fileId = url.split("id=")[1]?.split("&")[0];
+    }
 
-  // This is the specific endpoint that bypasses the Google UI for <img> tags
-  return `https://lh3.googleusercontent.com/d/${fileId}=s1000?authuser=0`;
-};
+    if (!fileId) return url;
+
+    // This is the specific endpoint that bypasses the Google UI for <img> tags
+    return `https://lh3.googleusercontent.com/d/${fileId}=s1000?authuser=0`;
+  };
   useEffect(() => {
     const selectedName = renter.find((r) => r.full_name === selectedRenter);
 
@@ -164,7 +164,8 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       const cleanPayload = {
         ...renterData,
         uploaded_proof: finalProofArray, // Ensure this is a simple string[]
-        e_signature: typeof watchedSignature === "string" ? watchedSignature : null,
+        e_signature:
+          typeof watchedSignature === "string" ? watchedSignature : null,
       };
 
       // Remove the e_signature if it's still a FileList object to prevent JSON errors
@@ -206,7 +207,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className=" h-full overflow-y-auto border border-white bg-body w-full md:w-1/2 p-6 rounded"
+          className=" h-full overflow-y-auto border border-white bg-white w-full md:w-1/2 p-6 rounded"
         >
           <ModalButton type="button" onclick={onClose} />
           <div className="flex w-full gap-3">
@@ -214,12 +215,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               onClick={() => setSelectToggle(!selectToggle)}
               className="flex flex-col gap-1 w-full relative"
             >
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Fullname
               </label>
               <select
                 {...register("full_name")}
-                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
               >
                 <option value="" className="">
                   Select A Renter
@@ -239,78 +240,78 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               </div>
             </div>
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Address
               </label>
               <input
                 readOnly
                 {...register("address")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="address"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 License_No.
               </label>
               <input
                 readOnly
                 {...register("license_number")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="license #"
               />
             </div>
           </div>
           <div className="flex w-full gap-3">
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 PhilHealth No.
               </label>
               <input
                 readOnly
                 {...register("philhealth_number")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="philhealth #"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Tin No.
               </label>
               <input
                 readOnly
                 {...register("tin_number")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="tin #"
               />
             </div>
           </div>
           <div className="flex w-full gap-3">
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 SSS No.
               </label>
               <input
                 readOnly
                 {...register("sss_number")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="sss #"
               />
             </div>
             <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-white">
+              <label htmlFor="" className="text-gray-800">
                 Pagibig No.
               </label>
               <input
                 readOnly
                 {...register("pagibig_number")}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
                 placeholder="pagibig #"
               />
             </div>
@@ -320,14 +321,14 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               onClick={() => setSelectToggle(!selectToggle)}
               className="flex flex-col w-full relative "
             >
-              <label htmlFor="" className="text-start text-white">
+              <label htmlFor="" className="text-start text-gray-800">
                 Plate #
               </label>
               <input
                 readOnly
                 type="text"
                 {...register("car_plate_number", { required: true })}
-                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
               />
               {errors?.car_plate_number?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -336,7 +337,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Model
               </label>
               <input
@@ -344,7 +345,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("car_model", { required: true })}
                 type="text"
                 placeholder="Ex:Civic LX"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
               />
               {errors?.car_plate_number?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -353,7 +354,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Type
               </label>
               <input
@@ -361,7 +362,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 {...register("car_type", { required: true })}
                 type="text"
                 placeholder="Ex: Sedan"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
               />
               {errors?.car_plate_number?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -372,13 +373,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           </div>
           <div className="flex w-full justify-around gap-3">
             <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Start Date
               </label>
               <input
                 {...register("start_date", { required: true })}
                 type="date"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
               />
               {errors?.start_date?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -387,13 +388,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 End Date
               </label>
               <input
                 {...register("end_date", { required: true })}
                 type="date"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
               />
               {errors?.end_date?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -402,14 +403,14 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Duration(days)
               </label>
               <input
                 {...register("duration", { required: true })}
                 type="text"
                 placeholder="Duration"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
               />
               {errors?.end_date?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -420,13 +421,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           </div>
           <div className="flex w-full justify-around gap-3">
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Pick Up time
               </label>
               <input
                 {...register("start_time", { required: true })}
                 type="time"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
               />
               {errors?.start_time?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -435,13 +436,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Drop off Time
               </label>
               <input
                 {...register("end_time", { required: true })}
                 type="time"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
               />
               {errors?.end_time?.message && (
                 <p className="text-red-400 text-start text-sm ">
@@ -455,12 +456,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               onClick={() => setSelectToggle((t) => !t)}
               className="flex relative flex-col w-full gap-1"
             >
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Type of Rent
               </label>
               <select
                 {...register("type_of_rent", { required: true })}
-                className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none peer outline-none"
+                className="border py-4 px-4 border-gray-400 rounded text-gray-800  appearance-none peer outline-none"
               >
                 <option value="" className="txt-color">
                   Type of Rent
@@ -487,13 +488,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
             <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-white">
+              <label htmlFor="" className=" text-start text-gray-800">
                 Location
               </label>
               <input
                 {...register("location", { required: true })}
                 type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
+                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 w-full "
                 placeholder="Ex: Baguio"
               />
               {errors?.location?.message && (
@@ -506,35 +507,38 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           <button
             type="button"
             onClick={() => setShowSignature(!showSignature)}
-            className="text-white p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2"
+            className="text-gray-800 p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2"
           >
             {showSignature ? "Hide Signature" : "Show Signature"}
           </button>
-          <div className="flex flex-col gap-2 border p-4 rounded bg-gray-800/50">
-            <label className="text-sm text-gray-400">Renter Signature</label>
+          <div className="flex flex-col gap-2  p-4 rounded bg-gray-800/50">
+            <label className="text-sm text-gray-800">Renter Signature</label>
 
             {/* Show current signature from Supabase if it exists */}
             {showSignature && watchedSignature && (
               <div>
                 <div className="mb-2">
-                  <p className="text-[10px] text-blue-400 uppercase mb-1">
+                  <p className="text-[10px] text-white uppercase mb-1">
                     Current Signature:
                   </p>
                   <img
-                  crossOrigin="anonymous"
-                  referrerPolicy="no-referrer" 
+                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
                     key={watchedSignature}
                     src={watchedSignature}
                     alt="Signature Preview"
                     className="h-20 object-contain bg-white rounded p-2"
                     onError={(e) => {
-    console.error("Image failed to load:", watchedSignature);
-    // If it fails, try the fallback 'uc' link format
-    const fallback = watchedSignature.replace("thumbnail?id=", "uc?export=view&id=");
-    if (e.currentTarget.src !== fallback) {
-       e.currentTarget.src = fallback;
-    }
-  }}
+                      console.error("Image failed to load:", watchedSignature);
+                      // If it fails, try the fallback 'uc' link format
+                      const fallback = watchedSignature.replace(
+                        "thumbnail?id=",
+                        "uc?export=view&id=",
+                      );
+                      if (e.currentTarget.src !== fallback) {
+                        e.currentTarget.src = fallback;
+                      }
+                    }}
                   />
                 </div>
                 {/* File input for UPDATING or NEW signatures */}
@@ -550,13 +554,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               </div>
             )}
           </div>
-          <div className="w-full text-start text-white flex flex-col gap-1">
+          <div className="w-full text-start text-gray-800 flex flex-col gap-1">
             <label className="">
               Uploaded pictures of proof the whole transactions{" "}
               <span>(others)</span>
             </label>
 
-            <div className="flex flex-col gap-4 border border-gray-400 py-4 px-4 rounded bg-black/10 min-h-[100px]">
+            <div className="flex flex-col gap-4 border border-gray-400 py-4 px-4 rounded bg-gray-400 min-h-[100px]">
               {/* SECTION A: DATABASE IMAGES (Existing) */}
               {existingPaths.uploaded_proof.length > 0 && (
                 <div className="flex flex-wrap gap-3">
@@ -582,7 +586,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                             ),
                           }));
                         }}
-                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                       >
                         <icons.trash size={12} />
                       </button>
@@ -595,7 +599,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               {watch("uploaded_proof") instanceof FileList &&
                 watch("uploaded_proof")!.length > 0 && (
                   <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-700">
-                    <p className="w-full text-[10px] text-blue-400 uppercase font-bold">
+                    <p className="w-full text-[10px] text-white uppercase font-bold">
                       New files to upload:
                     </p>
                     {Array.from(watch("uploaded_proof") as FileList).map(
@@ -612,9 +616,9 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                           <button
                             type="button"
                             onClick={() => resetField("uploaded_proof")}
-                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                           >
-                            <icons.trash size={10} />
+                            <icons.trash size={10} className="text-white" />
                           </button>
                         </div>
                       ),
@@ -627,12 +631,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 <div className="relative flex items-center mt-2">
                   <input
                     {...register("uploaded_proof")}
-                    className="text-gray-400 text-xs w-full cursor-pointer"
+                    className="text-gray-800 text-xs w-full cursor-pointer"
                     type="file"
                     accept="image/*"
                     multiple
                   />
-                  <icons.upload className="absolute right-0 text-gray-400 pointer-events-none" />
+                  <icons.upload className="absolute right-0 text-gray-800 pointer-events-none" />
                 </div>
               ) : (
                 existingPaths.uploaded_proof.length === 0 && (
@@ -648,12 +652,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             onClick={() => setSelectToggle((t) => !t)}
             className=" flex relative flex-col w-full gap-1"
           >
-            <label htmlFor="" className="text-white text-start">
+            <label htmlFor="" className="text-gray-800 text-start">
               Status
             </label>
             <select
               {...register("status", { required: true })}
-              className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+              className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
             >
               <option value="" className="txt-color">
                 Select Status
@@ -680,7 +684,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           {mode === "view" && (
             <div className="flex gap-3 items-center justify-center mt-2">
               <button
-                className="text-white border border-gray-400 rounded  cursor-pointer"
+                className="text-gray-800 border border-gray-400 rounded  cursor-pointer"
                 type="button"
                 onClick={() => setShowAgreement(!showAgreement)}
               >
@@ -696,7 +700,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   />
                 }
                 fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
-                className="w-full text-center bg-green-700 py-3 rounded text-white font-bold hover:bg-green-600 transition-colors"
+                className="w-full text-center bg-green-700 py-3 rounded text-gray-800 font-bold hover:bg-green-600 transition-colors"
               >
                 {({ loading }) =>
                   loading ? "Generating PDF..." : "Download as PDF"
@@ -715,7 +719,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           )}
           <button
             type="submit"
-            className="text-white w-full text-center py-4 px-4 bg-blue-500 mt-2 rounded cursor-pointer"
+            className="text-gray-200 w-full text-center py-4 px-4 bg-gray-800 hover:bg-gray-600 mt-2 rounded cursor-pointer"
           >
             Add Rent
           </button>

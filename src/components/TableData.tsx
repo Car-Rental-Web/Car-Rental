@@ -1,21 +1,12 @@
 import DataTable, { type TableStyles } from "react-data-table-component";
 import type { CustomTableProps } from "../types/types";
-import { createTheme } from "react-data-table-component";
 
 
-createTheme("darkBody", {
-  background: {
-    default: "#011a31",  
-  },
-  text: {
-    primary: "white"
-  }
-});
 const customStyles:TableStyles = {
   headCells: {
     style: {
       justifyContent:"center",
-      backgroundColor: "#032d44",
+      backgroundColor: "gray",
       textAlign: "center",
       fontSize: "16px",
       fontWeight: "bolder",
@@ -25,11 +16,10 @@ const customStyles:TableStyles = {
   },
     rows: {
     style: {
-      backgroundColor: "#011a31",
-      color: "white",        
+      color: "black",        
       fontSize: "14px",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      border: "1px solid #032d44",
+      border: "1px solid gray",
     },
   },
   cells: {
@@ -38,16 +28,15 @@ const customStyles:TableStyles = {
       fontSize: "14px",
       textAlign: "center",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
-      backgroundColor: "#011a31"
     },
   },
  pagination: {
     style: {
-      color: "#fff"
+      color: "gray"
     },
     pageButtonsStyle: {
-      color: "#ffffff",            
-      fill: "#ffffff",             
+      color: "gray",            
+      fill: "gray",             
       backgroundColor: "transparent",
       borderRadius: "50%",
       "&:hover:not(:disabled)": {
@@ -64,7 +53,6 @@ const customStyles:TableStyles = {
 const TableData = <T,>({ ...props }: CustomTableProps<T>) => {
   return (
     <DataTable
-    theme="darkBody"
       progressPending={props.progressPending}
       customStyles={customStyles}
       data={props.data}

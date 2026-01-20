@@ -144,21 +144,21 @@ const RenterProfile = () => {
   }, [selectedName]);
 
   return (
-    <div className="bg-body  min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
+    <div className="  min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
       <div className="flex gap-3">
         <Card
-          className="bg-border w-full"
-          title={<span className="text-md xl:text-2xl">Renters</span>}
+          className="border border-gray-800 bg-gray-600 w-full"
+          title={<span className="text-md xl:text-2xl text-white">Renters</span>}
           url={""}
-          amount={<span className="text-6xl">{allRenter}</span>}
+          amount={<span className="text-6xl text-white">{allRenter}</span>}
           description="Total Renters"
           topIcon={<icons.person className="text-white text-2xl" />}
         />
-        <Card
-          className="bg-border w-full"
-          title={<span className="text-md xl:text-2xl">Renters</span>}
+       <Card
+          className="border border-gray-800 bg-gray-600 w-full"
+          title={<span className="text-md xl:text-2xl text-white">Renters</span>}
           url={""}
-          amount={<span className="text-6xl">{allRenter}</span>}
+          amount={<span className="text-6xl text-white">{allRenter}</span>}
           description="Total Renters"
           topIcon={<icons.person className="text-white text-2xl" />}
         />
@@ -174,7 +174,7 @@ const RenterProfile = () => {
       </div>
       <div className="overflow-x-auto rounded-lg border border-gray-700  w-full">
         <table className="min-w-[1600px] w-full table-fixed text-left    text-gray-200">
-          <thead className="bg-[#032d44] text-gray-300 uppercase text-xs ">
+          <thead className="bg-gray-800 text-gray-300 uppercase text-xs ">
             <tr className="text-center">
               <th className="w-full p-4 text-xs border-b text-center border-gray-700">
                 ID
@@ -226,53 +226,53 @@ const RenterProfile = () => {
                 <tr
                   onClick={() => setSelectedName(row.full_name)}
                   key={row.id}
-                  className="hover:bg-white/5 transition-colors cursor-pointer "
+                  className="hover:bg-gray-200 transition-colors cursor-pointer "
                 >
-                  <td className=" text-center text-xs font-medium p-4 ">
+                  <td className=" text-center text-xs font-medium p-4 text-gray-800 ">
                     {indexOfFirstItem + index + 1}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.created_at.split("T")[0]}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.full_name || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.times_rented}
                   </td>
-                  <td className=" text-center text-xs font-">
+                  <td className=" text-center text-xs p-4 text-gray-800">
                     {row.address || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.license_number || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.philhealth_number || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.tin_number || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4 ">
+                  <td className=" text-center text-xs p-4 text-gray-800 ">
                     {row.sss_number || "N/A"}
                   </td>
-                  <td className=" text-center text-xs p-4  ">
+                  <td className=" text-center text-xs p-4 text-gray-800  ">
                     {row.pagibig_number || "N/A"}
                   </td>
-                  <td className=" text-center p-4 ">
+                  <td className=" text-center p-4 text-gray-800 ">
                     <img
                       className="w-12 mx-auto"
                       alt="valid_id"
                       src={row.valid_id}
                     ></img>
                   </td>
-                  <td className=" text-center p-4  ">
+                  <td className=" text-center p-4 text-gray-800  ">
                     <img
                       className="w-12 mx-auto"
                       alt="e_signature"
                       src={row.e_signature}
                     ></img>
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="p-4 text-gray-800 text-center">
                     <button
                       onClick={(e) => {
                         setSelectedRenter(row);
@@ -287,10 +287,10 @@ const RenterProfile = () => {
                   <td className=" text-center ">
                     <div className="flex gap-2 mx-auto  justify-center">
                       <button className="flex items-center gap-3">
-                        <icons.openEye />
+                        <icons.openEye className="text-green-500" />
                       </button>
                       <button className="flex items-center gap-3">
-                        <icons.edit />
+                        <icons.edit className="text-blue-500" />
                       </button>
                       <button
                         className="flex items-center gap-3 text-red-500 "
@@ -342,7 +342,7 @@ const RenterProfile = () => {
                 setItemsPerPage(Number(e.target.value));
                 setCurrentPage(1); // Reset
               }}
-              className="bg-[#032d44] border border-gray-600 rounded px-2 py-1 text-white outline-none focus:border-blue-500"
+              className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800 outline-none focus:border-blue-500"
             >
               <option value={5}>5</option>
               <option value={10}>10</option>
@@ -379,7 +379,7 @@ const RenterProfile = () => {
         </div>
       </div>
       {selectedName && (
-        <div className="mt-8 p-6 border border-gray-700 rounded-lg bg-[#032d44] text-white animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="mt-8 p-6 border border-gray-700 rounded-lg bg-white text-white animate-in fade-in slide-in-from-bottom-4 duration-300">
           {/* Header with Close Button */}
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -401,14 +401,14 @@ const RenterProfile = () => {
           {/* Table Container */}
           <div className="overflow-x-auto rounded border border-gray-700">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-black/30 text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
+              <thead className="bg-gray-400 text-gray-400 uppercase text-[10px] tracking-wider font-semibold">
                 <tr>
-                  <th className="p-4 border-b border-gray-700">Car Rented</th>
-                  <th className="p-4 border-b border-gray-700">Start Date</th>
-                  <th className="p-4 border-b border-gray-700">End Date</th>
-                  <th className="p-4 border-b border-gray-700">Type</th>
-                  <th className="p-4 border-b border-gray-700">Location</th>
-                  <th className="p-4 border-b border-gray-700 text-center">
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Car Rented</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Start Date</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">End Date</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Type</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Location</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800 text-center">
                     Status
                   </th>
                 </tr>
@@ -421,28 +421,32 @@ const RenterProfile = () => {
                       className="hover:bg-white/5 transition-colors"
                     >
                       <td className="p-4 text-sm font-bold text-blue-400">
+                        <span className="bg-gray-800 p-0.5 rounded text-gray-200"> 
+
                         {history.car_plate_number}
+
+                        </span>
                       </td>
-                      <td className="p-4 text-sm text-gray-300">
+                      <td className="p-4 text-sm text-gray-800">
                         {history.start_date}
                       </td>
-                      <td className="p-4 text-sm text-gray-300">
+                      <td className="p-4 text-sm text-gray-800">
                         {history.end_date}
                       </td>
                       <td className="p-4 text-sm">
-                        <span className="bg-gray-700/50 px-2 py-1 rounded text-[10px]">
+                        <span className=" px-2 py-1 rounded text-[10px] text-gray-800">
                           {history.type_of_rent}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-gray-400 italic">
+                      <td className="p-4 text-sm text-gray-800 italic">
                         {history.location || "N/A"}
                       </td>
                       <td className="p-4 text-center">
                         <span
                           className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
                             history.status === "Completed"
-                              ? "text-red-400 bg-red-400/10"
-                              : "text-green-400 bg-green-400/10"
+                              ? "text-red-500 "
+                              : "text-green-500 "
                           }`}
                         >
                           {history.status}
@@ -478,7 +482,7 @@ const RenterProfile = () => {
                       historyPagination.setItemsPerPage(Number(e.target.value));
                       setCurrentPage(1); // Reset
                     }}
-                    className="bg-[#032d44] border border-gray-600 rounded px-2 py-1 text-white outline-none focus:border-blue-500"
+                    className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800  outline-none focus:border-blue-500"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -499,7 +503,7 @@ const RenterProfile = () => {
                   Previous
                 </button>
 
-                <p className="text-sm">
+                <p className="text-sm text-gray-800">
                   Page {currentPage} of {totalPages || 1}
                 </p>
 

@@ -61,7 +61,7 @@ const Header = () => {
   return (
     <header
       id="app-header "
-      className="p-6 gap-3  flex justify-between items-center w-full bg-header border-b  border-[#023a58]  "
+      className="p-6 gap-3  flex justify-between items-center w-full  border-b  border-gray-200  "
     >
       <p className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold pl-1 lg:pl-6 xl:pl-12 text-center jakarta txt-color">
         Mboss
@@ -71,16 +71,16 @@ const Header = () => {
           onClear={() => setQuery("")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className=" border border-[#253745] pr-2 py-2  rounded  text-gray-400"
+          className=" border border-gray-400 pr-2 py-2  rounded  text-gray-400"
           placeholder="search"
         />
         {showResult && filterPage.length > 0 && (
-          <div className="absolute top-full left-0 w-full mt-2 bg-[#0a192f] border border-gray-600 rounded shadow-xl z-50">
+          <div className="absolute top-full left-0 w-full mt-2 bg-gray-800 border border-gray-00 rounded shadow-xl z-50">
             {filterPage.map((result) => (
               <div
                 key={result.path}
                 onClick={() => handleSelect(result.path)}
-                className="p-3 hover:bg-[#112240] cursor-pointer text-gray-200 border-b border-gray-800 last:border-0"
+                className="p-3 hover:bg-gray-200 cursor-pointer text-gray-200 hover:text-gray-800 border-b border-gray-800 last:border-0"
               >
                 {result.name}
               </div>
@@ -94,7 +94,7 @@ const Header = () => {
           e.stopPropagation();
           setOpen((prev) => !prev);
         }}
-        className="text-white relative cursor-pointer  items-center gap-3 hidden lg:flex"
+        className="text-gray-800 relative cursor-pointer  items-center gap-3 hidden lg:flex"
       >
         {userEmail}
         {open ? <icons.up /> : <icons.down />}
@@ -104,7 +104,7 @@ const Header = () => {
           e.stopPropagation();
           setOpen((p) => !p);
         }}
-        className="md:hidden flex items-center cursor-pointer text-white text-2xl"
+        className="md:hidden flex items-center cursor-pointer text-gray-800 text-2xl"
       >
         {open ? <icons.up /> : <icons.down />}
       </div>
@@ -112,7 +112,7 @@ const Header = () => {
         <div className="absolute right-0  md:-right-15 lg:-right-15 xl:right-6 top-16 md:top-18 lg:top-16 z-1000 border border-gray-600 bg-sub rounded">
           <button
             onClick={handleLogout}
-            className=" py-2 px-4  text-white rounded cursor-pointer lg:text-md xl:text-base flex items-center gap-3"
+            className=" py-2 px-4  text-gray-200 rounded cursor-pointer lg:text-md xl:text-base flex items-center gap-3"
           >
             <icons.logOut /> Logout
           </button>

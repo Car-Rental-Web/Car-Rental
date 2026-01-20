@@ -12,6 +12,7 @@ import VehicleHistoryForm from "../modals/VehicleHistoryForm";
 import { toast } from "react-toastify";
 import { DeleteModal } from "../modals";
 import { VehicleRenterForm } from "../components";
+import { usePagination } from "../utils/Pagination";
 
 const VehicleHistory = () => {
   const [showForm, setShowForm] = useState(false);
@@ -30,7 +31,16 @@ const VehicleHistory = () => {
     "create"
   );
   const { open, onOpen, onClose } = useModalStore();
-
+const {
+    currentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    setCurrentPage,
+    currentItems,
+    totalPages,
+    indexOfFirstItem,
+    indexOfLastItem,
+  } = usePagination(historyData, 5);
   const handleDelete = async (id: number) => {
     const { data, error } = await supabase
       .from("vehicle")
@@ -78,17 +88,20 @@ const VehicleHistory = () => {
   };
 
   return (
-    <div className="bg-body min-h-screen overflow-y-auto p-6">
-      <CustomButtons
+    <div className=" min-h-screen overflow-y-auto p-6">
+      <div className="flex justify-end w-full pr-7 mb-3">
+<CustomButtons
         handleclick={() => {
           setFormMode("create");
           setSelectVehicleId(null);
           onOpen();
         }}
         children="Add Vehicle"
-        className="py-2 px-4 rounded bg-[#4E8EA2] hover:bg-[#1d596b] text-white cursor-pointer"
+        className="py-2 px-4 rounded bg-gray-800 hover:bg-gray-400 text-white hover:text-gray-800  cursor-pointer"
         icons={<icons.add className="text-white text-xl" />}
       />
+      </div>
+      
       <VehicleHistoryForm
         mode={formMode}
         open={open}
@@ -102,7 +115,7 @@ const VehicleHistory = () => {
           vehicleCard.map((vehicle) => (
             <div
               key={vehicle.id}
-              className="flex flex-col border border-gray-700 hover:border-gray-200 rounded relative w-xl"
+              className="flex flex-col border border-gray-400 hover:border-gray-800 rounded relative w-xl"
             >
               <div className="w-full">
                 <div className="flex justify-between w-full pr-3 pl-1 pt-1">
@@ -172,12 +185,12 @@ const VehicleHistory = () => {
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <p className="text-gray-300">{vehicle.brand}</p>
-                    <p className="text-gray-300">{vehicle.model}</p>
-                    <p className="text-gray-300 text-xs">
+                    <p className="text-gray-800">{vehicle.brand}</p>
+                    <p className="text-gray-800">{vehicle.model}</p>
+                    <p className="text-gray-800 text-xs">
                       {vehicle.type} • {vehicle.color}
                     </p>
-                    <p className="text-gray-300 text-sm p-0.5 inline-block text-center bg-gray-700/50 rounded">
+                    <p className="text-white text-sm p-0.5 inline-block text-center bg-gray-800 rounded">
                       {vehicle.plate_number}
                     </p>
                     <div className="flex items-center w-full gap-1">
@@ -193,7 +206,7 @@ const VehicleHistory = () => {
                           isClicked === vehicle.id
                             ? " border-green-400"
                             : "  border-gray-600  "
-                        } hover:border-gray-400 flex items-center  text-xs  text-white rounded p-2 cursor-pointer`}
+                        } hover:border-gray-400 flex items-center  text-xs  text-gray-800 rounded p-2 cursor-pointer`}
                       >
                         History <icons.rightArrow className="text-sm" />
                       </button>
@@ -215,7 +228,7 @@ const VehicleHistory = () => {
         )}
       </div>
       {selectedHistoryVehicle && (
-        <div className="mt-12 p-6 bg-[#032d44]/40 rounded-xl border border-gray-700 shadow-2xl">
+        <div className="mt-12 p-6 bg-white rounded-xl shadow-2xl  border border-gray-400">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-white text-2xl font-bold">Rental History</h2>
@@ -243,15 +256,15 @@ const VehicleHistory = () => {
 
           <div className="overflow-auto rounded-lg border border-gray-700 ">
             <table className="w-full text-left text-gray-200">
-              <thead className="bg-[#032d44] text-gray-300 uppercase text-xs">
+              <thead className="bg-gray-400 text-gray-300 uppercase text-xs">
                 <tr>
-                  <th className="p-4 border-b border-gray-700">Id</th>
-                  <th className="p-4 border-b border-gray-700">Created</th>
-                  <th className="p-4 border-b border-gray-700">Renter Name</th>
-                  <th className="p-4 border-b border-gray-700">License #</th>
-                  <th className="p-4 border-b border-gray-700">Start Date</th>
-                  <th className="p-4 border-b border-gray-700">End Date</th>
-                  <th className="p-4 border-b border-gray-700 text-center">
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Id</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Created</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Renter Name</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">License #</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">Start Date</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800">End Date</th>
+                  <th className="p-4 border-b border-gray-700 text-gray-800 text-center">
                     Status
                   </th>
                 </tr>
@@ -263,21 +276,21 @@ const VehicleHistory = () => {
                       key={row.id}
                       className="hover:bg-white/5 transition-colors"
                     >
-                      <td className="p-4 font-medium">{index + 1}</td>
-                      <td className="p-4 font-medium">
+                      <td className="p-4 font-medium text-gray-800 text-sm">{index + 1}</td>
+                      <td className="p-4 font-medium text-gray-800 text-sm">
                         {row.created_at.split("T")[0]}
                       </td>
-                      <td className="p-4 font-medium">{row.full_name}</td>
-                      <td className="p-4 ">{row.license_number}</td>
-                      <td className="p-4">
+                      <td className="p-4 font-medium text-gray-800 text-sm">{row.full_name}</td>
+                      <td className="p-4  text-gray-800 text-sm">{row.license_number}</td>
+                      <td className="p-4 text-gray-800 text-sm">
                         {new Date(row.start_date).toLocaleDateString()}
                       </td>
-                      <td className="p-4">
+                      <td className="p-4 text-gray-800 text-sm">
                         {new Date(row.end_date).toLocaleDateString()}
                       </td>
-                      <td className="p-4 text-center">
+                      <td className="p-4 text-center text-gray-200  ">
                         <span
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                          className={`px-3 py-1 rounded-full font-bold uppercase text-[2px] md:text-xs ${
                             row.status === "Completed"
                               ? "bg-red-500"
                               : row.status === "On Service"
@@ -305,6 +318,57 @@ const VehicleHistory = () => {
               </tbody>
             </table>
           </div>
+          <div className=" flex w-full justify-between items-center mt-4 text-white px-2 pb-6 gap-3">
+        <div className="flex items-center sm:justify-start gap-3 w-full">
+          <span className="text-sm text-gray-400">
+            Showing {historyData.length === 0 ? 0 : indexOfFirstItem + 1} to {""}
+            {Math.min(indexOfLastItem, historyData.length)} of {""}
+            {historyData.length}
+          </span>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <label>Rows per page:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1); // Reset
+              }}
+              className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800 outline-none focus:border-blue-500"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex gap-5 justify-end ">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
+              currentPage ? "p-2" : ""
+            }`}
+          >
+            Previous
+          </button>
+
+          <p className="text-sm text-gray-800">
+            Page {currentPage} of {totalPages || 1}
+          </p>
+
+          <button
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
+              currentPage ? "p-2 px-4" : ""
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
         </div>
       )}
       {showForm && (

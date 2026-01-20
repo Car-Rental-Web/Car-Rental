@@ -27,7 +27,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         value={value}
         onChange={onChange}
         type="search"
-        className="outline-none pl-4 pr-8 w-full"
+        className="outline-none pl-4 pr-8 w-full placeholder-gray-600"
         placeholder={placeholder}
       />
       {showClear ? (

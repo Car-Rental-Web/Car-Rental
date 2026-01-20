@@ -226,12 +226,12 @@ const RenterForm: React.FC<RenterFormProps> = ({
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className=" h-full overflow-y-auto border border-white bg-body w-full md:w-1/2 p-6 rounded"
+        className=" h-full overflow-y-auto border border-white bg-white w-full md:w-1/2 p-6 rounded"
       >
         <ModalButton type="button" onclick={onClose} />
         <div className="flex w-full gap-3">
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               Fullname
             </label>
             <input
@@ -239,77 +239,77 @@ const RenterForm: React.FC<RenterFormProps> = ({
               {...register("full_name")}
               type="text"
               placeholder="fullname"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               Address
             </label>
             <input
               readOnly
               {...register("address")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               License_No.
             </label>
             <input
               readOnly
               {...register("license_number")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
         </div>
         <div className="flex w-full gap-3">
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               PhilHealth No.
             </label>
             <input
               readOnly
               {...register("philhealth_number")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               Tin No.
             </label>
             <input
               readOnly
               {...register("tin_number")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
         </div>
         <div className="flex w-full gap-3">
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               SSS No.
             </label>
             <input
               readOnly
               {...register("sss_number")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
           <div className="flex flex-col gap-1 w-full">
-            <label htmlFor="" className="text-white">
+            <label htmlFor="" className="text-gray-800">
               Pagibig No.
             </label>
             <input
               readOnly
               {...register("pagibig_number")}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white  w-full"
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
             />
           </div>
         </div>
@@ -318,13 +318,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
             onClick={() => setSelectToggle(!selectToggle)}
             className="flex flex-col w-full relative "
           >
-            <label htmlFor="" className="text-start text-white">
+            <label htmlFor="" className="text-start text-gray-800">
               Plate #
             </label>
             <select
               disabled={isReadOnly}
               {...register("car_plate_number", { required: true })}
-              className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+              className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
             >
               <option value="" className="txt-color">
                 Select Vehicle
@@ -354,7 +354,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col w-full">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Model
             </label>
             <input
@@ -362,7 +362,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
               {...register("car_model", { required: true })}
               type="text"
               placeholder="Ex:Civic LX"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
             />
             {errors?.car_plate_number?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -371,7 +371,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col w-full">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Type
             </label>
             <input
@@ -379,7 +379,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
               {...register("car_type", { required: true })}
               type="text"
               placeholder="Ex: Sedan"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
             />
             {errors?.car_plate_number?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -390,14 +390,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
         </div>
         <div className=" xl:flex w-full justify-around gap-3">
           <div className="flex flex-col flex-1 w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Start Date
             </label>
             <input
               disabled={isReadOnly}
               {...register("start_date", { required: true })}
               type="date"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
             />
             {errors?.start_date?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -406,14 +406,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col flex-1 w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               End Date
             </label>
             <input
               disabled={isReadOnly}
               {...register("end_date", { required: true })}
               type="date"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
             />
             {errors?.end_date?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -422,7 +422,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col flex-1 w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Duration(days)
             </label>
             <input
@@ -430,7 +430,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
               {...register("duration", { required: true })}
               type="text"
               placeholder="Duration"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 w-full "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
             />
             {errors?.end_date?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -441,14 +441,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
         </div>
         <div className="flex w-full justify-around gap-3">
           <div className="flex flex-col w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Pick Up time
             </label>
             <input
               disabled={isReadOnly}
               {...register("start_time", { required: true })}
               type="time"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
             />
             {errors?.start_time?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -457,14 +457,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Drop off Time
             </label>
             <input
               disabled={isReadOnly}
               {...register("end_time", { required: true })}
               type="time"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-gray-400 "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
             />
             {errors?.end_time?.message && (
               <p className="text-red-400 text-start text-sm ">
@@ -478,13 +478,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
             onClick={() => setSelectToggle((t) => !t)}
             className="flex relative flex-col w-full gap-1"
           >
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Type of Rent
             </label>
             <select
               disabled={isReadOnly}
               {...register("type_of_rent", { required: true })}
-              className="border py-4 px-4 border-gray-400 rounded text-white  appearance-none peer outline-none"
+              className="border py-4 px-4 border-gray-400 rounded text-gray-800  appearance-none peer outline-none"
             >
               <option value="" className="txt-color">
                 Type of Rent
@@ -511,14 +511,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
           <div className="flex flex-col w-full gap-1">
-            <label htmlFor="" className=" text-start text-white">
+            <label htmlFor="" className=" text-start text-gray-800">
               Location
             </label>
             <input
               disabled={isReadOnly}
               {...register("location", { required: true })}
               type="text"
-              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-400 text-white w-full "
+              className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 w-full "
               placeholder="Ex: Baguio"
             />
             {errors?.location?.message && (
@@ -528,17 +528,17 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
         </div>
-        <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-white p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2">
+        <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-gray-800 p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2">
          {showSignature ? "Hide Signature" : "Show Signature"}
         </button>
         <div className="flex flex-col gap-2 border p-4 rounded bg-gray-800/50">
-          <label className="text-sm text-gray-400">Renter Signature</label>
+          <label className="text-sm text-gray-800">Renter Signature</label>
 
           {/* Show current signature from Supabase if it exists */}
           {showSignature && selectedData?.e_signature && (
             <div>
               <div className="mb-2">
-                <p className="text-[10px] text-blue-400 uppercase mb-1">
+                <p className="text-[10px] text-gray-800 uppercase mb-1">
                   Current Signature:
                 </p>
                 <img
@@ -558,7 +558,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             </div>
           )}
         </div>
-        <div className="w-full text-start text-white flex flex-col gap-1">
+        <div className="w-full text-start text-gray-800 flex flex-col gap-1">
           <label className="">
             Uploaded pictures of proof the whole transactions{" "}
             <span>(others)</span>
@@ -590,7 +590,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                           ),
                         }));
                       }}
-                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                     >
                       <icons.trash size={12} />
                     </button>
@@ -624,7 +624,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                         disabled={isReadOnly}
                           type="button"
                           onClick={() => resetField("uploaded_proof")}
-                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         >
                           <icons.trash size={10} />
                         </button>
@@ -661,13 +661,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
           onClick={() => setSelectToggle((t) => !t)}
           className=" flex relative flex-col w-full gap-1"
         >
-          <label htmlFor="" className="text-white text-start">
+          <label htmlFor="" className="text-gray-800 text-start">
             Status
           </label>
           <select
             disabled={isReadOnly}
             {...register("status", { required: true })}
-            className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-400  text-white"
+            className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
           >
             <option value="" className="txt-color">
               Select Status
@@ -694,7 +694,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
         {mode === "view" && (
           <div className="flex gap-3 items-center justify-center mt-2">
             <button
-              className="text-white border border-gray-400 rounded  cursor-pointer"
+              className="text-gray-800 border border-gray-400 rounded  cursor-pointer"
               type="button"
               onClick={() => setShowAgreement(!showAgreement)}
             >
@@ -710,7 +710,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                 />
               }
               fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
-              className="w-full text-center bg-green-700 py-3 rounded text-white font-bold hover:bg-green-600 transition-colors"
+              className="w-full text-center bg-green-700 py-3 rounded text-gray-800 font-bold hover:bg-green-600 transition-colors"
             >
               {({ loading }) =>
                 loading ? "Generating PDF..." : "Download as PDF"
@@ -734,7 +734,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             <button
               type="button"
               onClick={onClose} // Make sure this calls your close/cancel function
-              className="w-full bg-gray-600 py-5 mt-2 rounded text-white cursor-pointer hover:bg-gray-700"
+              className="w-full bg-gray-600 py-5 mt-2 rounded text-gray-800 cursor-pointer hover:bg-gray-700"
             >
               Cancel
             </button>
@@ -743,7 +743,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             <button
               type="button"
               onClick={onClose} // Make sure this calls your close/cancel function
-              className="w-full bg-gray-600 py-5 mt-2 rounded text-white cursor-pointer hover:bg-gray-700"
+              className="w-full bg-gray-600 py-5 mt-2 rounded text-gray-800 cursor-pointer hover:bg-gray-700"
             >
               Cancel
             </button>
@@ -751,7 +751,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
           <button
             type="submit" // "Update" and "Add" need to trigger the form submit
-            className="w-full bg-blue-600 py-5 mt-2 rounded text-white cursor-pointer hover:bg-blue-700"
+            className="w-full bg-gray-800 py-5 mt-2 rounded text-white  cursor-pointer hover:bg-gray-600"
           >
             {mode === "view"
               ? "Close"
