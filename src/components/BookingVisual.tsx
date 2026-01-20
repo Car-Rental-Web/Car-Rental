@@ -12,7 +12,6 @@ const BookingVisual = () => {
   >([]);
   const [toggle, setToggle] = useState(false);
 
-  useEffect(() => {
     const fetchBookings = async () => {
       const startDate = `${selectedYear}-01-01`;
       const endDate = `${selectedYear}-12-31`;
@@ -55,8 +54,10 @@ const BookingVisual = () => {
       setChartData(formatted);
     };
     fetchBookings();
-  }, [selectedYear]);
 
+    useEffect(() => {
+      fetchBookings()
+    },[fetchBookings])
   return (
     <div className=" flex flex-col w-full">
       <div>

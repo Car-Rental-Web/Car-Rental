@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { DataRenterHistoryProps } from "../types/types";
 import { supabase } from "../utils/supabase";
-import { Card, SearchBar } from "../components";
+import { SearchBar } from "../components";
 import icons from "../constants/icon";
 import type { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
 import { useDebouncedValue } from "../utils/useDebounce";
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { DeleteModal } from "../modals";
 import RenterForm from "../components/RenterForm";
 import { usePagination } from "../utils/Pagination";
+import Card from "../components/Card";
 
 const RenterProfile = () => {
   const [renterHistory, setRenterHistory] = useState<any[]>([]);

@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from "react";
 import icons from "../constants/icon";
 import { supabase } from "../utils/supabase";
 import React from "react";
-import { Card } from "../components";
+import Card from "../components/Card";
 
 const BookingVisual = React.lazy(() => import("../components/BookingVisual"));
 const RenterVisual = React.lazy(() => import("../components/RenterVisual"));
@@ -83,14 +83,14 @@ const Dashboard = () => {
             description={<span className="text-3xl">Total Bookings</span>}
           />
           <div className="border border-gray-400 w-full  rounded">
-            <Suspense>
+            <Suspense fallback={<div className="h-40 animate-pulse bg-gray-800 rounded" />}>
               <BookingVisual />
             </Suspense>
           </div>
         </div>
         <div className="flex flex-col md:flex-row  gap-3  w-full">
           <div className="border border-gray-400 w-full  rounded">
-            <Suspense>
+            <Suspense fallback={<div className="h-40 animate-pulse bg-gray-800 rounded" />}>
               <RenterVisual />
             </Suspense>
           </div>
