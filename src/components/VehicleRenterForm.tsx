@@ -9,18 +9,27 @@ import type { DataVehicleTypes } from "../types/types";
 import icons from "../constants/icon";
 import getPublicUrl from "../utils/getPublicUrl";
 import { ModalButton } from "./CustomButtons";
+import { RenterAgreementPDF } from "./RenterAgreementPDF";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import RenterAgreement from "./RenterAgreement";
 
 interface RenterFormProps {
   open: boolean;
   onClose: () => void;
+  mode?: "create" | "view" | "edit";
   selectedData: DataVehicleTypes | null;
+  onSuccess?: () => void;
 }
 
 const VehicleRenterForm: React.FC<RenterFormProps> = ({
   open,
   onClose,
+  mode,
   selectedData,
+  onSuccess,
 }) => {
+  const [showSignature, setShowSignature] = useState(false);
+  const [showAgreement, setShowAgreement] = useState(false);
   const [selectToggle, setSelectToggle] = useState(false);
   const [renter, setRenter] = useState<
     {
@@ -32,6 +41,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       tin_number: string;
       sss_number: string;
       pagibig_number: string;
+      e_signature: any;
     }[]
   >([]);
   const [existingPaths, setExistingPaths] = useState({
@@ -51,6 +61,10 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     resolver: zodResolver(RenterFormDataSchema),
     mode: "onSubmit",
   });
+
+  const isReadOnly = mode === "view";
+  const watchedName = watch("full_name");
+  const watchedSignature = watch("e_signature");
   useEffect(() => {
     if (open && selectedData) {
       setValue("car_plate_number", selectedData.plate_number);
@@ -74,67 +88,113 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   }, []);
 
   const selectedRenter = watch("full_name");
+  const getGoogleDirectLink = (url: string) => {
+  if (!url) return "";
+  
+  // Handle both /d/ and /open?id= formats used by Google Forms/Drive
+  let fileId = "";
+  if (url.includes("/d/")) {
+    fileId = url.split("/d/")[1]?.split("/")[0];
+  } else if (url.includes("id=")) {
+    fileId = url.split("id=")[1]?.split("&")[0];
+  }
 
+  if (!fileId) return url;
+
+  // This is the specific endpoint that bypasses the Google UI for <img> tags
+  return `https://lh3.googleusercontent.com/d/${fileId}=s1000?authuser=0`;
+};
   useEffect(() => {
-    if (!selectedRenter) {
-      setValue("address", "");
-      setValue("license_number", "");
-      setValue("tin_number", "");
-      setValue("philhealth_number", "");
-      setValue("sss_number", "");
-      setValue("pagibig_number", "");
-    }
     const selectedName = renter.find((r) => r.full_name === selectedRenter);
-    if (selectedRenter) {
-      setValue("address", selectedName?.address || "");
-      setValue("license_number", selectedName?.license_number || "");
-      setValue("tin_number", selectedName?.tin_number || "");
-      setValue("philhealth_number", selectedName?.philhealth_number || "");
-      setValue("sss_number", selectedName?.sss_number || "");
-      setValue("pagibig_number", selectedName?.pagibig_number || "");
+
+    if (selectedRenter && selectedName) {
+      setValue("address", selectedName.address || "");
+      setValue("license_number", selectedName.license_number || "");
+      setValue("tin_number", selectedName.tin_number || "");
+      setValue("philhealth_number", selectedName.philhealth_number || "");
+      setValue("sss_number", selectedName.sss_number || "");
+      setValue("pagibig_number", selectedName.pagibig_number || "");
+
+      const directLink = getGoogleDirectLink(selectedName.e_signature);
+      setValue("e_signature", directLink);
+      setShowSignature(true);
+    } else {
+      // Reset fields if no renter is selected
+      [
+        "address",
+        "license_number",
+        "tin_number",
+        "philhealth_number",
+        "sss_number",
+        "pagibig_number",
+        "e_signature",
+      ].forEach((field) => setValue(field as any, ""));
     }
   }, [setValue, selectedRenter, renter]);
 
   const onSubmit = async (renterData: RenterFormValues) => {
-    console.log("Submit triggered!"); // If you don't see this, validation failed
+    if (mode === "view") {
+      onClose();
+      return;
+    }
 
     try {
-      let proofPaths: string[] = [];
+      let finalProofArray: string[] = [...existingPaths.uploaded_proof];
 
-      // 1. Upload files only if they exist and are a FileList
+      // 1. Process New Uploads
+      // We check if it's a FileList and has items
       if (
         renterData.uploaded_proof instanceof FileList &&
         renterData.uploaded_proof.length > 0
       ) {
         const validFiles = Array.from(renterData.uploaded_proof);
-
         const uploadPromises = validFiles.map((file) =>
-          uploadFile(file as File, "uploaded_proof")
+          uploadFile(file as File, "uploaded_proof"),
         );
 
         const uploadResults = await Promise.all(uploadPromises);
-        proofPaths = uploadResults.map((res) => res.path);
+        const newPaths = uploadResults.map((res) => res.path);
+
+        // Merge existing paths with the new ones
+        finalProofArray = [...finalProofArray, ...newPaths];
       }
 
-      // 2. Build the final object for Supabase
-      const finalPayload = {
+      // 2. Prepare the clean payload
+      // We explicitly overwrite the fields that are problematic (Files/FileLists)
+      const cleanPayload = {
         ...renterData,
-        // Replace the FileList with the array of paths for the DB
-        uploaded_proof: [...existingPaths.uploaded_proof, ...proofPaths],
+        uploaded_proof: finalProofArray, // Ensure this is a simple string[]
+        e_signature: typeof watchedSignature === "string" ? watchedSignature : null,
       };
 
-      const { error } = await supabase
-        .from("renter_booking")
-        .insert([finalPayload]);
+      // Remove the e_signature if it's still a FileList object to prevent JSON errors
+      // if (cleanPayload.e_signature instanceof FileList) {
+      //   // You should handle the signature upload similar to the proof upload
+      //   // For now, let's ensure it's not a FileList object
+      //   delete (cleanPayload as any).e_signature;
+      // }
 
-      if (error) throw error;
+      if (mode === "edit") {
+        const { error } = await supabase
+          .from("renter_booking")
+          .update(cleanPayload)
+          .eq("id", selectedData?.id);
+        if (error) throw error;
+        toast.success("Updated successfully");
+        if (onSuccess) onSuccess();
+      } else {
+        const { error } = await supabase
+          .from("renter_booking")
+          .insert([cleanPayload]);
 
-      toast.success("Added Rent Successfully");
-      reset();
+        if (error) throw error;
+        toast.success("Added Rent Successfully");
+        reset();
+      }
       onClose();
     } catch (err: any) {
       console.error("Error submitting form:", err);
-      alert(err.message);
+      toast.error(err.message);
     }
   };
   return (
@@ -175,11 +235,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 ))}
               </select>
               <div className="absolute bottom-5 right-4 txt-color flex items-center">
-                {selectToggle ? (
-                  <icons.up  />
-                ) : (
-                  <icons.down  />
-                )}
+                {selectToggle ? <icons.up /> : <icons.down />}
               </div>
             </div>
             <div className="flex flex-col gap-1 w-full">
@@ -314,7 +370,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
           </div>
-          <div className="flex-col md:flex w-full justify-around gap-3">
+          <div className="flex w-full justify-around gap-3">
             <div className="flex flex-col flex-1 w-full gap-1">
               <label htmlFor="" className=" text-start text-white">
                 Start Date
@@ -447,6 +503,53 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowSignature(!showSignature)}
+            className="text-white p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2"
+          >
+            {showSignature ? "Hide Signature" : "Show Signature"}
+          </button>
+          <div className="flex flex-col gap-2 border p-4 rounded bg-gray-800/50">
+            <label className="text-sm text-gray-400">Renter Signature</label>
+
+            {/* Show current signature from Supabase if it exists */}
+            {showSignature && watchedSignature && (
+              <div>
+                <div className="mb-2">
+                  <p className="text-[10px] text-blue-400 uppercase mb-1">
+                    Current Signature:
+                  </p>
+                  <img
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer" 
+                    key={watchedSignature}
+                    src={watchedSignature}
+                    alt="Signature Preview"
+                    className="h-20 object-contain bg-white rounded p-2"
+                    onError={(e) => {
+    console.error("Image failed to load:", watchedSignature);
+    // If it fails, try the fallback 'uc' link format
+    const fallback = watchedSignature.replace("thumbnail?id=", "uc?export=view&id=");
+    if (e.currentTarget.src !== fallback) {
+       e.currentTarget.src = fallback;
+    }
+  }}
+                  />
+                </div>
+                {/* File input for UPDATING or NEW signatures */}
+                {!isReadOnly && (
+                  <input
+                    {...register("e_signature")}
+                    type="file"
+                    className="text-xs text-gray-300 mt-2"
+                    accept="image/*"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                )}
+              </div>
+            )}
+          </div>
           <div className="w-full text-start text-white flex flex-col gap-1">
             <label className="">
               Uploaded pictures of proof the whole transactions{" "}
@@ -475,7 +578,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                           setExistingPaths((prev) => ({
                             ...prev,
                             uploaded_proof: prev.uploaded_proof.filter(
-                              (_, i) => i !== index
+                              (_, i) => i !== index,
                             ),
                           }));
                         }}
@@ -514,30 +617,30 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                             <icons.trash size={10} />
                           </button>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 )}
 
               {/* SECTION C: THE INPUT & EMPTY STATE */}
-              {/* {!isView ? ( */}
-              <div className="relative flex items-center mt-2">
-                <input
-                  {...register("uploaded_proof")}
-                  className="text-gray-400 text-xs w-full cursor-pointer"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                />
-                <icons.upload className="absolute right-0 text-gray-400 pointer-events-none" />
-              </div>
-              {/* // ) : (
-                        //   existingPaths.uploaded_proof.length === 0 && (
-                        //     <p className="text-gray-500 text-xs italic text-center">
-                        //       No proofs uploaded.
-                        //     </p>
-                        //   )
-                        // )} */}
+              {mode !== "view" ? (
+                <div className="relative flex items-center mt-2">
+                  <input
+                    {...register("uploaded_proof")}
+                    className="text-gray-400 text-xs w-full cursor-pointer"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                  />
+                  <icons.upload className="absolute right-0 text-gray-400 pointer-events-none" />
+                </div>
+              ) : (
+                existingPaths.uploaded_proof.length === 0 && (
+                  <p className="text-gray-500 text-xs italic text-center">
+                    No proofs uploaded.
+                  </p>
+                )
+              )}
             </div>
           </div>
 
@@ -574,6 +677,42 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               </p>
             )}
           </div>
+          {mode === "view" && (
+            <div className="flex gap-3 items-center justify-center mt-2">
+              <button
+                className="text-white border border-gray-400 rounded  cursor-pointer"
+                type="button"
+                onClick={() => setShowAgreement(!showAgreement)}
+              >
+                {showAgreement ? "Hide Agreement" : "View Signed Agreement"}
+              </button>
+              <PDFDownloadLink
+                document={
+                  <RenterAgreementPDF
+                    data={{
+                      full_name: watchedName,
+                      e_signature: watchedSignature,
+                    }}
+                  />
+                }
+                fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
+                className="w-full text-center bg-green-700 py-3 rounded text-white font-bold hover:bg-green-600 transition-colors"
+              >
+                {({ loading }) =>
+                  loading ? "Generating PDF..." : "Download as PDF"
+                }
+              </PDFDownloadLink>
+            </div>
+          )}
+
+          {showAgreement && (
+            <div className="p-4 bg-white rounded-lg mb-4">
+              <RenterAgreement
+                full_name={watchedName}
+                signatureUrl={watchedSignature}
+              />
+            </div>
+          )}
           <button
             type="submit"
             className="text-white w-full text-center py-4 px-4 bg-blue-500 mt-2 rounded cursor-pointer"

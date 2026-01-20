@@ -124,70 +124,98 @@ const RenterForm: React.FC<RenterFormProps> = ({
   }, [selectedData, reset]);
 
   const onSubmit = async (renterData: RenterFormValues) => {
-    if (mode === "view") {
-      onClose();
-      return;
+  if (mode === "view") {
+    onClose();
+    return;
+  }
+
+  try {
+    let finalProofArray: string[] = [...existingPaths.uploaded_proof];
+
+    // 1. Storage Cleanup (Physical Deletion)
+    // Find paths that were in the original data but are no longer in our local state
+    if (mode === "edit" && selectedData?.uploaded_proof) {
+      const originalPaths: string[] = selectedData.uploaded_proof;
+      const pathsToDelete = originalPaths.filter(
+        (path) => !existingPaths.uploaded_proof.includes(path)
+      );
+
+      if (pathsToDelete.length > 0) {
+        const { error: deleteError } = await supabase.storage
+          .from("uploaded_proof")
+          .remove(pathsToDelete);
+
+        if (deleteError) {
+          console.error("Error deleting files from storage:", deleteError);
+        }
+      }
     }
 
-    try {
-      let finalProofArray: string[] = [...existingPaths.uploaded_proof];
+    // 2. Process New Uploads
+    if (
+      renterData.uploaded_proof instanceof FileList &&
+      renterData.uploaded_proof.length > 0
+    ) {
+      const validFiles = Array.from(renterData.uploaded_proof);
+      const uploadPromises = validFiles.map((file) =>
+        uploadFile(file as File, "uploaded_proof")
+      );
 
-      // 1. Process New Uploads
-      // We check if it's a FileList and has items
-      if (
-        renterData.uploaded_proof instanceof FileList &&
-        renterData.uploaded_proof.length > 0
-      ) {
-        const validFiles = Array.from(renterData.uploaded_proof);
-        const uploadPromises = validFiles.map((file) =>
-          uploadFile(file as File, "uploaded_proof"),
-        );
+      const uploadResults = await Promise.all(uploadPromises);
+      const newPaths = uploadResults.map((res) => res.path);
 
-        const uploadResults = await Promise.all(uploadPromises);
-        const newPaths = uploadResults.map((res) => res.path);
+      // Merge existing (remaining) paths with the new ones
+      finalProofArray = [...finalProofArray, ...newPaths];
+    }
 
-        // Merge existing paths with the new ones
-        finalProofArray = [...finalProofArray, ...newPaths];
-      }
+    // 3. Prepare the clean payload
+    const cleanPayload: any = {
+      ...renterData,
+      uploaded_proof: finalProofArray,
+    };
 
-      // 2. Prepare the clean payload
-      // We explicitly overwrite the fields that are problematic (Files/FileLists)
-      const cleanPayload = {
-        ...renterData,
-        uploaded_proof: finalProofArray, // Ensure this is a simple string[]
-        e_signature: selectedData?.e_signature || renterData.e_signature, // Handle as string URL
-      };
-
-      // Remove the e_signature if it's still a FileList object to prevent JSON errors
-      if (cleanPayload.e_signature instanceof FileList) {
-        // You should handle the signature upload similar to the proof upload
-        // For now, let's ensure it's not a FileList object
-        delete (cleanPayload as any).e_signature;
-      }
-
-      if (mode === "edit") {
-        const { error } = await supabase
-          .from("renter_booking")
-          .update(cleanPayload)
-          .eq("id", selectedData?.id);
-        if (error) throw error;
-        toast.success("Updated successfully");
-        if (onSuccess) onSuccess();
+    // 4. Handle E-Signature (Keep existing string if no new file)
+    // If the input is a FileList, you'd handle an upload here. 
+    // If it's a string (Google link), we keep it.
+    if (renterData.e_signature instanceof FileList) {
+      if (renterData.e_signature.length > 0) {
+        // Option: Implement uploadFile for signature here if needed
+        // For now, we delete to avoid JSON error if user tried to upload via file input
+        delete cleanPayload.e_signature;
       } else {
-        const { error } = await supabase
-          .from("renter_booking")
-          .insert([cleanPayload]);
-
-        if (error) throw error;
-        toast.success("Added Rent Successfully");
-        reset();
+        // If it's an empty FileList, keep the existing signature URL
+        cleanPayload.e_signature = watchedSignature; 
       }
-      onClose();
-    } catch (err: any) {
-      console.error("Error submitting form:", err);
-      toast.error(err.message);
+    } else {
+      // It's already a string URL from our useEffect logic
+      cleanPayload.e_signature = watchedSignature;
     }
-  };
+
+    // 5. Database Operations
+    if (mode === "edit") {
+      const { error } = await supabase
+        .from("renter_booking")
+        .update(cleanPayload)
+        .eq("id", selectedData?.id);
+        
+      if (error) throw error;
+      toast.success("Updated successfully");
+      if (onSuccess) onSuccess();
+    } else {
+      const { error } = await supabase
+        .from("renter_booking")
+        .insert([cleanPayload]);
+
+      if (error) throw error;
+      toast.success("Added Rent Successfully");
+      reset();
+    }
+    onClose();
+  } catch (err: any) {
+    console.error("Error submitting form:", err);
+    toast.error(err.message);
+  }
+};
 
   return (
     <div
@@ -553,6 +581,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                     {/* is view */}
                     <button
                       type="button"
+                      disabled={isReadOnly}
                       onClick={() => {
                         setExistingPaths((prev) => ({
                           ...prev,
@@ -592,6 +621,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                         />
                         {/* is view */}
                         <button
+                        disabled={isReadOnly}
                           type="button"
                           onClick={() => resetField("uploaded_proof")}
                           className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"

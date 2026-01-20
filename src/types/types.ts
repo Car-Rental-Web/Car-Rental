@@ -246,6 +246,7 @@ export interface DataVehicleTypes {
   plate_number: string;
   status: string;
   action?: React.ReactNode;
+  e_signature:any;
 }
 export interface DataVehicleForm {
   id: number;
@@ -279,5 +280,6 @@ export interface RenterFormValues {
   philhealth_number: string;
   license_number: string;
   uploaded_proof: any;
+  e_signature:any;
 }
 
