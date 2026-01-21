@@ -28,10 +28,11 @@ const VehicleHistory = () => {
   const [selectedHistoryVehicle, setSelectedHistoryVehicle] =
     useState<DataVehicleTypes | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
-    "create"
+    "create",
   );
+
   const { open, onOpen, onClose } = useModalStore();
-const {
+  const {
     currentPage,
     itemsPerPage,
     setItemsPerPage,
@@ -41,34 +42,29 @@ const {
     indexOfFirstItem,
     indexOfLastItem,
   } = usePagination(historyData, 5);
+
   const handleDelete = async (id: number) => {
-    const { data, error } = await supabase
-      .from("vehicle")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("vehicle").delete().eq("id", id);
     if (error) {
       toast.error("Failed to Delete");
-      console.log("Error Deleting");
       return;
     }
     toast.success("Successfully Deleted");
-    console.log("Successfully Deleted", data);
     setOpenDelete(false);
+    setopenAction(null);
+    fetchVehicle();
+  };
+
+  const fetchVehicle = async () => {
+    try {
+      const { data } = await supabase.from("vehicle").select("*");
+      setVehicleCard(data || []);
+    } catch (error) {
+      console.log("Failed Fetching Vehicle", error);
+    }
   };
 
   useEffect(() => {
-    const fetchVehicle = async () => {
-      // setLoading(true);
-      try {
-        const { data } = await supabase.from("vehicle").select("*");
-        console.log("Fetched Vehicle", data);
-        setVehicleCard(data || []);
-      } catch (error) {
-        console.log("Failed Fetching Vehicle", error);
-      } finally {
-        // setLoading(false);
-      }
-    };
     fetchVehicle();
   }, [open, openDelete]);
 
@@ -78,8 +74,8 @@ const {
       .select("*")
       .eq("car_plate_number", vehicle.plate_number)
       .order("created_at", { ascending: false });
+
     if (error) return console.log("Error Fetching history");
-    console.log("Fetched History", data);
     setHistoryData(data || []);
     setSelectedHistoryVehicle(vehicle);
     setTimeout(() => {
@@ -88,138 +84,147 @@ const {
   };
 
   return (
-    <div className=" min-h-screen overflow-y-auto p-6">
-      <div className="flex justify-end w-full pr-7 mb-3">
-<CustomButtons
-        handleclick={() => {
-          setFormMode("create");
-          setSelectVehicleId(null);
-          onOpen();
-        }}
-        children="Add Vehicle"
-        className="py-2 px-4 rounded bg-gray-800 hover:bg-gray-400 text-white hover:text-gray-800  cursor-pointer"
-        icons={<icons.add className="text-white text-xl" />}
-      />
+    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Vehicle Fleet</h1>
+          <p className="text-gray-500 text-sm">
+            Manage your vehicles and track rental history.
+          </p>
+        </div>
+        <CustomButtons
+          icons={<icons.add className="text-lg" />}
+          handleclick={() => {
+            setFormMode("create");
+            setSelectVehicleId(null);
+            onOpen();
+          }}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+        >
+          <span>Add New Vehicle</span>
+        </CustomButtons>
       </div>
-      
+
       <VehicleHistoryForm
         mode={formMode}
         open={open}
         onClose={onClose}
         initialData={selectVehicleId ?? undefined}
       />
-      <div className="flex flex-wrap justify-center md:justify-start gap-2 w-full ">
+
+      {/* Vehicle Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {vehicleCard.length === 0 ? (
-          <p className="text-gray-400">No vehicles available</p>
+          <div className="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div className="p-4 bg-gray-50 rounded-full mb-4">
+              <icons.car className="text-4xl text-gray-300" />
+            </div>
+            <p className="text-gray-400 font-medium">
+              No vehicles available in the fleet
+            </p>
+          </div>
         ) : (
           vehicleCard.map((vehicle) => (
             <div
               key={vehicle.id}
-              className="flex flex-col border border-gray-400 hover:border-gray-800 rounded relative w-xl"
+              className={`group bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${
+                isClicked === vehicle.id
+                  ? "ring-2 ring-blue-500 border-transparent"
+                  : ""
+              }`}
             >
-              <div className="w-full">
-                <div className="flex justify-between w-full pr-3 pl-1 pt-1">
-                  <p>
-                    {/* <icons.status className="text-green-500 animate-pulse" /> */}
-                  </p>
-                  <div className="flex gap-2 items-center justify-center">
+              {/* Action Dropdown */}
+              <div className="absolute top-4 right-4 z-10">
+                <button
+                  onClick={() =>
+                    setopenAction(openAction === vehicle.id ? null : vehicle.id)
+                  }
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <icons.action className="text-gray-400 text-xl" />
+                </button>
+
+                {openAction === vehicle.id && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-100 shadow-2xl rounded-xl overflow-hidden z-50">
                     <button
-                      onClick={() =>
-                        setopenAction((prev) =>
-                          prev === vehicle.id ? null : vehicle.id
-                        )
-                      }
-                      className="cursor-pointer"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                      onClick={() => {
+                        setFormMode("view");
+                        setSelectVehicleId(vehicle);
+                        onOpen();
+                      }}
                     >
-                      <icons.action className="text-gray-200 text-xl" />
+                      <icons.openEye className="text-emerald-500" /> View
+                      Details
                     </button>
-                    {openAction === vehicle.id && (
-                      <div className="absolute right-0 top-7 bg-gray-800 border border-gray-500 flex flex-col z-50 rounded">
-                        <button
-                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
-                          onClick={() => {
-                            setFormMode("view");
-                            setSelectVehicleId(vehicle);
-                            onOpen();
-                          }}
-                        >
-                          <icons.openEye className="text-green-500" />
-                          View
-                        </button>
-                        <button
-                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
-                          onClick={() => {
-                            setFormMode("edit");
-                            setSelectVehicleId(vehicle);
-                            onOpen();
-                          }}
-                        >
-                          <icons.edit className="text-blue-500" />
-                          Edit
-                        </button>
-                        <button
-                          className="hover:bg-gray-600 w-full text-start flex items-center gap-2 cursor-pointer border-b border-gray-400 py-2 px-4 text-gray-200"
-                          onClick={() => {
-                            setOpenDelete(true);
-                          }}
-                        >
-                          <icons.trash className="text-red-500" />
-                          Delete
-                        </button>
-                        <DeleteModal
-                          onClose={() => setOpenDelete(false)}
-                          onClick={() => handleDelete(vehicle.id)}
-                          open={openDelete}
-                        />
-                      </div>
-                    )}
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 border-t border-gray-50 transition-colors"
+                      onClick={() => {
+                        setFormMode("edit");
+                        setSelectVehicleId(vehicle);
+                        onOpen();
+                      }}
+                    >
+                      <icons.edit className="text-blue-500" /> Edit Info
+                    </button>
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-50 transition-colors"
+                      onClick={() => setOpenDelete(true)}
+                    >
+                      <icons.trash /> Delete Vehicle
+                    </button>
                   </div>
+                )}
+              </div>
+
+              <div className="flex gap-5">
+                {/* Vehicle Image */}
+                <div className="w-32 h-32 bg-gray-50 rounded-xl overflow-hidden shrink-0">
+                  <img
+                    src={vehicle.car_image}
+                    alt="car"
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
 
-                <div className="flex w-full justify-evenly">
-                  <div className="">
-                    <img
-                      src={vehicle.car_image}
-                      alt="car"
-                      className="object-contain w-[200px] h-[150px] "
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-gray-800">{vehicle.brand}</p>
-                    <p className="text-gray-800">{vehicle.model}</p>
-                    <p className="text-gray-800 text-xs">
+                {/* Vehicle Info */}
+                <div className="flex flex-col justify-between py-1">
+                  <div>
+                    <h3 className="font-bold text-gray-900 leading-tight">
+                      {vehicle.brand} {vehicle.model}
+                    </h3>
+                    <p className="text-gray-500 text-xs mt-1 uppercase tracking-wider">
                       {vehicle.type} • {vehicle.color}
                     </p>
-                    <p className="text-white text-sm p-0.5 inline-block text-center bg-gray-800 rounded">
+                    <span className="inline-block mt-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-mono font-bold rounded">
                       {vehicle.plate_number}
-                    </p>
-                    <div className="flex items-center w-full gap-1">
-                      <button
-                        disabled={isClicked === vehicle.id}
-                        onClick={() => {
-                          fetchHistory(vehicle);
-                          setIsClicked((prev) =>
-                            prev === vehicle.id ? null : vehicle.id
-                          );
-                        }}
-                        className={`gap-4 border ${
-                          isClicked === vehicle.id
-                            ? " border-green-400"
-                            : "  border-gray-600  "
-                        } hover:border-gray-400 flex items-center  text-xs  text-gray-800 rounded p-2 cursor-pointer`}
-                      >
-                        History <icons.rightArrow className="text-sm" />
-                      </button>
-                      {/* open form to book */}
-                      <button
-                        onClick={() => {
-                          setShowForm(true)
-                          setSelectedVehicle(vehicle)}}
-                        className="flex  items-center hover:text-gray-800 text-gray-200 gap-4 border border-gray-600 bg-gray-600 hover:bg-gray-300 text-xs p-2 rounded cursor-pointer"
-                      >
-                        Rent <icons.rightArrow className="text-sm" />
-                      </button>
-                    </div>
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => {
+                        fetchHistory(vehicle);
+                        setIsClicked(vehicle.id);
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        isClicked === vehicle.id
+                          ? "bg-blue-50 text-blue-600 border border-blue-200"
+                          : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      History <icons.rightArrow />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowForm(true);
+                        setSelectedVehicle(vehicle);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 hover:bg-black text-white rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Rent <icons.rightArrow />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -227,150 +232,178 @@ const {
           ))
         )}
       </div>
-      {selectedHistoryVehicle && (
-        <div className="mt-12 p-6 bg-white rounded-xl shadow-2xl  border border-gray-400">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-white text-2xl font-bold">Rental History</h2>
-              <p className="text-gray-400">
-                Showing records for:{" "}
-                <span className="text-[#4E8EA2] font-semibold">
-                  {selectedHistoryVehicle.brand} {selectedHistoryVehicle.model}{" "}
-                  ({selectedHistoryVehicle.plate_number})
-                </span>
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setSelectedHistoryVehicle(null);
-                setIsClicked(null);
-                setTimeout(() => {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                });
-              }}
-              className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors cursor-pointer"
-            >
-              Close Table
-            </button>
-          </div>
 
-          <div className="overflow-auto rounded-lg border border-gray-700 ">
-            <table className="w-full text-left text-gray-200">
-              <thead className="bg-gray-400 text-gray-300 uppercase text-xs">
-                <tr>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">Id</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">Created</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">Renter Name</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">License #</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">Start Date</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800">End Date</th>
-                  <th className="p-4 border-b border-gray-700 text-gray-800 text-center">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {historyData.length > 0 ? (
-                  historyData.map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className="hover:bg-white/5 transition-colors"
-                    >
-                      <td className="p-4 font-medium text-gray-800 text-sm">{index + 1}</td>
-                      <td className="p-4 font-medium text-gray-800 text-sm">
-                        {row.created_at.split("T")[0]}
-                      </td>
-                      <td className="p-4 font-medium text-gray-800 text-sm">{row.full_name}</td>
-                      <td className="p-4  text-gray-800 text-sm">{row.license_number}</td>
-                      <td className="p-4 text-gray-800 text-sm">
-                        {new Date(row.start_date).toLocaleDateString()}
-                      </td>
-                      <td className="p-4 text-gray-800 text-sm">
-                        {new Date(row.end_date).toLocaleDateString()}
-                      </td>
-                      <td className="p-4 text-center text-gray-200  ">
-                        <span
-                          className={`px-3 py-1 rounded-full font-bold uppercase text-[2px] md:text-xs ${
-                            row.status === "Completed"
-                              ? "bg-red-500"
-                              : row.status === "On Service"
-                              ? "bg-green-500"
-                              : row.status === "On Reservation"
-                              ? "bg-blue-500"
-                              : "bg-gray-200"
-                          }`}
-                        >
-                          {row.status}
-                        </span>
+      {/* History Table Section */}
+      {selectedHistoryVehicle && (
+        <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+            <div className="px-8 py-6 bg-white border-b border-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Rental History
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">
+                  Tracking logs for{" "}
+                  <span className="text-blue-600 font-bold">
+                    {selectedHistoryVehicle.brand}{" "}
+                    {selectedHistoryVehicle.model}
+                  </span>
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedHistoryVehicle(null);
+                  setIsClicked(null);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all cursor-pointer"
+              >
+                Close History
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50/50">
+                    <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Date Created
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Renter
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      License
+                    </th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                      Period
+                    </th>
+                    <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {currentItems.length > 0 ? (
+                    currentItems.map((row) => (
+                      <tr
+                        key={row.id}
+                        className="hover:bg-blue-50/30 transition-colors group"
+                      >
+                        <td className="px-8 py-4">
+                          <p className="text-sm font-semibold text-gray-700">
+                            {row.created_at.split("T")[0]}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm font-bold text-gray-900">
+                            {row.full_name}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-gray-500 font-mono">
+                            {row.license_number}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-xs space-y-0.5">
+                            <p className="text-gray-700 font-medium">
+                              S: {new Date(row.start_date).toLocaleDateString()}
+                            </p>
+                            <p className="text-gray-400 italic">
+                              E: {new Date(row.end_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-8 py-4 text-center">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                              row.status === "Completed"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : row.status === "On Service"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : row.status === "On Reservation"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-8 py-16 text-center text-gray-400 italic"
+                      >
+                        No rental history found.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="p-10 text-center text-gray-500 italic"
-                    >
-                      No rental history found for this Vehicle.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <p className="text-xs text-gray-500">
+                  Rows:
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="ml-2 bg-transparent font-bold text-gray-900 outline-none"
+                  >
+                    {[5, 10, 20].map((val) => (
+                      <option key={val} value={val}>
+                        {val}
+                      </option>
+                    ))}
+                  </select>
+                </p>
+                <div className="h-4 w-px bg-gray-300"></div>
+                <p className="text-xs text-gray-500 font-medium">
+                  Showing {indexOfFirstItem + 1}-
+                  {Math.min(indexOfLastItem, historyData.length)} of{" "}
+                  {historyData.length}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="p-2 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-30 hover:bg-gray-50 cursor-pointer"
+                >
+                  <icons.leftArrow className="text-sm" />
+                </button>
+                <span className="text-xs font-bold text-gray-900 px-2">
+                  Page {currentPage} of {totalPages || 1}
+                </span>
+                <button
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="p-2 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-30 hover:bg-gray-50 cursor-pointer"
+                >
+                  <icons.rightArrow className="text-sm" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className=" flex w-full justify-between items-center mt-4 text-white px-2 pb-6 gap-3">
-        <div className="flex items-center sm:justify-start gap-3 w-full">
-          <span className="text-sm text-gray-400">
-            Showing {historyData.length === 0 ? 0 : indexOfFirstItem + 1} to {""}
-            {Math.min(indexOfLastItem, historyData.length)} of {""}
-            {historyData.length}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <label>Rows per page:</label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset
-              }}
-              className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800 outline-none focus:border-blue-500"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex gap-5 justify-end ">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
-              currentPage ? "p-2" : ""
-            }`}
-          >
-            Previous
-          </button>
-
-          <p className="text-sm text-gray-800">
-            Page {currentPage} of {totalPages || 1}
-          </p>
-
-          <button
-            disabled={currentPage >= totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
-              currentPage ? "p-2 px-4" : ""
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      </div>
         </div>
       )}
+
+      {/* Forms & Modals */}
+      <DeleteModal
+        onClose={() => setOpenDelete(false)}
+        onClick={() => selectVehicleId && handleDelete(selectVehicleId.id)}
+        open={openDelete}
+      />
       {showForm && (
         <VehicleRenterForm
           selectedData={selectedVehicle}

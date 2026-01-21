@@ -61,6 +61,19 @@ export type MaintenanceFormData = z.infer<typeof MaintenanceFormSchema>;
 //   const i = Math.floor(Math.log(bytes) / Math.log(k));
 //   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 // };
+export const RenterProfileSchema = z.object({
+  full_name: z.string().min(1),
+  address: z.string().min(1),
+  license_number: z.string().min(1),
+  philhealth_number: z.string().optional(),
+  tin_number: z.string().optional(),
+  sss_number: z.string().optional(),
+  pagibig_number: z.string().optional(),
+  valid_id: z.any().optional(), // For file uploads
+  e_signature: z.any().optional(), // For file uploads
+});
+
+export type RenterValues = z.infer<typeof RenterProfileSchema>;
 
 export const RenterFormSchema = z.object({
   full_name: z.string().min(1),

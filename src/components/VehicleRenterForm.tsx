@@ -45,8 +45,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     }[]
   >([]);
   const [existingPaths, setExistingPaths] = useState({
-    // valid_id: "",
-    // agreement_photo: "",
     uploaded_proof: [] as string[],
   });
   const {
@@ -65,6 +63,8 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const isReadOnly = mode === "view";
   const watchedName = watch("full_name");
   const watchedSignature = watch("e_signature");
+  const watchedProof = watch("uploaded_proof");
+
   useEffect(() => {
     if (open && selectedData) {
       setValue("car_plate_number", selectedData.plate_number);
@@ -76,12 +76,10 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   useEffect(() => {
     const fetchRenter = async () => {
       const { data, error } = await supabase.from("renter").select("*");
-
       if (error) {
         console.log("Failed to Fetched Renters", error);
         return;
       }
-      console.log("Fetched Renters", data);
       setRenter(data);
     };
     fetchRenter();
@@ -90,20 +88,16 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const selectedRenter = watch("full_name");
   const getGoogleDirectLink = (url: string) => {
     if (!url) return "";
-
-    // Handle both /d/ and /open?id= formats used by Google Forms/Drive
     let fileId = "";
     if (url.includes("/d/")) {
       fileId = url.split("/d/")[1]?.split("/")[0];
     } else if (url.includes("id=")) {
       fileId = url.split("id=")[1]?.split("&")[0];
     }
-
     if (!fileId) return url;
-
-    // This is the specific endpoint that bypasses the Google UI for <img> tags
     return `https://lh3.googleusercontent.com/d/${fileId}=s1000?authuser=0`;
   };
+
   useEffect(() => {
     const selectedName = renter.find((r) => r.full_name === selectedRenter);
 
@@ -119,7 +113,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       setValue("e_signature", directLink);
       setShowSignature(true);
     } else {
-      // Reset fields if no renter is selected
       [
         "address",
         "license_number",
@@ -141,39 +134,26 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     try {
       let finalProofArray: string[] = [...existingPaths.uploaded_proof];
 
-      // 1. Process New Uploads
-      // We check if it's a FileList and has items
       if (
         renterData.uploaded_proof instanceof FileList &&
         renterData.uploaded_proof.length > 0
       ) {
         const validFiles = Array.from(renterData.uploaded_proof);
         const uploadPromises = validFiles.map((file) =>
-          uploadFile(file as File, "uploaded_proof"),
+          uploadFile(file as File, "uploaded_proof")
         );
 
         const uploadResults = await Promise.all(uploadPromises);
         const newPaths = uploadResults.map((res) => res.path);
-
-        // Merge existing paths with the new ones
         finalProofArray = [...finalProofArray, ...newPaths];
       }
 
-      // 2. Prepare the clean payload
-      // We explicitly overwrite the fields that are problematic (Files/FileLists)
       const cleanPayload = {
         ...renterData,
-        uploaded_proof: finalProofArray, // Ensure this is a simple string[]
+        uploaded_proof: finalProofArray,
         e_signature:
           typeof watchedSignature === "string" ? watchedSignature : null,
       };
-
-      // Remove the e_signature if it's still a FileList object to prevent JSON errors
-      // if (cleanPayload.e_signature instanceof FileList) {
-      //   // You should handle the signature upload similar to the proof upload
-      //   // For now, let's ensure it's not a FileList object
-      //   delete (cleanPayload as any).e_signature;
-      // }
 
       if (mode === "edit") {
         const { error } = await supabase
@@ -198,532 +178,234 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       toast.error(err.message);
     }
   };
+
+  const inputStyles = "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all read-only:bg-gray-50 text-gray-800";
+  const labelStyles = "block text-sm font-semibold text-gray-700 mb-1";
+
   return (
-    <div>
-      <div
-        className={`fixed py-4 inset-0 bg-[#032d44]/25 z-999 justify-center items-center ${
-          open ? "flex" : "hidden"
-        }`}
-      >
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className=" h-full overflow-y-auto border border-white bg-white w-full md:w-1/2 p-6 rounded"
-        >
+    <div className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-999 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}>
+      <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        
+        {/* Header */}
+        <div className="px-8 py-5 border-b flex justify-between items-center bg-gray-50">
+          <h2 className="text-xl font-bold text-slate-800">Vehicle Rental Booking</h2>
           <ModalButton type="button" onclick={onClose} />
-          <div className="flex w-full gap-3">
-            <div
-              onClick={() => setSelectToggle(!selectToggle)}
-              className="flex flex-col gap-1 w-full relative"
-            >
-              <label htmlFor="" className="text-gray-800">
-                Fullname
-              </label>
-              <select
-                {...register("full_name")}
-                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
-              >
-                <option value="" className="">
-                  Select A Renter
-                </option>
-                {renter.map((row) => (
-                  <option
-                    className="txt-color"
-                    value={row.full_name}
-                    key={row.id}
-                  >
-                    {row.full_name}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute bottom-5 right-4 txt-color flex items-center">
-                {selectToggle ? <icons.up /> : <icons.down />}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                Address
-              </label>
-              <input
-                readOnly
-                {...register("address")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="address"
-              />
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                License_No.
-              </label>
-              <input
-                readOnly
-                {...register("license_number")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="license #"
-              />
-            </div>
-          </div>
-          <div className="flex w-full gap-3">
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                PhilHealth No.
-              </label>
-              <input
-                readOnly
-                {...register("philhealth_number")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="philhealth #"
-              />
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                Tin No.
-              </label>
-              <input
-                readOnly
-                {...register("tin_number")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="tin #"
-              />
-            </div>
-          </div>
-          <div className="flex w-full gap-3">
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                SSS No.
-              </label>
-              <input
-                readOnly
-                {...register("sss_number")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="sss #"
-              />
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              <label htmlFor="" className="text-gray-800">
-                Pagibig No.
-              </label>
-              <input
-                readOnly
-                {...register("pagibig_number")}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800  w-full"
-                placeholder="pagibig #"
-              />
-            </div>
-          </div>
-          <div className="md:flex  justify-around items-center w-full gap-3">
-            <div
-              onClick={() => setSelectToggle(!selectToggle)}
-              className="flex flex-col w-full relative "
-            >
-              <label htmlFor="" className="text-start text-gray-800">
-                Plate #
-              </label>
-              <input
-                readOnly
-                type="text"
-                {...register("car_plate_number", { required: true })}
-                className="appearance-none peer outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
-              />
-              {errors?.car_plate_number?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select A Vehicle{" "}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col w-full">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Model
-              </label>
-              <input
-                readOnly
-                {...register("car_model", { required: true })}
-                type="text"
-                placeholder="Ex:Civic LX"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
-              />
-              {errors?.car_plate_number?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select A Vehicle
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col w-full">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Type
-              </label>
-              <input
-                readOnly
-                {...register("car_type", { required: true })}
-                type="text"
-                placeholder="Ex: Sedan"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 "
-              />
-              {errors?.car_plate_number?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select A Vehicle
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex w-full justify-around gap-3">
-            <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Start Date
-              </label>
-              <input
-                {...register("start_date", { required: true })}
-                type="date"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
-              />
-              {errors?.start_date?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select a Date
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                End Date
-              </label>
-              <input
-                {...register("end_date", { required: true })}
-                type="date"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
-              />
-              {errors?.end_date?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select a Date
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col flex-1 w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Duration(days)
-              </label>
-              <input
-                {...register("duration", { required: true })}
-                type="text"
-                placeholder="Duration"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 w-full "
-              />
-              {errors?.end_date?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Input a duration
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex w-full justify-around gap-3">
-            <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Pick Up time
-              </label>
-              <input
-                {...register("start_time", { required: true })}
-                type="time"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
-              />
-              {errors?.start_time?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select a time
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Drop off Time
-              </label>
-              <input
-                {...register("end_time", { required: true })}
-                type="time"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-400 "
-              />
-              {errors?.end_time?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select a time
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div
-              onClick={() => setSelectToggle((t) => !t)}
-              className="flex relative flex-col w-full gap-1"
-            >
-              <label htmlFor="" className=" text-start text-gray-800">
-                Type of Rent
-              </label>
-              <select
-                {...register("type_of_rent", { required: true })}
-                className="border py-4 px-4 border-gray-400 rounded text-gray-800  appearance-none peer outline-none"
-              >
-                <option value="" className="txt-color">
-                  Type of Rent
-                </option>
-                <option value="Self Drive" className="txt-color">
-                  Self Drive
-                </option>
-                <option value="With Driver" className="txt-color">
-                  With Driver
-                </option>
-              </select>
-              <div className="absolute top-12 right-3 txt-color flex items-center">
-                {" "}
-                {selectToggle ? (
-                  <icons.up className="hidden peer-focus:block" />
-                ) : (
-                  <icons.down className="peer-focus:hidden" />
-                )}
-              </div>
-              {errors?.type_of_rent?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please Select a type
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col w-full gap-1">
-              <label htmlFor="" className=" text-start text-gray-800">
-                Location
-              </label>
-              <input
-                {...register("location", { required: true })}
-                type="text"
-                className="border py-4 px-4 border-gray-400 rounded placeholder-gray-800 text-gray-800 w-full "
-                placeholder="Ex: Baguio"
-              />
-              {errors?.location?.message && (
-                <p className="text-red-400 text-start text-sm ">
-                  Please input a location
-                </p>
-              )}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowSignature(!showSignature)}
-            className="text-gray-800 p-2 border border-gray-200 rounded cursor-pointer mt-2 mb-2"
-          >
-            {showSignature ? "Hide Signature" : "Show Signature"}
-          </button>
-          <div className="flex flex-col gap-2  p-4 rounded bg-gray-800/50">
-            <label className="text-sm text-gray-800">Renter Signature</label>
+        </div>
 
-            {/* Show current signature from Supabase if it exists */}
-            {showSignature && watchedSignature && (
-              <div>
-                <div className="mb-2">
-                  <p className="text-[10px] text-white uppercase mb-1">
-                    Current Signature:
-                  </p>
-                  <img
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
-                    key={watchedSignature}
-                    src={watchedSignature}
-                    alt="Signature Preview"
-                    className="h-20 object-contain bg-white rounded p-2"
-                    onError={(e) => {
-                      console.error("Image failed to load:", watchedSignature);
-                      // If it fails, try the fallback 'uc' link format
-                      const fallback = watchedSignature.replace(
-                        "thumbnail?id=",
-                        "uc?export=view&id=",
-                      );
-                      if (e.currentTarget.src !== fallback) {
-                        e.currentTarget.src = fallback;
-                      }
-                    }}
-                  />
+        <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-8 flex-1 space-y-6">
+          
+          {/* Section: Renter Identity */}
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">1. Renter Selection</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-1">
+                <label className={labelStyles}>Full Name</label>
+                <div className="relative" onClick={() => setSelectToggle(!selectToggle)}>
+                  <select {...register("full_name")} className={`${inputStyles} appearance-none cursor-pointer`}>
+                    <option value="">Select A Renter</option>
+                    {renter.map((row) => (
+                      <option key={row.id} value={row.full_name}>{row.full_name}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                    {selectToggle ? <icons.up /> : <icons.down />}
+                  </div>
                 </div>
-                {/* File input for UPDATING or NEW signatures */}
-                {!isReadOnly && (
-                  <input
-                    {...register("e_signature")}
-                    type="file"
-                    className="text-xs text-gray-300 mt-2"
-                    accept="image/*"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                )}
               </div>
-            )}
+              <div className="md:col-span-2">
+                <label className={labelStyles}>Address</label>
+                <input readOnly {...register("address")} className={inputStyles} placeholder="Address" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {[
+                { label: "License No.", name: "license_number" },
+                { label: "PhilHealth", name: "philhealth_number" },
+                { label: "TIN", name: "tin_number" },
+                { label: "SSS", name: "sss_number" },
+                { label: "Pagibig", name: "pagibig_number" },
+              ].map((field) => (
+                <div key={field.name}>
+                  <label className="text-[11px] font-bold text-gray-500 uppercase">{field.label}</label>
+                  <input readOnly {...register(field.name as any)} className={`${inputStyles} py-2 text-sm bg-gray-50`} />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="w-full text-start text-gray-800 flex flex-col gap-1">
-            <label className="">
-              Uploaded pictures of proof the whole transactions{" "}
-              <span>(others)</span>
-            </label>
 
-            <div className="flex flex-col gap-4 border border-gray-400 py-4 px-4 rounded bg-gray-400 min-h-[100px]">
-              {/* SECTION A: DATABASE IMAGES (Existing) */}
-              {existingPaths.uploaded_proof.length > 0 && (
-                <div className="flex flex-wrap gap-3">
+          {/* Section: Vehicle Details */}
+          <div className="space-y-4 pt-4">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">2. Vehicle Information</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <label className={labelStyles}>Plate #</label>
+                <input readOnly {...register("car_plate_number")} className={`${inputStyles} font-mono font-bold bg-white`} />
+                {errors.car_plate_number && <p className="text-red-500 text-xs mt-1">Selection Required</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>Model</label>
+                <input readOnly {...register("car_model")} className={`${inputStyles} bg-white`} />
+              </div>
+              <div>
+                <label className={labelStyles}>Type</label>
+                <input readOnly {...register("car_type")} className={`${inputStyles} bg-white`} />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Schedule */}
+          <div className="space-y-4 pt-4">
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">3. Rental Schedule</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className={labelStyles}>Start Date</label>
+                <input type="date" {...register("start_date")} className={inputStyles} />
+                {errors.start_date && <p className="text-red-500 text-xs mt-1">Required</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>End Date</label>
+                <input type="date" {...register("end_date")} className={inputStyles} />
+                {errors.end_date && <p className="text-red-500 text-xs mt-1">Required</p>}
+              </div>
+              <div>
+                <label className={labelStyles}>Duration (Days)</label>
+                <input {...register("duration")} className={inputStyles} placeholder="0" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelStyles}>Pick Up Time</label>
+                <input type="time" {...register("start_time")} className={inputStyles} />
+              </div>
+              <div>
+                <label className={labelStyles}>Drop Off Time</label>
+                <input type="time" {...register("end_time")} className={inputStyles} />
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Extras */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+            <div>
+              <label className={labelStyles}>Type of Rent</label>
+              <select {...register("type_of_rent")} className={inputStyles}>
+                <option value="">Select Option</option>
+                <option value="Self Drive">Self Drive</option>
+                <option value="With Driver">With Driver</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelStyles}>Location</label>
+              <input {...register("location")} className={inputStyles} placeholder="Ex: Baguio" />
+            </div>
+          </div>
+
+          {/* Signature & Uploads */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+            <div className="p-4 bg-slate-50 border rounded-xl">
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-bold text-slate-700">Renter Signature</label>
+                <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-xs font-bold text-blue-600">
+                  {showSignature ? "Hide Preview" : "Show Preview"}
+                </button>
+              </div>
+              {showSignature && watchedSignature && (
+                <div className="space-y-3">
+                  <div className="bg-white border rounded p-2 flex justify-center">
+                    <img 
+                      crossOrigin="anonymous" 
+                      referrerPolicy="no-referrer" 
+                      src={watchedSignature} 
+                      alt="Signature" 
+                      className="h-20 object-contain"
+                      onError={(e) => {
+                        const fallback = watchedSignature.replace("thumbnail?id=", "uc?export=view&id=");
+                        if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                      }}
+                    />
+                  </div>
+                  {!isReadOnly && <input type="file" {...register("e_signature")} className="text-xs" accept="image/*" />}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 border rounded-xl">
+              <label className="text-sm font-bold text-slate-700 block mb-3">Transaction Proofs</label>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
                   {existingPaths.uploaded_proof.map((path, index) => (
-                    <div
-                      key={`existing-${index}`}
-                      className="relative group w-24 h-24 border border-gray-600 rounded overflow-hidden"
-                    >
-                      <img
-                        src={getPublicUrl("uploaded_proof", path)}
-                        alt="Existing Proof"
-                        className="w-full h-full object-cover"
-                      />
-                      {/* is view */}
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setExistingPaths((prev) => ({
-                            ...prev,
-                            uploaded_proof: prev.uploaded_proof.filter(
-                              (_, i) => i !== index,
-                            ),
-                          }));
-                        }}
-                        className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      >
-                        <icons.trash size={12} />
+                    <div key={index} className="relative group w-16 h-16 border rounded bg-white overflow-hidden">
+                      <img src={getPublicUrl("uploaded_proof", path)} className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setExistingPaths(prev => ({...prev, uploaded_proof: prev.uploaded_proof.filter((_, i) => i !== index)}))} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
+                        <icons.trash size={10} />
+                      </button>
+                    </div>
+                  ))}
+                  {watchedProof instanceof FileList && Array.from(watchedProof).map((file, index) => (
+                    <div key={index} className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden">
+                      <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => resetField("uploaded_proof")} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
+                        <icons.trash size={10} />
                       </button>
                     </div>
                   ))}
                 </div>
-              )}
-
-              {/* SECTION B: NEW LOCAL FILES (The one you wanted corrected) */}
-              {watch("uploaded_proof") instanceof FileList &&
-                watch("uploaded_proof")!.length > 0 && (
-                  <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-700">
-                    <p className="w-full text-[10px] text-white uppercase font-bold">
-                      New files to upload:
-                    </p>
-                    {Array.from(watch("uploaded_proof") as FileList).map(
-                      (file, index) => (
-                        <div
-                          key={`new-${index}`}
-                          className="relative group w-20 h-20 border border-blue-500 rounded overflow-hidden"
-                        >
-                          <img
-                            src={URL.createObjectURL(file)}
-                            className="w-full h-full object-cover"
-                          />
-                          {/* is view */}
-                          <button
-                            type="button"
-                            onClick={() => resetField("uploaded_proof")}
-                            className="absolute top-1 right-1 bg-red-600 text-gray-800 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                          >
-                            <icons.trash size={10} className="text-white" />
-                          </button>
-                        </div>
-                      ),
-                    )}
+                {!isReadOnly && (
+                  <div className="relative">
+                    <input type="file" {...register("uploaded_proof")} multiple accept="image/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
 
-              {/* SECTION C: THE INPUT & EMPTY STATE */}
-              {mode !== "view" ? (
-                <div className="relative flex items-center mt-2">
-                  <input
-                    {...register("uploaded_proof")}
-                    className="text-gray-800 text-xs w-full cursor-pointer"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                  />
-                  <icons.upload className="absolute right-0 text-gray-800 pointer-events-none" />
+          {/* Status Section */}
+          <div className="pt-4">
+            <label className={labelStyles}>Booking Status</label>
+            <select {...register("status")} className={`${inputStyles} max-w-xs bg-yellow-50 border-yellow-200`}>
+              <option value="">Select Status</option>
+              <option value="On Service">On Service</option>
+              <option value="On Reservation">On Reservation</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+
+          {/* PDF Viewers (Only in view mode) */}
+          {isReadOnly && (
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button type="button" onClick={() => setShowAgreement(!showAgreement)} className="flex-1 px-4 py-3 border rounded-lg font-bold text-slate-700 hover:bg-gray-50">
+                  {showAgreement ? "Hide Agreement" : "View Signed Agreement"}
+                </button>
+                <PDFDownloadLink
+                  document={<RenterAgreementPDF data={{ full_name: watchedName, e_signature: watchedSignature }} />}
+                  fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
+                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold text-center hover:bg-green-700 transition-colors"
+                >
+                  {({ loading }) => loading ? "Generating PDF..." : "Download as PDF"}
+                </PDFDownloadLink>
+              </div>
+              {showAgreement && (
+                <div className="p-6 border rounded-xl bg-white shadow-inner">
+                  <RenterAgreement full_name={watchedName} signatureUrl={watchedSignature} />
                 </div>
-              ) : (
-                existingPaths.uploaded_proof.length === 0 && (
-                  <p className="text-gray-500 text-xs italic text-center">
-                    No proofs uploaded.
-                  </p>
-                )
               )}
             </div>
-          </div>
-
-          <div
-            onClick={() => setSelectToggle((t) => !t)}
-            className=" flex relative flex-col w-full gap-1"
-          >
-            <label htmlFor="" className="text-gray-800 text-start">
-              Status
-            </label>
-            <select
-              {...register("status", { required: true })}
-              className=" appearance-none outline-none border py-4 px-4 border-gray-400 rounded placeholder-gray-800  text-gray-800"
-            >
-              <option value="" className="txt-color">
-                Select Status
-              </option>
-              <option value="On Service" className="txt-color">
-                On Service
-              </option>
-              <option value="On Reservation" className="txt-color">
-                On Reservation
-              </option>
-              <option value="Completed" className="txt-color">
-                Completed
-              </option>
-            </select>
-            <div className="absolute top-12 right-3 txt-color">
-              {selectToggle ? <icons.up /> : <icons.down />}
-            </div>
-            {errors?.status?.message && (
-              <p className="text-red-400 text-start text-sm ">
-                Please Select a Status
-              </p>
-            )}
-          </div>
-          {mode === "view" && (
-            <div className="flex gap-3 items-center justify-center mt-2">
-              <button
-                className="text-gray-800 border border-gray-400 rounded  cursor-pointer"
-                type="button"
-                onClick={() => setShowAgreement(!showAgreement)}
-              >
-                {showAgreement ? "Hide Agreement" : "View Signed Agreement"}
-              </button>
-              <PDFDownloadLink
-                document={
-                  <RenterAgreementPDF
-                    data={{
-                      full_name: watchedName,
-                      e_signature: watchedSignature,
-                    }}
-                  />
-                }
-                fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
-                className="w-full text-center bg-green-700 py-3 rounded text-gray-800 font-bold hover:bg-green-600 transition-colors"
-              >
-                {({ loading }) =>
-                  loading ? "Generating PDF..." : "Download as PDF"
-                }
-              </PDFDownloadLink>
-            </div>
           )}
-
-          {showAgreement && (
-            <div className="p-4 bg-white rounded-lg mb-4">
-              <RenterAgreement
-                full_name={watchedName}
-                signatureUrl={watchedSignature}
-              />
-            </div>
-          )}
-          <button
-            type="submit"
-            className="text-gray-200 w-full text-center py-4 px-4 bg-gray-800 hover:bg-gray-600 mt-2 rounded cursor-pointer"
-          >
-            Add Rent
-          </button>
         </form>
+
+        {/* Footer */}
+        <div className="p-6 border-t bg-gray-50 flex flex-col sm:flex-row gap-3">
+          <button type="button" onClick={onClose} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-bold text-gray-700 hover:bg-white transition-all">
+            Close
+          </button>
+          {!isReadOnly && (
+            <button onClick={handleSubmit(onSubmit)} className="flex-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+              {mode === "edit" ? "Update Rental Details" : "Confirm & Add Rent"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

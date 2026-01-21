@@ -38,6 +38,11 @@ import { BsFillCircleFill } from "react-icons/bs";
 import { RiFolderHistoryLine } from "react-icons/ri";
 import { MdBookmarkAdd } from "react-icons/md";
 import { FaPrint } from "react-icons/fa6";
+import { IoMdArrowDropleft } from "react-icons/io";
+import { FaDownload } from "react-icons/fa6";
+import { IoInformationCircle } from "react-icons/io5";
+import { CiBellOn } from "react-icons/ci";
+import { FaCalendarAlt } from "react-icons/fa";
 
 
 
@@ -82,6 +87,11 @@ const icons = {
     history:RiFolderHistoryLine,
     rent:MdBookmarkAdd,
     print:FaPrint ,
+    leftArrow: IoMdArrowDropleft,
+    download:FaDownload,
+    info:IoInformationCircle,
+    bell:CiBellOn,
+    calendar:FaCalendarAlt,
 }
 
 export default icons

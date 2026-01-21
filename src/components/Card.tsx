@@ -37,7 +37,7 @@ const Card: React.FC<CardProps> = ({ ...CardProps }) => {
         {CardProps.amountIcon}
         {CardProps.amount}
       </p>
-      <p className="text-center text-white">{CardProps.description}</p>
+      <p className="text-center">{CardProps.description}</p>
     </div>
   );
 };

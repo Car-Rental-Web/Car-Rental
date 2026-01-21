@@ -38,72 +38,54 @@ const Renter = () => {
   };
 
   //delete booking
- const handleDelete = async (id: number) => {
-  try {
-    // 1. Fetch the paths from the database before deleting the row
-    const { data: booking, error: fetchError } = await supabase
-      .from("renter_booking")
-      .select("uploaded_proof")
-      .eq("id", id)
-      .maybeSingle();
+  const handleDelete = async (id: number) => {
+    try {
+      const { data: booking, error: fetchError } = await supabase
+        .from("renter_booking")
+        .select("uploaded_proof")
+        .eq("id", id)
+        .maybeSingle();
 
-    if (fetchError || !booking) {
-      toast.error("Booking not found");
-      return;
+      if (fetchError || !booking) {
+        toast.error("Booking not found");
+        return;
+      }
+
+      const storageTasks: Promise<any>[] = [];
+
+      if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
+        const proofPaths = Array.isArray(booking.uploaded_proof)
+          ? booking.uploaded_proof
+          : JSON.parse(booking.uploaded_proof);
+
+        storageTasks.push(
+          supabase.storage
+            .from("uploaded_proof")
+            .remove(proofPaths)
+        );
+      }
+
+      await Promise.all(storageTasks);
+
+      const { error: deleteError } = await supabase
+        .from("renter_booking")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      setRenterData((prev) => prev.filter((row) => row.id !== id));
+      toast.success("Deleted Successfully");
+      setOpenDelete(false);
+      setSelectedData(null);
+
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error("Failed to delete everything");
     }
-
-    // 2. Prepare storage deletion tasks
-    const storageTasks: Promise<any>[] = [];
-
-    // Handle uploaded_proofs (Array of paths)
-    if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
-      const proofPaths = Array.isArray(booking.uploaded_proof) 
-        ? booking.uploaded_proof 
-        : JSON.parse(booking.uploaded_proof);
-
-      storageTasks.push(
-        supabase.storage
-          .from("uploaded_proof") // Make sure this bucket name is correct
-          .remove(proofPaths)
-      );
-    }
-
-    // Optional: Delete e_signature from storage if it's a path and not a base64 string
-    // If your signature is stored in a bucket, uncomment this:
-    /*
-    if (booking.e_signature) {
-       storageTasks.push(
-         supabase.storage.from("signatures").remove([booking.e_signature])
-       );
-    }
-    */
-
-    // 3. Execute Storage deletion
-    await Promise.all(storageTasks);
-
-    // 4. Delete the row from the database
-    const { error: deleteError } = await supabase
-      .from("renter_booking")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      throw deleteError;
-    }
-
-    // 5. Update UI State
-    setRenterData((prev) => prev.filter((row) => row.id !== id));
-    toast.success("Deleted Successfully");
-    setOpenDelete(false);
-    setSelectedData(null);
-
-  } catch (error) {
-    console.error("Failed to delete:", error);
-    toast.error("Failed to delete everything");
-  }
-};
-  
-//handle print
+  };
 
   //fetch renter
   useEffect(() => {
@@ -113,12 +95,10 @@ const Renter = () => {
         console.log("Error fetching renter", error);
         return;
       }
-      console.log("Fetched Renters", data);
       setRenterData(data);
       setFilterRenterData(data);
     };
     fetchRenter();
-    // to fetch data from googleform to supabase to website realtime
     const subscription = supabase
       .channel("schema-db-changes")
       .on(
@@ -133,22 +113,20 @@ const Renter = () => {
           if (eventType === "INSERT") {
             const newData = payload.new as DataRenterHistoryProps;
             setRenterData((prev) => [newData, ...prev]);
-            setFilterRenterData((prev) => [newData, ...prev]); // Sync source of truth
+            setFilterRenterData((prev) => [newData, ...prev]);
           } else if (eventType === "UPDATE") {
             const updatedData = payload.new as DataRenterHistoryProps;
             const updateFn = (prev: DataRenterHistoryProps[]) =>
               prev.map((item) =>
                 item.id === updatedData.id ? updatedData : item,
               );
-
             setRenterData(updateFn);
-            setFilterRenterData(updateFn); // Sync source of truth
+            setFilterRenterData(updateFn);
           } else if (eventType === "DELETE") {
             const deleteFn = (prev: DataRenterHistoryProps[]) =>
               prev.filter((item) => item.id !== payload.old.id);
-
             setRenterData(deleteFn);
-            setFilterRenterData(deleteFn); // Sync source of truth
+            setFilterRenterData(deleteFn);
           }
         },
       )
@@ -168,6 +146,7 @@ const Renter = () => {
       "full_name",
       "address",
       "license_number",
+      "car_plate_number",
       "start_date",
       "end_date",
       "start_time",
@@ -178,218 +157,169 @@ const Renter = () => {
   }, [debounceSearchTerm, filterRenterData]);
 
   return (
-    <div className=" min-h-screen w-full pt-12 px-6 flex flex-col gap-3">
-      <div className="flex justify-end w-full">
-        <SearchBar
-          onClear={() => setSearchTerm("")}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="py-2  border border-gray-400 placeholder-white text-gray-800 rounded"
-          placeholder="Search Renter"
-        />
+    <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
+      
+      {/* Header & Search */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Rental History</h1>
+          <p className="text-sm text-slate-500 font-medium">Monitoring {renterData.length} total bookings</p>
+        </div>
+        <div className="w-full md:w-96">
+          <SearchBar
+            onClear={() => setSearchTerm("")}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full py-2.5 px-4 bg-white border border-slate-200 shadow-sm text-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            placeholder="Search Renter Details..."
+          />
+        </div>
       </div>
-      <div className="overflow-x-auto border border-gray-700 w-full">
-        <table className="min-w-[1600px] w-full table-fixed text-left    text-gray-200">
-          <thead className="bg-gray-800 text-gray-300 uppercase text-xs">
-            <tr>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Fullname
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Address
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                License #
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Car Rented
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Start Date
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                End Date
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Pick Up Time
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Drop off Time
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Duration
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Type of Rent
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Status
-              </th>
-              <th className="w-full p-4 text-xs border-b text-center border-gray-700">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-700 ">
-            {currentItems.length > 0 ? (
-              currentItems.map((row) => (
-                <tr key={row.id} className="hover:bg-white/5 transition-colors">
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.full_name}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.address}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.license_number}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.car_plate_number}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.start_date}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.end_date}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.start_time}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.end_time}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.duration}
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 text-gray-800">
-                    {row.type_of_rent}
-                  </td>
-                  <td>
-                    <p
-                      className={`rounded text-center text-sm  ${
-                        row.status === "Completed"
-                          ? "bg-red-500"
-                          : row.status === "On Service"
-                            ? "bg-green-500"
-                            : row.status === "On Reservation"
-                              ? "bg-blue-500"
-                              : "bg-gray-400"
-                      }`}
-                    >
-                      {row.status}
-                    </p>
-                  </td>
-                  <td className="text-center text-xs font-medium p-4 ">
-                    <div className="flex gap-2 mx-auto  justify-center">
-                      {/* <button
-                        onClick={() => handlePrint(row)}
-                        className="flex items-center gap-3 cursor-pointer"
-                      >
-                        <icons.print className="text-xl cursor-pointer" />
-                      </button> */}
-                      <button
-                        onClick={() => handleAction("view", row)}
-                        className="flex items-center gap-3 cursor-pointer"
-                      >
-                        <icons.openEye className="text-xl cursor-pointer text-green-500" />
-                      </button>
-                      <button
-                        onClick={() => handleAction("edit", row)}
-                        className="flex items-center gap-3"
-                      >
-                        <icons.edit className="text-xl cursor-pointer text-blue-500" />
-                      </button>
-                      <button
-                        className="flex items-center gap-3 text-red-500 "
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenDelete(true);
-                        }}
-                      >
-                        <icons.trash className="text-xl cursor-pointer" />
-                      </button>
-                      {openDelete && (
-                        <DeleteModal
-                          onClose={() => setOpenDelete(false)}
-                          onClick={() => handleDelete(row.id)}
-                          open={openDelete}
-                        />
-                      )}
-                    </div>
+
+      {/* Table Area */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-[1400px] w-full text-left">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Renter Information</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Identity</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehicle</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Schedule</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Duration</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Status</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {currentItems.length > 0 ? (
+                currentItems.map((row) => (
+                  <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-800">{row.full_name}</span>
+                        <span className="text-[11px] text-slate-400 truncate max-w-[200px]">{row.address}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-slate-500">License:</span>
+                        <span className="text-xs font-mono text-slate-700">{row.license_number}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-blue-600">{row.car_plate_number}</span>
+                        <span className="text-[10px] text-slate-500 uppercase">{row.type_of_rent}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-xs font-medium text-slate-700">
+                        {row.start_date} <span className="text-slate-300">|</span> {row.end_date}
+                        <div className="text-[10px] text-slate-400 mt-0.5">{row.start_time} - {row.end_time}</div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="text-xs font-black text-slate-700">{row.duration} day/s</span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-center">
+                        <span className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter shadow-sm border
+                          ${row.status === "Completed" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : 
+                            row.status === "On Service" ? "bg-amber-50 text-amber-700 border-amber-100" : 
+                            row.status === "On Reservation" ? "bg-blue-50 text-blue-700 border-blue-100" : 
+                            "bg-slate-50 text-slate-700 border-slate-200"}`}
+                        >
+                          {row.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex gap-2 justify-center">
+                        <button onClick={() => handleAction("view", row)} title="View Details" className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm">
+                          <icons.openEye size={16} />
+                        </button>
+                        <button onClick={() => handleAction("edit", row)} title="Edit Booking" className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
+                          <icons.edit size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedData(row); setOpenDelete(true); }} 
+                          title="Delete"
+                          className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
+                        >
+                          <icons.trash size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="p-20 text-center text-slate-400 italic text-sm">
+                    {searchTerm.length > 0 ? `No matches found for "${searchTerm}"` : "No rental history records found."}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr className="">
-                <td colSpan={5} className="p-10   text-gray-500 italic">
-                  {searchTerm.length > 0 ? (
-                    <span>No Results found for {searchTerm}</span>
-                  ) : (
-                    <span>No Renter history Existing</span>
-                  )}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className=" flex w-full justify-between items-center mt-4 text-white px-2 pb-6 gap-3">
-        <div className="flex items-center sm:justify-start gap-3 w-full">
-          <span className="text-sm text-gray-400">
-            Showing {renterData.length === 0 ? 0 : indexOfFirstItem + 1} to {""}
-            {Math.min(indexOfLastItem, renterData.length)} of {""}
-            {renterData.length}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <label>Rows per page:</label>
+
+      {/* Pagination Container */}
+      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 mb-10 shadow-sm gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase">Show</span>
             <select
               value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset
-              }}
-              className="bg-gray-200 border border-gray-600 rounded px-2 py-1 text-gray-800 outline-none focus:border-blue-500"
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
+              {[5, 10, 15, 20].map(val => <option key={val} value={val}>{val}</option>)}
             </select>
           </div>
+          <div className="h-4 w-px bg-slate-200 mx-2" />
+          <p className="text-xs font-semibold text-slate-500">
+            Results: <span className="text-slate-900">{renterData.length === 0 ? 0 : indexOfFirstItem + 1}-{Math.min(indexOfLastItem, renterData.length)}</span> of <span className="text-slate-900">{renterData.length}</span>
+          </p>
         </div>
 
-        <div className="flex gap-5 justify-end ">
+        <div className="flex items-center gap-3">
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => prev - 1)}
-            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
-              currentPage ? "p-2" : ""
-            }`}
+            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm"
           >
-            Previous
+            Prev
           </button>
-
-          <p className="text-sm text-gray-800">
-            Page {currentPage} of {totalPages || 1}
-          </p>
-
+          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-xl border border-blue-100">
+            {currentPage} <span className="text-blue-300 mx-1">/</span> {totalPages || 1}
+          </span>
           <button
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className={`bg-border rounded disabled:opacity-30 hover:bg-gray-700 transition cursor-pointer text-xs sm:text-base ${
-              currentPage ? "p-2 px-4" : ""
-            }`}
+            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm"
           >
             Next
           </button>
         </div>
       </div>
+
+      {/* Forms & Modals */}
       <RenterForm
         open={openForm}
         mode={formMode}
         selectedData={selectedData}
         onClose={() => setOpenForm(false)}
       />
+
+      {openDelete && selectedData && (
+        <DeleteModal
+          onClose={() => { setOpenDelete(false); setSelectedData(null); }}
+          onClick={() => handleDelete(selectedData.id)}
+          open={openDelete}
+        />
+      )}
     </div>
   );
 };

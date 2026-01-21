@@ -11,7 +11,7 @@ import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
-import {   SearchBar, TableData } from "../components";
+import { SearchBar, TableData } from "../components";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
 import Card from "../components/Card";
@@ -23,7 +23,6 @@ const Maintenance = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
-  const [selectToggle, setSelectToggle] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openStatus, setOpenStatus] = useState(false);
   const { open, onOpen, onClose } = useModalStore();
@@ -38,7 +37,6 @@ const Maintenance = () => {
     onClose();
   }, [onClose]);
 
-  // to update the status if the car is done on maintenance
   const handleUpdate = async (id: number) => {
     setLoading(true);
     const { data, error } = await supabase
@@ -48,17 +46,15 @@ const Maintenance = () => {
 
     if (error) {
       toast.error("Update Failed");
-      console.log("Update Failed", error);
+    } else {
+      console.log('Update Successful', data)
+      toast.success("Update Successfully");
+      setOpenStatus(false);
     }
-    toast.success("Update Successfully");
-    console.log("Update Successfully", data);
-    setOpenStatus(false);
     setLoading(false);
   };
 
-  // to delete data or information of the inserted information in maintenanceform
   const handleDelete = async (id: number) => {
-    //, vehicleId: string
     setLoading(true);
     const { data, error } = await supabase
       .from("maintenance")
@@ -66,51 +62,24 @@ const Maintenance = () => {
       .eq("id", id);
 
     if (error) {
-      console.log("Failed to delete", error);
       toast.error("Failed to delete");
       return;
     }
-    // if !== id = delete the id
+    console.log('Deleted Successfully', data)
     setRecords((prev) => prev.filter((row) => row.id !== id));
     setFilterRecords((prev) => prev.filter((row) => row.id !== id));
-    console.log("Deleted Successfully", data);
     toast.success("Deleted Successfully");
-
-    // to update vehicle status as available if done maintenance
-    // const { data: vehicleData, error: errorStatus } = await supabase
-    //   .from("vehicle")
-    //   .update({ status: "Available" })
-    //   .eq("plate_no", vehicleId);
-
-    // if (errorStatus) {
-    //   console.log("Vehicle Update Error", errorStatus);
-    //   toast.error("Error Updating");
-    // }
-    // if (!vehicleData) {
-    //   console.log("Vehicle status already Available, skipping toast");
-    // } else {
-    //   console.log("Vehicle Update Successfully", vehicleData);
-    //   toast.success("Update Successfully");
-    // }
     setOpenDelete(false);
     setLoading(false);
   };
 
-  // const handleEdit = async () => {
-
-  // }
-
-  //fetch maintenance information that was inserted in maintenanceform
   useEffect(() => {
     let isMounted = true;
     const fetchMaintenance = async () => {
       const { data, error } = await supabase.from("maintenance").select("*");
       if (!isMounted) return;
 
-      if (error) {
-        console.log("Error fetching maintenance:", error?.message);
-        return;
-      }
+      if (error) return;
       const row = data ?? [];
       const rowsData = row.map((item) => ({
         id: item.id,
@@ -124,95 +93,74 @@ const Maintenance = () => {
       }));
       setRecords(rowsData);
       setFilterRecords(rowsData);
-      console.log("Fetched vehicles:", data);
     };
     fetchMaintenance();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [open, openStatus]);
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
-  //search filter
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
-      "id",
-      "date",
-      "car",
-      "type_of_maintenance",
-      "cost_of_maintenance",
-      "location",
-      "maintained_by",
-      "status",
+      "id", "date", "car", "type_of_maintenance", "cost_of_maintenance", "location", "maintained_by", "status",
     ]);
-
     if (selectValue !== "") {
       result = result.filter((item) => item.status === selectValue);
     }
     setRecords(result);
   }, [debounceSearchTerm, selectValue, filterRecords]);
 
-  //TOTAL COUNT OF MAINTENANCE
-  const totalExpense = records.reduce(
-    (sum, row) => sum + Number(row.cost_of_maintenance),
-    0
-  );
-  //total ongoing "On Maintenance"
+  const totalExpense = records.reduce((sum, row) => sum + Number(row.cost_of_maintenance), 0);
   const ongoing = records.filter((r) => r.status === "On Maintenance").length;
-  // total "Maintained" vehicle
   const maintained = records.filter((r) => r.status === "Maintained").length;
 
-  //table columns
   const columns = [
     {
       name: "No.",
       cell: (_row: DataMaintenanceProps, index: number) => (
-        <div>{index + 1}</div>
+        <div className="text-gray-500 font-medium">{index + 1}</div>
       ),
     },
     {
       name: "Date",
       cell: (row: DataMaintenanceProps) => (
-        <div>
-          {new Date(row.date).toLocaleString("en-Us", {
-            month: "2-digit",
-            day: "2-digit",
-            year: "numeric",
+        <div className="text-gray-700">
+          {new Date(row.date).toLocaleDateString("en-Us", {
+            month: "short", day: "2-digit", year: "numeric",
           })}
         </div>
       ),
     },
     {
-      name: "Car",
-      cell: (row: DataMaintenanceProps) => <div>{row.car}</div>,
+      name: "Vehicle & Type",
+      cell: (row: DataMaintenanceProps) => (
+        <div className="flex flex-col">
+            <span className="font-semibold text-gray-800">{row.car}</span>
+        </div>
+      ),
     },
     {
       name: "Type of Maintenance",
-      cell: (row: DataMaintenanceProps) => <div>{row.type_of_maintenance}</div>,
+      cell: (row: DataMaintenanceProps) => (
+        <div className="flex flex-col">
+            <span className="text-[11px] text-gray-500 uppercase">{row.type_of_maintenance}</span>
+        </div>
+      ),
     },
     {
-      name: "Cost of Maintenance",
-      cell: (row: DataMaintenanceProps) => <div>{row.cost_of_maintenance}</div>,
-    },
-    {
-      name: "Location",
-      cell: (row: DataMaintenanceProps) => <div>{row.location}</div>,
-    },
-    {
-      name: "Maintained By",
-      cell: (row: DataMaintenanceProps) => <div>{row.maintained_by}</div>,
+      name: "Cost",
+      cell: (row: DataMaintenanceProps) => <div className="font-bold text-gray-900">₱{Number(row.cost_of_maintenance).toLocaleString()}</div>,
     },
     {
       name: "Status",
       cell: (row: DataMaintenanceProps) => (
         <div
-          className={`rounded-full w-full px-2 py-1 text-[6px] sm:text-[8px] md:text-[9px] lg:text-[10] xl:text-[12px] ${
+          className={`rounded-full px-3 py-1 text-center font-bold text-[10px] uppercase tracking-wider border ${
             row.status === "On Maintenance"
-              ? "text-white bg-red-900"
+              ? "text-red-700 bg-red-50 border-red-100"
               : row.status === "Maintained"
-              ? "text-white bg-blue-900"
-              : "text-gray-50"
+              ? "text-blue-700 bg-blue-50 border-blue-100"
+              : "text-gray-600 bg-gray-50"
           }`}
         >
           {row.status}
@@ -222,11 +170,11 @@ const Maintenance = () => {
     {
       name: "Action",
       cell: (row: DataMaintenanceProps) => (
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {row.status === "On Maintenance" && (
-            <div>
+            <div className="group">
               <icons.check
-                className="cursor-pointer text-green-400 text-xl"
+                className="cursor-pointer text-emerald-500 hover:text-emerald-700 text-xl transition-colors"
                 onClick={() => setOpenStatus(true)}
               />
               <UpdateStatus
@@ -234,35 +182,32 @@ const Maintenance = () => {
                 open={openStatus}
                 onClick={() => handleUpdate(row.id)}
                 onClose={() => setOpenStatus(false)}
-                children={"Maintenance Done?"}
+                children={"Mark as Completed?"}
               />
             </div>
           )}
 
-          <div>
-            <icons.openEye
-              className="cursor-pointer text-green-400 text-xl"
+          <icons.openEye
+            className="cursor-pointer text-slate-400 hover:text-slate-600 text-xl transition-colors"
+            onClick={() => {
+              setFormMode("view");
+              setSelectedMaintenanceId(row);
+              onOpen();
+            }}
+          />
+          
+          {row.status === "On Maintenance" && (
+            <icons.edit
+              className="cursor-pointer text-indigo-400 hover:text-indigo-600 text-xl transition-colors"
               onClick={() => {
-                setFormMode("view");
+                setFormMode("edit");
                 setSelectedMaintenanceId(row);
                 onOpen();
               }}
             />
-          </div>
-          {row.status === "On Maintenance" && (
-            <div>
-              <icons.edit
-                className="cursor-pointer text-green-400 text-xl"
-                onClick={() => {
-                  setFormMode("edit");
-                  setSelectedMaintenanceId(row);
-                  onOpen();
-                }}
-              />
-            </div>
           )}
           <icons.trash
-            className="cursor-pointer  text-red-500 text-xl"
+            className="cursor-pointer text-rose-400 hover:text-rose-600 text-xl transition-colors"
             onClick={() => setOpenDelete(true)}
           />
           <DeleteModal
@@ -277,51 +222,54 @@ const Maintenance = () => {
   ];
 
   return (
-    <div className="px-6 pt-12 w-full relative min-h-screen  overflow-y-auto gap-2  pb-2">
-      <p className=" text-5xl font-semibold text-gray-800 tracking-wide mb-5 ">
-        Maintenance
-      </p>
-      <div className="flex flex-col gap-10 w-full">
-        <div className="flex flex-col xl:flex-row gap-2">
+    <div className="px-8 pt-10 w-full min-h-screen bg-white overflow-y-auto pb-10">
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+          Maintenance
+        </h1>
+        <p className="text-gray-500 mt-1">Track and manage vehicle service records.</p>
+      </div>
+
+      <div className="flex flex-col gap-8 w-full">
+        {/* Stats Cards Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card
-            className="border border-red-600 bg-red-500 w-full"
-            title={<span className="text-md xl:text-2xl text-white">Expense</span>}
+            className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-rose-500 hover:shadow-md transition-shadow"
+            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Total Expense</span>}
             url={""}
-            amount={<span className="text-6xl text-white  ">{totalExpense}</span>}
-            description="Total Maintenance Expense"
-            topIcon={<icons.money className=" text-2xl text-white " />}
+            amount={<span className="text-4xl font-black text-gray-900">₱{totalExpense.toLocaleString()}</span>}
+            description="Cumulative costs"
+            topIcon={<icons.money className="text-2xl text-rose-500" />}
           />
           <Card
-            className="bg-gray-800 w-full"
-            title={
-              <span className="text-md xl:text-2xl">Maintenance Count</span>
-            }
+            className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-slate-800 hover:shadow-md transition-shadow"
+            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Completed</span>}
             url={""}
-            amount={<span className="text-6xl text-white">{maintained}</span>}
-            description="Total Maintenance Count"
-            topIcon={<icons.onMaintenance className="text-white text-2xl" />}
+            amount={<span className="text-4xl font-black text-gray-900">{maintained}</span>}
+            description="Total serviced units"
+            topIcon={<icons.onMaintenance className="text-slate-800 text-2xl" />}
           />
           <Card
-            className="bg-blue-900 w-full"
-            title={
-              <span className="text-md xl:text-2xl">Ongoing Maintenance</span>
-            }
+            className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-blue-600 hover:shadow-md transition-shadow"
+            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Ongoing</span>}
             url={""}
-            amount={<span className="text-6xl text-white">{ongoing}</span>}
-            description="Total Ongoing Maintenance"
-            topIcon={<icons.onMaintenance className="text-white text-2xl" />}
+            amount={<span className="text-4xl font-black text-gray-900">{ongoing}</span>}
+            description="Currently in shop"
+            topIcon={<icons.onMaintenance className="text-blue-600 text-2xl" />}
           />
         </div>
-        <div className="text-end mb-4 w-full flex justify-end">
+
+        {/* Action Button */}
+        <div className="flex justify-end">
           <CustomButtons
-            icons={<icons.add className="text-white text-xl " />}
+            icons={<icons.add className="text-white text-lg" />}
             handleclick={() => {
               setFormMode("create");
               setSelectedMaintenanceId(null);
               onOpen();
             }}
-            children="Add Maintenance"
-            className="py-2 px-4 rounded bg-gray-800 hover:bg-gray-400 text-white hover:text-gray-800 cursor-pointer "
+            children="New Maintenance"
+            className="py-3 px-6 rounded-xl bg-slate-900 hover:bg-slate-700 text-white font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-none cursor-pointer"
           />
           {open && (
             <MaintenanceForm
@@ -334,49 +282,44 @@ const Maintenance = () => {
         </div>
       </div>
 
-      <div className="px-6 py-2 rounded ">
-        <div className="pb-4 pt-4 flex justify-end items-center gap-3">
-          <div
-            onClick={() => setSelectToggle((t) => !t)}
-            className=" flex relative  items-center border border-gray-200 rounded w-full  md:w-44"
-          >
-            <select
-              className="cursor-pointer outline-none appearance-none px-4 py-2 w-full text-xs xl:text-base text-gray-800 "
-              value={selectValue}
-              onChange={(e) => setSelectValue(e.target.value)}
-            >
-              <option value="" className="text-gray-800">
-                All
-              </option>
-              <option value="On Maintenance" className="text-gray-800">
-                On Maintenance
-              </option>
-              <option value="Maintained" className="text-gray-800">
-                Maintained
-              </option>
-            </select>
-            <div className="absolute top-2 xl:top-3 right-3 txt-color">
-              {selectToggle ? <icons.up /> : <icons.down />}
+      {/* Table & Filter Section */}
+      <div className="mt-8 border border-gray-100 rounded-2xl shadow-sm bg-white overflow-hidden">
+        <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50/30">
+          <h3 className="text-lg font-bold text-gray-800">Records History</h3>
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-48">
+              <select
+                className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2.5 w-full text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+                value={selectValue}
+                onChange={(e) => setSelectValue(e.target.value)}
+              >
+                <option value="">All Status</option>
+                <option value="On Maintenance">Ongoing</option>
+                <option value="Maintained">Completed</option>
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                <icons.down />
+              </div>
             </div>
-          </div>
-          <div>
             <SearchBar
               value={searchTerm}
               onClear={() => setSearchTerm("")}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-200 text-gray-800  rounded py-2 w-60 "
-              placeholder="search"
+              className="bg-white border border-gray-200 rounded-lg py-2.5 px-4 w-full md:w-72 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Search history..."
             />
           </div>
         </div>
-        <TableData
-          title={<span className="font-bold">Maintenance</span>}
-          pagination={true}
-          fixedHeader={true}
-          fixedHeaderScrollHeight="350px"
-          data={records}
-          columns={columns}
-        />
+        <div className="p-4">
+            <TableData
+            title={null}
+            pagination={true}
+            fixedHeader={true}
+            fixedHeaderScrollHeight="450px"
+            data={records}
+            columns={columns}
+            />
+        </div>
       </div>
     </div>
   );

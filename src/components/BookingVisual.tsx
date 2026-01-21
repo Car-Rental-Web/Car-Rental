@@ -10,7 +10,6 @@ const BookingVisual = () => {
   const [chartData, setChartData] = useState<
     { month: string; count: number }[]
   >([]);
-  const [toggle, setToggle] = useState(false);
 
     const fetchBookings = async () => {
       const startDate = `${selectedYear}-01-01`;
@@ -59,35 +58,25 @@ const BookingVisual = () => {
       fetchBookings()
     },[fetchBookings])
   return (
-    <div className=" flex flex-col w-full">
-      <div>
-        <div className="flex justify-between items-center px-4 py-4">
-          <p className="text-gray-800">Monthly Bookings</p>
-          <div onClick={() => setToggle((prev) => !prev)} className="relative">
-            <select
-              className=" rounded appearance-none outline-none border border-gray-400 px-8 py-2 cursor-pointer text-xs xl:text-base text-gray-800"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-            >
-              {years.map((year) => (
-                <option className="txt-color" key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <div className="absolute top-2 md:top-3 right-2 text-gray-800">
-              {toggle ? <icons.up /> : <icons.down />}
-            </div>
-          </div>
+    <div className="flex flex-col w-full p-4">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+           <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Analytics</p>
+           <h3 className="text-sm font-bold text-slate-800">Monthly Bookings</h3>
+        </div>
+        <div className="relative group">
+          <select
+            className="appearance-none bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-8 py-1.5 text-xs font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+          >
+            {years.map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+          <icons.down className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none size-3" />
         </div>
       </div>
-      <div className="pr-6">
-        <ReactChartLine
-          data={chartData}
-          maxHeight={"20vh"}
-          maxWidth={"600px"}
-        />
-        ;
+      <div className="w-full">
+        <ReactChartLine data={chartData} maxHeight={"150px"} maxWidth={""} />
       </div>
     </div>
   );

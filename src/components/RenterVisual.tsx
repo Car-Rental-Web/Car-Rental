@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import ReactChartLine from "./ReactChartLine";
 import { supabase } from "../utils/supabase";
-import icons from "../constants/icon";
 import React from "react";
 
 const years = [2025, 2026, 2027, 2028, 2029, 2030];
@@ -10,7 +9,6 @@ const RenterVisual = () => {
   const [chartData, setChartData] = useState<
     { month: string; count: number }[]
   >([]);
-  const [toggle, setToggle] = useState(false);
   useEffect(() => {
     const fetchRenter = async () => {
       const startDate = `${selectedYear}-01-01`;
@@ -59,35 +57,26 @@ const RenterVisual = () => {
   }, [selectedYear]);
 
   return (
-    <div className=" flex flex-col w-full">
-      <div>
-        <div className="flex justify-between items-center px-4 py-4">
-          <p className="text-gray-800">Monthly Renters</p>
-          <div onClick={() => setToggle((prev) => !prev)} className="relative">
-            <select
-              className=" rounded appearance-none outline-none border border-gray-400 px-8 py-2 cursor-pointer text-xs xl:text-base text-gray-800"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-            >
-              {years.map((year) => (
-                <option className="txt-color" key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <div className="absolute top-2 md:top-3 right-2 text-gray-800">
-              {toggle ? <icons.up /> : <icons.down />}
-            </div>
-          </div>
+    <div className="flex flex-col w-full p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+           <h3 className="text-lg font-black text-slate-800">Growth Analysis</h3>
+           <p className="text-sm text-slate-500">Monthly new renter acquisitions</p>
+        </div>
+        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+            {years.slice(0, 3).map((year) => (
+                <button 
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedYear === year ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    {year}
+                </button>
+            ))}
         </div>
       </div>
-      <div className="pr-6">
-        <ReactChartLine
-          data={chartData}
-          maxHeight={"30vh"}
-          maxWidth={"900px"}
-        />
-        ;
+      <div className="w-full">
+        <ReactChartLine data={chartData} maxHeight={"250px"} maxWidth={""} />
       </div>
     </div>
   );
