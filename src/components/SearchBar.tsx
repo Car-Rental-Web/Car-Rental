@@ -9,9 +9,11 @@ interface SearchBarProps {
   placeholder: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClear?: () => void;
+  onClick?: () => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
+  onClick,
   className,
   onChange,
   placeholder,
@@ -23,6 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={`relative ${className}`}>
       <input
+      onClick={onClick}
         readOnly={!onChange}
         value={value}
         onChange={onChange}

@@ -5,8 +5,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useRef, useEffect } from "react";
 import type { EventInput } from "@fullcalendar/core/index.js";
 import tippy from "tippy.js";
-import to12Hour from "../utils/timeFormatter";
 import listPlugin from '@fullcalendar/list'
+import { to12Hour } from "../utils/timeFormatter";
 interface CalendarProps {
   contentHeight?: string;
   height?: number;

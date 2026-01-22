@@ -247,6 +247,7 @@ export interface DataVehicleTypes {
   status: string;
   action?: React.ReactNode;
   e_signature:any;
+  uploaded_proof:any;
 }
 export interface DataVehicleForm {
   id: number;

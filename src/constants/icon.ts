@@ -43,6 +43,8 @@ import { FaDownload } from "react-icons/fa6";
 import { IoInformationCircle } from "react-icons/io5";
 import { CiBellOn } from "react-icons/ci";
 import { FaCalendarAlt } from "react-icons/fa";
+import { ImMenu } from "react-icons/im";
+import { FaFilter } from "react-icons/fa";
 
 
 
@@ -92,6 +94,8 @@ const icons = {
     info:IoInformationCircle,
     bell:CiBellOn,
     calendar:FaCalendarAlt,
+    menu:ImMenu,
+    filter:FaFilter,
 }
 
 export default icons

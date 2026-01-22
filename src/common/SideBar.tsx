@@ -90,15 +90,10 @@ const Sidebar = () => {
         </button>
 
         {/* Logo Section */}
-        <div className="h-20 flex items-center px-6 gap-3">
+        <div className="h-20 flex items-center justify-center px-6 gap-3">
             <div className="min-w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-100">
                 <icons.car className="text-white text-lg" />
             </div>
-            {isSidebarOpen && (
-                <span className="font-black text-xl text-slate-800 tracking-tight jakarta">
-                    MBOSS
-                </span>
-            )}
         </div>
 
         {/* Menu List */}

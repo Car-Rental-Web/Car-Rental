@@ -56,7 +56,7 @@ const RenterProfile = () => {
     setRenterData(data || []);
     setFilterRenterData(data || []);
   }, []);
-
+  
   useEffect(() => {
     fetchRenter();
     const subscription = supabase
@@ -190,7 +190,7 @@ const RenterProfile = () => {
       {/* Main Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className=" w-full table-fixed text-left">
+          <table className=" w-full table-auto text-left min-w-[1200px]">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="w-16 p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">ID</th>

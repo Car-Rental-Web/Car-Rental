@@ -134,41 +134,100 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     try {
       let finalProofArray: string[] = [...existingPaths.uploaded_proof];
 
+      // 1. Handle File Deletions (Edit Mode)
+      if (mode === "edit" && selectedData?.uploaded_proof) {
+        const originalPaths: string[] = selectedData.uploaded_proof;
+        const pathsToDelete = originalPaths.filter(
+          (path) => !existingPaths.uploaded_proof.includes(path),
+        );
+
+        if (pathsToDelete.length > 0) {
+          const { error: deleteError } = await supabase.storage
+            .from("uploaded_proof")
+            .remove(pathsToDelete);
+          if (deleteError) console.error("Error deleting files:", deleteError);
+        }
+      }
+
+      // 2. Handle File Uploads
       if (
         renterData.uploaded_proof instanceof FileList &&
         renterData.uploaded_proof.length > 0
       ) {
         const validFiles = Array.from(renterData.uploaded_proof);
         const uploadPromises = validFiles.map((file) =>
-          uploadFile(file as File, "uploaded_proof")
+          uploadFile(file as File, "uploaded_proof"),
         );
-
         const uploadResults = await Promise.all(uploadPromises);
         const newPaths = uploadResults.map((res) => res.path);
         finalProofArray = [...finalProofArray, ...newPaths];
       }
 
-      const cleanPayload = {
+      // 3. Prepare Payload
+      const cleanPayload: any = {
         ...renterData,
         uploaded_proof: finalProofArray,
-        e_signature:
-          typeof watchedSignature === "string" ? watchedSignature : null,
       };
 
+      // Handle Signature
+      if (renterData.e_signature instanceof FileList) {
+        if (renterData.e_signature.length > 0) {
+          delete cleanPayload.e_signature;
+        } else {
+          cleanPayload.e_signature = watchedSignature;
+        }
+      } else {
+        cleanPayload.e_signature = watchedSignature;
+      }
+
+      /* ==========================================================
+          4. DYNAMIC VEHICLE STATUS LOGIC
+      ========================================================== */
+      let vehicleStatus = "Available"; // Default
+      if (cleanPayload.status === "On Service") {
+        vehicleStatus = "On Service";
+      } else if (cleanPayload.status === "On Reservation") {
+        vehicleStatus = "On Reservation";
+      } else if (cleanPayload.status === "Completed") {
+        vehicleStatus = "Available";
+      }
+
+      const plateNumber = cleanPayload.car_plate_number;
+
+      // 5. Database Operations
       if (mode === "edit") {
+        // Update Booking
         const { error } = await supabase
           .from("renter_booking")
           .update(cleanPayload)
           .eq("id", selectedData?.id);
         if (error) throw error;
+
+        // Update Vehicle Status
+        if (plateNumber) {
+          await supabase
+            .from("vehicle")
+            .update({ status: vehicleStatus })
+            .eq("plate_number", plateNumber);
+        }
+
         toast.success("Updated successfully");
         if (onSuccess) onSuccess();
       } else {
+        // Insert Booking
         const { error } = await supabase
           .from("renter_booking")
           .insert([cleanPayload]);
-
         if (error) throw error;
+
+        // Update Vehicle Status
+        if (plateNumber) {
+          await supabase
+            .from("vehicle")
+            .update({ status: vehicleStatus })
+            .eq("plate_number", plateNumber);
+        }
+
         toast.success("Added Rent Successfully");
         reset();
       }
@@ -179,32 +238,48 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     }
   };
 
-  const inputStyles = "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all read-only:bg-gray-50 text-gray-800";
+  const inputStyles =
+    "w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all read-only:bg-gray-50 text-gray-800";
   const labelStyles = "block text-sm font-semibold text-gray-700 mb-1";
 
   return (
-    <div className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-999 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}>
+    <div
+      className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-999 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}
+    >
       <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        
         {/* Header */}
         <div className="px-8 py-5 border-b flex justify-between items-center bg-gray-50">
-          <h2 className="text-xl font-bold text-slate-800">Vehicle Rental Booking</h2>
+          <h2 className="text-xl font-bold text-slate-800">
+            Vehicle Rental Booking
+          </h2>
           <ModalButton type="button" onclick={onClose} />
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-8 flex-1 space-y-6">
-          
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="overflow-y-auto p-8 flex-1 space-y-6"
+        >
           {/* Section: Renter Identity */}
           <div className="space-y-4">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">1. Renter Selection</p>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
+              1. Renter Selection
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1">
                 <label className={labelStyles}>Full Name</label>
-                <div className="relative" onClick={() => setSelectToggle(!selectToggle)}>
-                  <select {...register("full_name")} className={`${inputStyles} appearance-none cursor-pointer`}>
+                <div
+                  className="relative"
+                  onClick={() => setSelectToggle(!selectToggle)}
+                >
+                  <select
+                    {...register("full_name")}
+                    className={`${inputStyles} appearance-none cursor-pointer`}
+                  >
                     <option value="">Select A Renter</option>
                     {renter.map((row) => (
-                      <option key={row.id} value={row.full_name}>{row.full_name}</option>
+                      <option key={row.id} value={row.full_name}>
+                        {row.full_name}
+                      </option>
                     ))}
                   </select>
                   <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
@@ -214,7 +289,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               </div>
               <div className="md:col-span-2">
                 <label className={labelStyles}>Address</label>
-                <input readOnly {...register("address")} className={inputStyles} placeholder="Address" />
+                <input
+                  readOnly
+                  {...register("address")}
+                  className={inputStyles}
+                  placeholder="Address"
+                />
               </div>
             </div>
 
@@ -227,8 +307,14 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 { label: "Pagibig", name: "pagibig_number" },
               ].map((field) => (
                 <div key={field.name}>
-                  <label className="text-[11px] font-bold text-gray-500 uppercase">{field.label}</label>
-                  <input readOnly {...register(field.name as any)} className={`${inputStyles} py-2 text-sm bg-gray-50`} />
+                  <label className="text-[11px] font-bold text-gray-500 uppercase">
+                    {field.label}
+                  </label>
+                  <input
+                    readOnly
+                    {...register(field.name as any)}
+                    className={`${inputStyles} py-2 text-sm bg-gray-50`}
+                  />
                 </div>
               ))}
             </div>
@@ -236,68 +322,136 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
           {/* Section: Vehicle Details */}
           <div className="space-y-4 pt-4">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">2. Vehicle Information</p>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
+              2. Vehicle Information
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div>
                 <label className={labelStyles}>Plate #</label>
-                <input readOnly {...register("car_plate_number")} className={`${inputStyles} font-mono font-bold bg-white`} />
-                {errors.car_plate_number && <p className="text-red-500 text-xs mt-1">Selection Required</p>}
+                <input
+                  readOnly
+                  {...register("car_plate_number")}
+                  className={`${inputStyles} font-mono font-bold bg-white`}
+                />
+                {errors.car_plate_number && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Selection Required
+                  </p>
+                )}
               </div>
               <div>
                 <label className={labelStyles}>Model</label>
-                <input readOnly {...register("car_model")} className={`${inputStyles} bg-white`} />
+                <input
+                  readOnly
+                  {...register("car_model")}
+                  className={`${inputStyles} bg-white`}
+                />
               </div>
               <div>
                 <label className={labelStyles}>Type</label>
-                <input readOnly {...register("car_type")} className={`${inputStyles} bg-white`} />
+                <input
+                  readOnly
+                  {...register("car_type")}
+                  className={`${inputStyles} bg-white`}
+                />
               </div>
             </div>
           </div>
 
           {/* Section: Schedule */}
           <div className="space-y-4 pt-4">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">3. Rental Schedule</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className={labelStyles}>Start Date</label>
-                <input type="date" {...register("start_date")} className={inputStyles} />
-                {errors.start_date && <p className="text-red-500 text-xs mt-1">Required</p>}
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
+              3. Rental Schedule
+            </p>
+            <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
+                <div>
+                  <label className={labelStyles}>Start Date</label>
+                  <input
+                    type="date"
+                    {...register("start_date")}
+                    className={inputStyles}
+                  />
+                  {errors.start_date && (
+                    <p className="text-red-500 text-xs mt-1">Required</p>
+                  )}
+                </div>
+                <div>
+                  <label className={labelStyles}>End Date</label>
+                  <input
+                    type="date"
+                    {...register("end_date")}
+                    className={inputStyles}
+                  />
+                  {errors.end_date && (
+                    <p className="text-red-500 text-xs mt-1">Required</p>
+                  )}
+                </div>
+                <div>
+                  <label className={labelStyles}>Duration (Days)</label>
+                  <input
+                    {...register("duration")}
+                    className={inputStyles}
+                    placeholder="0"
+                  />
+                </div>
               </div>
-              <div>
-                <label className={labelStyles}>End Date</label>
-                <input type="date" {...register("end_date")} className={inputStyles} />
-                {errors.end_date && <p className="text-red-500 text-xs mt-1">Required</p>}
+              <div className=" flex w-full gap-4">
+                <div className="w-full">
+                  <label className={labelStyles}>Pick Up Time</label>
+                  <input
+                    type="time"
+                    {...register("start_time")}
+                    className={inputStyles}
+                  />
+                </div>
+                <div className="w-full">
+                  <label className={labelStyles}>Drop Off Time</label>
+                  <input
+                    type="time"
+                    {...register("end_time")}
+                    className={inputStyles}
+                  />
+                </div>
+                <div className="w-full">
+                  <label className={labelStyles}>Location</label>
+                  <input
+                    {...register("location")}
+                    className={inputStyles}
+                    placeholder="Ex: Baguio"
+                  />
+                </div>
               </div>
-              <div>
-                <label className={labelStyles}>Duration (Days)</label>
-                <input {...register("duration")} className={inputStyles} placeholder="0" />
+              <div className="flex w-full gap-4">
+                <div className="w-full gap-4 pt-4">
+                  {/* Section: Extras */}
+                  <div className="relative">
+                    <label className={labelStyles}>Type of Rent</label>
+                    <select
+                      {...register("type_of_rent")}
+                      className={`${inputStyles} font-bold appearance-none`}
+                    >
+                      <option value="">Choose Type</option>
+                      <option value="Self Drive">Self Drive</option>
+                      <option value="With Driver">With Driver</option>
+                    </select>
+                    <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+                {/* Status Section */}
+                <div className="pt-4 w-full">
+                  <label className={labelStyles}>Booking Status</label>
+                  <select
+                    {...register("status")}
+                    className={`${inputStyles} font-bold`}
+                  >
+                    <option value="">Select Status</option>
+                    <option value="On Service">On Service</option>
+                    <option value="On Reservation">On Reservation</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelStyles}>Pick Up Time</label>
-                <input type="time" {...register("start_time")} className={inputStyles} />
-              </div>
-              <div>
-                <label className={labelStyles}>Drop Off Time</label>
-                <input type="time" {...register("end_time")} className={inputStyles} />
-              </div>
-            </div>
-          </div>
-
-          {/* Section: Extras */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-            <div>
-              <label className={labelStyles}>Type of Rent</label>
-              <select {...register("type_of_rent")} className={inputStyles}>
-                <option value="">Select Option</option>
-                <option value="Self Drive">Self Drive</option>
-                <option value="With Driver">With Driver</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelStyles}>Location</label>
-              <input {...register("location")} className={inputStyles} placeholder="Ex: Baguio" />
             </div>
           </div>
 
@@ -305,90 +459,148 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
             <div className="p-4 bg-slate-50 border rounded-xl">
               <div className="flex justify-between items-center mb-3">
-                <label className="text-sm font-bold text-slate-700">Renter Signature</label>
-                <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-xs font-bold text-blue-600">
+                <label className="text-sm font-bold text-slate-700">
+                  Renter Signature
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowSignature(!showSignature)}
+                  className="text-xs font-bold text-blue-600"
+                >
                   {showSignature ? "Hide Preview" : "Show Preview"}
                 </button>
               </div>
               {showSignature && watchedSignature && (
                 <div className="space-y-3">
                   <div className="bg-white border rounded p-2 flex justify-center">
-                    <img 
-                      crossOrigin="anonymous" 
-                      referrerPolicy="no-referrer" 
-                      src={watchedSignature} 
-                      alt="Signature" 
+                    <img
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                      src={watchedSignature}
+                      alt="Signature"
                       className="h-20 object-contain"
                       onError={(e) => {
-                        const fallback = watchedSignature.replace("thumbnail?id=", "uc?export=view&id=");
-                        if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                        const fallback = watchedSignature.replace(
+                          "thumbnail?id=",
+                          "uc?export=view&id=",
+                        );
+                        if (e.currentTarget.src !== fallback)
+                          e.currentTarget.src = fallback;
                       }}
                     />
                   </div>
-                  {!isReadOnly && <input type="file" {...register("e_signature")} className="text-xs" accept="image/*" />}
+                  {!isReadOnly && (
+                    <input
+                      type="file"
+                      {...register("e_signature")}
+                      className="text-xs"
+                      accept="image/*"
+                    />
+                  )}
                 </div>
               )}
             </div>
 
             <div className="p-4 bg-slate-50 border rounded-xl">
-              <label className="text-sm font-bold text-slate-700 block mb-3">Transaction Proofs</label>
+              <label className="text-sm font-bold text-slate-700 block mb-3">
+                Transaction Proofs
+              </label>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {existingPaths.uploaded_proof.map((path, index) => (
-                    <div key={index} className="relative group w-16 h-16 border rounded bg-white overflow-hidden">
-                      <img src={getPublicUrl("uploaded_proof", path)} className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => setExistingPaths(prev => ({...prev, uploaded_proof: prev.uploaded_proof.filter((_, i) => i !== index)}))} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
+                    <div
+                      key={index}
+                      className="relative group w-16 h-16 border rounded bg-white overflow-hidden"
+                    >
+                      <img
+                        src={getPublicUrl("uploaded_proof", path)}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExistingPaths((prev) => ({
+                            ...prev,
+                            uploaded_proof: prev.uploaded_proof.filter(
+                              (_, i) => i !== index,
+                            ),
+                          }))
+                        }
+                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                      >
                         <icons.trash size={10} />
                       </button>
                     </div>
                   ))}
-                  {watchedProof instanceof FileList && Array.from(watchedProof).map((file, index) => (
-                    <div key={index} className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden">
-                      <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => resetField("uploaded_proof")} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
-                        <icons.trash size={10} />
-                      </button>
-                    </div>
-                  ))}
+                  {watchedProof instanceof FileList &&
+                    Array.from(watchedProof).map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden"
+                      >
+                        <img
+                          src={URL.createObjectURL(file)}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => resetField("uploaded_proof")}
+                          className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                        >
+                          <icons.trash size={10} />
+                        </button>
+                      </div>
+                    ))}
                 </div>
                 {!isReadOnly && (
                   <div className="relative">
-                    <input type="file" {...register("uploaded_proof")} multiple accept="image/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    <input
+                      type="file"
+                      {...register("uploaded_proof")}
+                      multiple
+                      accept="image/*"
+                      className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Status Section */}
-          <div className="pt-4">
-            <label className={labelStyles}>Booking Status</label>
-            <select {...register("status")} className={`${inputStyles} max-w-xs bg-yellow-50 border-yellow-200`}>
-              <option value="">Select Status</option>
-              <option value="On Service">On Service</option>
-              <option value="On Reservation">On Reservation</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-
           {/* PDF Viewers (Only in view mode) */}
           {isReadOnly && (
             <div className="space-y-4 border-t pt-6">
               <div className="flex flex-col sm:flex-row gap-4">
-                <button type="button" onClick={() => setShowAgreement(!showAgreement)} className="flex-1 px-4 py-3 border rounded-lg font-bold text-slate-700 hover:bg-gray-50">
+                <button
+                  type="button"
+                  onClick={() => setShowAgreement(!showAgreement)}
+                  className="flex-1 px-4 py-3 border rounded-lg font-bold text-slate-700 hover:bg-gray-50"
+                >
                   {showAgreement ? "Hide Agreement" : "View Signed Agreement"}
                 </button>
                 <PDFDownloadLink
-                  document={<RenterAgreementPDF data={{ full_name: watchedName, e_signature: watchedSignature }} />}
+                  document={
+                    <RenterAgreementPDF
+                      data={{
+                        full_name: watchedName,
+                        e_signature: watchedSignature,
+                      }}
+                    />
+                  }
                   fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold text-center hover:bg-green-700 transition-colors"
                 >
-                  {({ loading }) => loading ? "Generating PDF..." : "Download as PDF"}
+                  {({ loading }) =>
+                    loading ? "Generating PDF..." : "Download as PDF"
+                  }
                 </PDFDownloadLink>
               </div>
               {showAgreement && (
                 <div className="p-6 border rounded-xl bg-white shadow-inner">
-                  <RenterAgreement full_name={watchedName} signatureUrl={watchedSignature} />
+                  <RenterAgreement
+                    full_name={watchedName}
+                    signatureUrl={watchedSignature}
+                  />
                 </div>
               )}
             </div>
@@ -397,11 +609,18 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
         {/* Footer */}
         <div className="p-6 border-t bg-gray-50 flex flex-col sm:flex-row gap-3">
-          <button type="button" onClick={onClose} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-bold text-gray-700 hover:bg-white transition-all">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-bold text-gray-700 hover:bg-white transition-all"
+          >
             Close
           </button>
           {!isReadOnly && (
-            <button onClick={handleSubmit(onSubmit)} className="flex-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+            <button
+              onClick={handleSubmit(onSubmit)}
+              className="flex-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+            >
               {mode === "edit" ? "Update Rental Details" : "Confirm & Add Rent"}
             </button>
           )}

@@ -30,7 +30,24 @@ const VehicleHistory = () => {
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
     "create",
   );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All")
+  const filteredVehicles = vehicleCard.filter((vehicle) => {
+  // 1. Search Filter (Brand, Model, Plate)
+  const matchesSearch =
+    vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.plate_number.toLowerCase().includes(searchTerm.toLowerCase());
 
+  // 2. Type Filter (Sedan, SUV, etc.)
+  const matchesType = selectedType === "All" || vehicle.type === selectedType;
+
+  // 3. Status Filter (Available, On Service, etc.)
+  const matchesStatus = selectedStatus === "All" || vehicle.status === selectedStatus;
+
+  return matchesSearch && matchesType && matchesStatus;
+});
   const { open, onOpen, onClose } = useModalStore();
   const {
     currentPage,
@@ -66,7 +83,7 @@ const VehicleHistory = () => {
 
   useEffect(() => {
     fetchVehicle();
-  }, [open, openDelete]);
+  }, [open, openDelete, onClose]);
 
   const fetchHistory = async (vehicle: DataVehicleTypes) => {
     const { data, error } = await supabase
@@ -86,6 +103,47 @@ const VehicleHistory = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
       {/* Header Section */}
+
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <icons.search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search model, brand, or plate number..."
+            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-4 py-1">
+          <icons.filter className="text-gray-400" />
+          <select
+            className="bg-transparent py-2 outline-none text-sm font-medium text-gray-700"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="All">All Types</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="VAN">Van</option>
+            <option value="PICK UP">Pickup</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-4 py-1">
+          <icons.filter className="text-gray-400" />
+          <select
+            className="bg-transparent py-2 outline-none text-sm font-medium text-gray-700"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="All">Status</option>
+            <option value="Available">Available</option>
+            <option value="On Service">On Service</option>
+            <option value="On Reservation">On Reservation</option>
+          </select>
+        </div>
+      </div>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Vehicle Fleet</h1>
@@ -115,7 +173,7 @@ const VehicleHistory = () => {
 
       {/* Vehicle Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {vehicleCard.length === 0 ? (
+        {filteredVehicles.length === 0 ? (
           <div className="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
             <div className="p-4 bg-gray-50 rounded-full mb-4">
               <icons.car className="text-4xl text-gray-300" />
@@ -125,25 +183,26 @@ const VehicleHistory = () => {
             </p>
           </div>
         ) : (
-          vehicleCard.map((vehicle) => (
+         filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
-              className={`group bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${
-                isClicked === vehicle.id
-                  ? "ring-2 ring-blue-500 border-transparent"
-                  : ""
-              }`}
+              className={`group bg-white border  rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${vehicle.status === "On Service" ? "border-red-500" : vehicle.status === "On Reservation" ? "border-blue-500" : vehicle.status === "Completed" ? "border-gray-100" : vehicle.status === "Available" ? "border-green-500" : "border-none"} `}
             >
               {/* Action Dropdown */}
               <div className="absolute top-4 right-4 z-10">
-                <button
-                  onClick={() =>
-                    setopenAction(openAction === vehicle.id ? null : vehicle.id)
-                  }
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                >
-                  <icons.action className="text-gray-400 text-xl" />
-                </button>
+                <div className="flex justify-between items-center">
+                  <p>{vehicle.status}</p>
+                  <button
+                    onClick={() =>
+                      setopenAction(
+                        openAction === vehicle.id ? null : vehicle.id,
+                      )
+                    }
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <icons.action className="text-gray-400 text-xl" />
+                  </button>
+                </div>
 
                 {openAction === vehicle.id && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-100 shadow-2xl rounded-xl overflow-hidden z-50">
@@ -217,13 +276,14 @@ const VehicleHistory = () => {
                       History <icons.rightArrow />
                     </button>
                     <button
+                      disabled={vehicle.status === "On Service"}
                       onClick={() => {
                         setShowForm(true);
                         setSelectedVehicle(vehicle);
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 hover:bg-black text-white rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                      className={`flex-1  flex items-center justify-center gap-2 px-3 py-2  text-white rounded-lg text-xs font-semibold transition-all cursor-pointer ${vehicle.status === "On Service" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" :"bg-gray-900 hover:bg-black"}` }
                     >
-                      Rent <icons.rightArrow />
+                      {vehicle.status === "On Service" ? "Rented" : vehicle.status === "On Reservation" ? "Reserved" : "Rent"} <icons.rightArrow />
                     </button>
                   </div>
                 </div>

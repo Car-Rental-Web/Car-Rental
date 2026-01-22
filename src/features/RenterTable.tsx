@@ -8,6 +8,7 @@ import icons from "../constants/icon";
 import RenterForm from "../components/RenterForm";
 import { DeleteModal } from "../modals";
 import { toast } from "react-toastify";
+import  { formatDate, to12Hour } from "../utils/timeFormatter";
 
 const Renter = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -42,7 +43,7 @@ const Renter = () => {
     try {
       const { data: booking, error: fetchError } = await supabase
         .from("renter_booking")
-        .select("uploaded_proof")
+        .select("uploaded_proof, car_plate_number")
         .eq("id", id)
         .maybeSingle();
 
@@ -75,11 +76,22 @@ const Renter = () => {
       if (deleteError) {
         throw deleteError;
       }
-
-      setRenterData((prev) => prev.filter((row) => row.id !== id));
+    
       toast.success("Deleted Successfully");
+
+      const {error: vehicleStatusError} = await supabase.from('vehicle').update({status: "Available"}).eq("plate_number",booking.car_plate_number)
+
+      if(vehicleStatusError) {
+        // toast.error(' Failed to update in vehicle')
+        console.log('Failed to Update in Vehicle')
+        return
+      }
+      // toast.success('Update Successfull in Vehicle')
+      console.log('Update Successfull in Vehicle')
+
       setOpenDelete(false);
       setSelectedData(null);
+      setRenterData((prev) => prev.filter((row) => row.id !== id));
 
     } catch (error) {
       console.error("Failed to delete:", error);
@@ -90,7 +102,7 @@ const Renter = () => {
   //fetch renter
   useEffect(() => {
     const fetchRenter = async () => {
-      const { data, error } = await supabase.from("renter_booking").select("*");
+      const { data, error } = await supabase.from("renter_booking").select("*")
       if (error) {
         console.log("Error fetching renter", error);
         return;
@@ -177,50 +189,59 @@ const Renter = () => {
       </div>
 
       {/* Table Area */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ">
         <div className="overflow-x-auto">
-          <table className="min-w-[1400px] w-full text-left">
+          <table className=" w-full table-auto text-left min-w-[1200px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Renter Information</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Identity</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehicle</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Schedule</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">No</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Renter Information</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Identity</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Vehicle</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Schedule</th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Duration</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Rent Type</th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Status</th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {currentItems.length > 0 ? (
-                currentItems.map((row) => (
+                currentItems.map((row, index) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800">{row.full_name}</span>
-                        <span className="text-[11px] text-slate-400 truncate max-w-[200px]">{row.address}</span>
+                        <span className="text-sm font-bold text-slate-800 text-center">{index + 1}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-slate-500">License:</span>
-                        <span className="text-xs font-mono text-slate-700">{row.license_number}</span>
+                        <span className="text-sm font-bold text-slate-800 text-center">{row.full_name}</span>
+                        <span className="text-[11px] text-slate-400  text-center truncate max-w-[400px]">{row.address}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-blue-600">{row.car_plate_number}</span>
-                        <span className="text-[10px] text-slate-500 uppercase">{row.type_of_rent}</span>
+                        <span className="text-[11px] font-bold text-slate-500 text-center">License:</span>
+                        <span className="text-xs font-mono text-slate-700 text-center">{row.license_number}</span>
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="text-xs font-medium text-slate-700">
-                        {row.start_date} <span className="text-slate-300">|</span> {row.end_date}
-                        <div className="text-[10px] text-slate-400 mt-0.5">{row.start_time} - {row.end_time}</div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-blue-600 text-center">{row.car_plate_number}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-xs font-medium text-slate-700 text-center">
+                        {formatDate(row.start_date)} <span className="text-slate-300">|</span> {formatDate(row.end_date)}
+                        <div className="text-[10px] text-slate-400 mt-0.5">{to12Hour(row.start_time)} - {to12Hour(row.end_time)}</div>
                       </div>
                     </td>
                     <td className="p-4 text-center">
                       <span className="text-xs font-black text-slate-700">{row.duration} day/s</span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="text-xs font-black text-slate-700">{row.type_of_rent}</span>
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center">

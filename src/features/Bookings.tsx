@@ -8,12 +8,12 @@ import { CustomButtons } from "../components/CustomButtons";
 import { useModalStore } from "../store/useModalStore";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
-import to12Hour from "../utils/timeFormatter";
 import React from "react";
 import { SearchBar, TableData } from "../components";
 import { DeleteModal, UpdateStatus } from "../modals";
 import { useLoadingStore } from "../store/useLoading";
 import Card from "../components/Card";
+import { to12Hour } from "../utils/timeFormatter";
 
 const BookingForm = React.lazy(() => import("../modals/BookingForm"));
 

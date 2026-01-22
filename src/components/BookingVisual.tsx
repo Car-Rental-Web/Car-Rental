@@ -16,7 +16,7 @@ const BookingVisual = () => {
       const endDate = `${selectedYear}-12-31`;
 
       const { data, error } = await supabase
-        .from("booking")
+        .from("renter_booking")
         .select("id, created_at")
         .gte("created_at", startDate)
         .lte("created_at", endDate);
