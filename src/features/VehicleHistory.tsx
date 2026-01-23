@@ -79,7 +79,7 @@ const VehicleHistory = () => {
   const fetchVehicle = async () => {
     try {
       const { data } = await supabase.from("vehicle").select("*");
-      setVehicleCard(data || []);
+      setVehicleCard(data || []);444444444
       console.log('Fetched Vehicle', data)
     } catch (error) {
       console.log("Failed Fetching Vehicle", error);
@@ -482,10 +482,10 @@ const VehicleHistory = () => {
                         <td className="px-6 py-4">
                           <div className="text-xs space-y-0.5">
                             <p className="text-gray-700 font-medium">
-                              S: {new Date(row.start_date).toLocaleDateString()}
+                              Start: {formatDate(row.start_date)}
                             </p>
                             <p className="text-gray-400 italic">
-                              E: {new Date(row.end_date).toLocaleDateString()}
+                              End: {formatDate(row.end_date)}
                             </p>
                           </div>
                         </td>
@@ -493,11 +493,11 @@ const VehicleHistory = () => {
                           <span
                             className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
                               row.status === "Completed"
-                                ? "bg-emerald-100 text-emerald-700"
+                                ? "bg-red-500 text-red-100"
                                 : row.status === "On Service"
-                                  ? "bg-blue-100 text-blue-700"
+                                  ? "bg-emerald-500 text-emerald-100"
                                   : row.status === "On Reservation"
-                                    ? "bg-amber-100 text-amber-700"
+                                    ? "bg-blue-500 text-blue-100"
                                     : "bg-gray-100 text-gray-700"
                             }`}
                           >

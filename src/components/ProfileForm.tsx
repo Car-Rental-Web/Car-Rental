@@ -54,14 +54,14 @@ const ProfileForm: React.FC<Props> = ({
 
       // 1. Handle Valid ID Upload
       if (data.valid_id?.[0] instanceof File) {
-        const { path } = await uploadFile(data.valid_id[0], "ids");
-        validIdUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/ids/${path}`;
+        const { path } = await uploadFile(data.valid_id[0], "valid_id");
+        validIdUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/valid_id/${path}`;
       }
 
       // 2. Handle E-Signature Upload
       if (data.e_signature?.[0] instanceof File) {
-        const { path } = await uploadFile(data.e_signature[0], "signatures");
-        signatureUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/signatures/${path}`;
+        const { path } = await uploadFile(data.e_signature[0], "e_signature");
+        signatureUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/e_signature/${path}`;
       }
 
       const payload = {
@@ -126,27 +126,27 @@ const ProfileForm: React.FC<Props> = ({
           {/* Section: Government IDs */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">License Number</label>
-            <input {...register("license_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
+            <input placeholder="ex: ABC-123-ZXC" {...register("license_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
           </div>
 
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">PhilHealth Number</label>
-            <input {...register("philhealth_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
+            <input placeholder="ex: ABC-123-ZXC" {...register("philhealth_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
           </div>
 
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">TIN Number</label>
-            <input {...register("tin_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
+            <input placeholder="ex: ABC-123-ZXC" {...register("tin_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
           </div>
 
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">SSS Number</label>
-            <input {...register("sss_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
+            <input placeholder="ex: ABC-123-ZXC" {...register("sss_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
           </div>
 
           <div className="md:col-span-2">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pag-IBIG Number</label>
-            <input {...register("pagibig_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
+            <input placeholder="ex: ABC-123-ZXC" {...register("pagibig_number")} disabled={isView} className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50" />
           </div>
 
           {/* Section: File Uploads */}

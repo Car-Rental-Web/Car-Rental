@@ -103,16 +103,55 @@ const RenterProfile = () => {
   }, [selectedName]);
 
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from("renter").delete().eq("id", id);
-    if (error) {
-      toast.error("Failed to delete");
-      return;
+  try {
+    // 1. Fetch the renter's data first to get the file URLs
+    const { data: renter, error: fetchError } = await supabase
+      .from("renter")
+      .select("valid_id, e_signature")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) throw new Error("Could not find renter data");
+
+    // 2. Extract the file paths from the URLs
+    // This assumes your URLs look like: .../public/ids/folder/filename.png
+    const getPath = (url: string) => url?.split('/').slice(-1)[0]; // Gets the filename
+    
+    const filesToDelete = [];
+    if (renter.valid_id) filesToDelete.push(getPath(renter.valid_id));
+    
+    // Note: If you have folders in your path, you'll need the full path after the bucket name
+    // If your path is just the filename, the logic below works:
+
+    // 3. Delete from Storage (IDs bucket)
+    if (renter.valid_id) {
+      const fileName = renter.valid_id.split('/').pop();
+      await supabase.storage.from("valid_id").remove([fileName]);
     }
-    toast.success("Renter deleted");
+
+    // 4. Delete from Storage (Signatures bucket)
+    if (renter.e_signature) {
+      const fileName = renter.e_signature.split('/').pop();
+      await supabase.storage.from("e_signature").remove([fileName]);
+    }
+
+    // 5. Finally, delete the database record
+    const { error: deleteError } = await supabase
+      .from("renter")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) throw deleteError;
+
+    toast.success("Renter and associated files deleted");
     setOpenDelete(false);
     fetchRenter();
-  };
 
+  } catch (error: any) {
+    console.error(error);
+    toast.error(error.message || "Failed to delete");
+  }
+};
   return (
     <div className="min-h-screen w-full pt-10 px-6 bg-[#f8fafc] flex flex-col gap-6 pb-10">
       {/* Metrics Cards */}
