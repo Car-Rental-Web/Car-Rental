@@ -8,37 +8,37 @@ import icons from "../constants/icon";
 import RenterForm from "../components/RenterForm";
 import { DeleteModal } from "../modals";
 import { toast } from "react-toastify";
-import  { formatDate, to12Hour } from "../utils/timeFormatter";
+import { formatDate, to12Hour } from "../utils/timeFormatter";
 
 const Renter = () => {
   const [openForm, setOpenForm] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
-    "create",
-  );
-  const [selectedData, setSelectedData] =
-    useState<DataRenterHistoryProps | null>(null);
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">("create");
+  const [selectedData, setSelectedData] = useState<DataRenterHistoryProps | null>(null);
+  
+  // renterData is what is currently displayed (filtered/paged)
   const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
-  const [filterRenterData, setFilterRenterData] = useState<
-    DataRenterHistoryProps[]
-  >([]);
-
+  // filterRenterData acts as the "Source of Truth" from the database
+  const [filterRenterData, setFilterRenterData] = useState<DataRenterHistoryProps[]>([]);
+  
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = renterData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(renterData.length / itemsPerPage);
-  const [searchTerm, setSearchTerm] = useState("");
-  //debounce
-  const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+
   const handleAction = (mode: "create" | "view" | "edit", data: any) => {
     setFormMode(mode);
     setSelectedData(data);
     setOpenForm(true);
   };
 
-  //delete booking
   const handleDelete = async (id: number) => {
     try {
       const { data: booking, error: fetchError } = await supabase
@@ -53,16 +53,13 @@ const Renter = () => {
       }
 
       const storageTasks: Promise<any>[] = [];
-
       if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
         const proofPaths = Array.isArray(booking.uploaded_proof)
           ? booking.uploaded_proof
           : JSON.parse(booking.uploaded_proof);
 
         storageTasks.push(
-          supabase.storage
-            .from("uploaded_proof")
-            .remove(proofPaths)
+          supabase.storage.from("uploaded_proof").remove(proofPaths)
         );
       }
 
@@ -73,36 +70,25 @@ const Renter = () => {
         .delete()
         .eq("id", id);
 
-      if (deleteError) {
-        throw deleteError;
-      }
-    
+      if (deleteError) throw deleteError;
+
       toast.success("Deleted Successfully");
-
-      const {error: vehicleStatusError} = await supabase.from('vehicle').update({status: "Available"}).eq("plate_number",booking.car_plate_number)
-
-      if(vehicleStatusError) {
-        // toast.error(' Failed to update in vehicle')
-        console.log('Failed to Update in Vehicle')
-        return
-      }
-      // toast.success('Update Successfull in Vehicle')
-      console.log('Update Successfull in Vehicle')
+      await supabase.from('vehicle').update({ status: "Available" }).eq("plate_number", booking.car_plate_number);
 
       setOpenDelete(false);
       setSelectedData(null);
-      setRenterData((prev) => prev.filter((row) => row.id !== id));
-
+      // Update local state source of truth
+      setFilterRenterData((prev) => prev.filter((row) => row.id !== id));
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Failed to delete everything");
     }
   };
 
-  //fetch renter
+  // Fetch data and setup subscription
   useEffect(() => {
     const fetchRenter = async () => {
-      const { data, error } = await supabase.from("renter_booking").select("*")
+      const { data, error } = await supabase.from("renter_booking").select("*").order('id', { ascending: false });
       if (error) {
         console.log("Error fetching renter", error);
         return;
@@ -111,80 +97,91 @@ const Renter = () => {
       setFilterRenterData(data);
     };
     fetchRenter();
+
     const subscription = supabase
       .channel("schema-db-changes")
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "renter_booking",
-        },
+        { event: "*", schema: "public", table: "renter_booking" },
         (payload) => {
           const eventType = payload.eventType;
           if (eventType === "INSERT") {
             const newData = payload.new as DataRenterHistoryProps;
-            setRenterData((prev) => [newData, ...prev]);
             setFilterRenterData((prev) => [newData, ...prev]);
           } else if (eventType === "UPDATE") {
             const updatedData = payload.new as DataRenterHistoryProps;
-            const updateFn = (prev: DataRenterHistoryProps[]) =>
-              prev.map((item) =>
-                item.id === updatedData.id ? updatedData : item,
-              );
-            setRenterData(updateFn);
-            setFilterRenterData(updateFn);
+            setFilterRenterData((prev) => prev.map((item) => item.id === updatedData.id ? updatedData : item));
           } else if (eventType === "DELETE") {
-            const deleteFn = (prev: DataRenterHistoryProps[]) =>
-              prev.filter((item) => item.id !== payload.old.id);
-            setRenterData(deleteFn);
-            setFilterRenterData(deleteFn);
+            setFilterRenterData((prev) => prev.filter((item) => item.id !== payload.old.id));
           }
-        },
+        }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(subscription);
-    };
+    return () => { supabase.removeChannel(subscription); };
   }, [openForm]);
 
+  // Combined Filtering Logic (Search + Status)
   useEffect(() => {
-    if (!debounceSearchTerm) {
-      setRenterData(filterRenterData);
-      return;
+    let filtered = [...filterRenterData];
+
+    if (selectedStatus !== "All") {
+      filtered = filtered.filter((item) => item.status === selectedStatus);
     }
-    let result = filterData(debounceSearchTerm, filterRenterData, [
-      "full_name",
-      "address",
-      "license_number",
-      "car_plate_number",
-      "start_date",
-      "end_date",
-      "start_time",
-      "end_time",
-    ]);
-    setRenterData(result);
+
+    if (debounceSearchTerm) {
+      filtered = filterData(debounceSearchTerm, filtered, [
+        "full_name",
+        "address",
+        "license_number",
+        "car_plate_number",
+        "start_date",
+        "end_date",
+      ]);
+    }
+
+    setRenterData(filtered);
     setCurrentPage(1);
-  }, [debounceSearchTerm, filterRenterData]);
+  }, [debounceSearchTerm, filterRenterData, selectedStatus]);
 
   return (
     <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
       
-      {/* Header & Search */}
+      {/* Header & Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Rental History</h1>
           <p className="text-sm text-slate-500 font-medium">Monitoring {renterData.length} total bookings</p>
         </div>
-        <div className="w-full md:w-96">
-          <SearchBar
-            onClear={() => setSearchTerm("")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full py-2.5 px-4 bg-white border border-slate-200 shadow-sm text-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-            placeholder="Search Renter Details..."
-          />
+        
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+          {/* Status Filter */}
+          <div className="relative min-w-[180px]">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full py-2.5 px-4 bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+            >
+              <option value="All">All Status</option>
+              <option value="On Reservation">On Reservation</option>
+              <option value="On Service">On Service</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <icons.filter size={14} />
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="w-full md:w-80">
+            <SearchBar
+              onClear={() => setSearchTerm("")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full py-2.5 px-4 bg-white border border-slate-200 shadow-sm text-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="Search Renter Details..."
+            />
+          </div>
         </div>
       </div>
 
@@ -209,46 +206,36 @@ const Renter = () => {
               {currentItems.length > 0 ? (
                 currentItems.map((row, index) => (
                   <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4 text-center text-sm font-bold text-slate-800">{indexOfFirstItem + index + 1}</td>
                     <td className="p-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 text-center">{index + 1}</span>
+                      <div className="flex flex-col text-center">
+                        <span className="text-sm font-bold text-slate-800">{row.full_name}</span>
+                        <span className="text-[11px] text-slate-400 truncate max-w-[250px] mx-auto">{row.address}</span>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 text-center">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 text-center">{row.full_name}</span>
-                        <span className="text-[11px] text-slate-400  text-center truncate max-w-[400px]">{row.address}</span>
+                        <span className="text-[11px] font-bold text-slate-500">License:</span>
+                        <span className="text-xs font-mono text-slate-700">{row.license_number}</span>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-slate-500 text-center">License:</span>
-                        <span className="text-xs font-mono text-slate-700 text-center">{row.license_number}</span>
-                      </div>
+                    <td className="p-4 text-center">
+                      <span className="text-xs font-bold text-blue-600">{row.car_plate_number}</span>
                     </td>
-                    <td className="p-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-blue-600 text-center">{row.car_plate_number}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-xs font-medium text-slate-700 text-center">
+                    <td className="p-4 text-center">
+                      <div className="text-xs font-medium text-slate-700">
                         {formatDate(row.start_date)} <span className="text-slate-300">|</span> {formatDate(row.end_date)}
                         <div className="text-[10px] text-slate-400 mt-0.5">{to12Hour(row.start_time)} - {to12Hour(row.end_time)}</div>
                       </div>
                     </td>
-                    <td className="p-4 text-center">
-                      <span className="text-xs font-black text-slate-700">{row.duration} day/s</span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <span className="text-xs font-black text-slate-700">{row.type_of_rent}</span>
-                    </td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">{row.duration} day/s</td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">{row.type_of_rent}</td>
                     <td className="p-4">
                       <div className="flex justify-center">
                         <span className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter shadow-sm border
-                          ${row.status === "Completed" ? "bg-red-500 text-red-100 border-emerald-100" : 
-                            row.status === "On Service" ? "bg-emerald-500 text-emerald-100 border-emerald-100" : 
-                            row.status === "On Reservation" ? "bg-blue-500 text-blue-100 border-blue-100" : 
+                          ${row.status === "Completed" ? "bg-red-500 text-red-100 border-red-400" : 
+                            row.status === "On Service" ? "bg-emerald-500 text-emerald-100 border-emerald-400" : 
+                            row.status === "On Reservation" ? "bg-blue-500 text-blue-100 border-blue-400" : 
                             "bg-slate-50 text-slate-700 border-slate-200"}`}
                         >
                           {row.status}
@@ -257,17 +244,13 @@ const Renter = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2 justify-center">
-                        <button onClick={() => handleAction("view", row)} title="View Details" className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm">
+                        <button onClick={() => handleAction("view", row)} className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm">
                           <icons.openEye size={16} />
                         </button>
-                        <button onClick={() => handleAction("edit", row)} title="Edit Booking" className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
+                        <button onClick={() => handleAction("edit", row)} className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
                           <icons.edit size={16} />
                         </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setSelectedData(row); setOpenDelete(true); }} 
-                          title="Delete"
-                          className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedData(row); setOpenDelete(true); }} className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm">
                           <icons.trash size={16} />
                         </button>
                       </div>
@@ -276,8 +259,31 @@ const Renter = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-20 text-center text-slate-400 italic text-sm">
-                    {searchTerm.length > 0 ? `No matches found for "${searchTerm}"` : "No rental history records found."}
+                  <td colSpan={9} className="p-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="p-3 bg-slate-100 rounded-full text-slate-400">
+                        <icons.filter size={24} />
+                      </div>
+                      <p className="text-sm text-slate-500 font-medium">
+                        {searchTerm.length > 0 && selectedStatus !== "All" ? (
+                          <>No matches found for <span className="text-slate-900 font-bold">"{searchTerm}"</span> in <span className="text-slate-900 font-bold">{selectedStatus}</span></>
+                        ) : searchTerm.length > 0 ? (
+                          <>No results found for <span className="text-slate-900 font-bold">"{searchTerm}"</span></>
+                        ) : selectedStatus !== "All" ? (
+                          <>No bookings currently <span className="text-slate-900 font-bold">{selectedStatus}</span></>
+                        ) : (
+                          "No rental history records found."
+                        )}
+                      </p>
+                      {(searchTerm || selectedStatus !== "All") && (
+                        <button 
+                          onClick={() => {setSearchTerm(""); setSelectedStatus("All");}}
+                          className="text-xs text-blue-600 font-bold hover:underline mt-2"
+                        >
+                          Clear all filters
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}
@@ -326,7 +332,6 @@ const Renter = () => {
         </div>
       </div>
 
-      {/* Forms & Modals */}
       <RenterForm
         open={openForm}
         mode={formMode}
