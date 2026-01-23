@@ -79,8 +79,9 @@ const VehicleHistory = () => {
   const fetchVehicle = async () => {
     try {
       const { data } = await supabase.from("vehicle").select("*");
-      setVehicleCard(data || []);444444444
-      console.log('Fetched Vehicle', data)
+      setVehicleCard(data || []);
+      444444444;
+      console.log("Fetched Vehicle", data);
     } catch (error) {
       console.log("Failed Fetching Vehicle", error);
     }
@@ -102,7 +103,7 @@ const VehicleHistory = () => {
   };
 
   const fetchBookingDate = async () => {
-    const { data, error } = await supabase.from("renter_booking").select("*");
+    const { data, error } = await supabase.from("renter_booking").select("*").in("status" ,["On Service", "On Reservation"]);
 
     if (error) {
       console.log("Failed to fetch");
@@ -142,6 +143,7 @@ const VehicleHistory = () => {
           >
             <option value="All">All Types</option>
             <option value="Sedan">Sedan</option>
+            <option value="MPV">MPV</option>
             <option value="SUV">SUV</option>
             <option value="VAN">Van</option>
             <option value="PICK UP">Pickup</option>
@@ -158,6 +160,7 @@ const VehicleHistory = () => {
             <option value="Available">Available</option>
             <option value="On Service">On Service</option>
             <option value="On Reservation">On Reservation</option>
+            <option value="On Maintenance">On Maintenance</option>
           </select>
         </div>
       </div>
@@ -203,31 +206,35 @@ const VehicleHistory = () => {
           filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
-              className={`group bg-white border  rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${vehicle.status === "On Service" ? "border-red-500" : vehicle.status === "On Reservation" ? "border-blue-500" : vehicle.status === "Completed" ? "border-gray-100" : vehicle.status === "Available" ? "border-green-500" : "border-none"} `}
+              className={`group bg-white border  rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${vehicle.status === "On Service" ? "border-red-500" : vehicle.status === "On Reservation" ? "border-blue-500" : vehicle.status === "Completed" ? "border-gray-100" : vehicle.status === "Available" ? "border-green-500" : vehicle.status === "On Maintenance" ? "border-red-500" : ""} `}
             >
               {/* status */}
               <div className="absolute top-5 left-5">
                 <div
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                     vehicle.status === "On Service"
-                      ? "bg-red-50 text-red-600 border-red-100"
+                      ? "bg-red-500 text-red-100 border-red-100"
                       : vehicle.status === "On Reservation"
                         ? "bg-blue-50 text-blue-600 border-blue-100"
                         : vehicle.status === "Completed"
                           ? "bg-gray-50 text-gray-600 border-gray-100"
-                          : "bg-green-50 text-green-600 border-green-100" // Available
+                          : vehicle.status === "Available"
+                            ? "bg-green-500 text-white border-green-500"
+                            : vehicle.status === "On Maintenance"
+                              ? "bg-red-500 text-red-100 border-red-100"
+                              : ""
                   }`}
                 >
                   {/* Small Status Dot */}
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
                       vehicle.status === "On Service"
-                        ? "bg-red-500"
+                        ? "bg-red-100"
                         : vehicle.status === "On Reservation"
                           ? "bg-blue-500"
                           : vehicle.status === "Completed"
                             ? "bg-gray-400"
-                            : "bg-green-500"
+                            : "bg-white"
                     }`}
                   />
                   {vehicle.status}
@@ -235,68 +242,78 @@ const VehicleHistory = () => {
               </div>
               {(vehicle.status === "On Service" ||
                 vehicle.status === "On Reservation") && (
-                  <div className="absolute top-5 right-15">
-<div className="relative group  ">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenSchedule(
-                        openSchedule === vehicle.id ? null : vehicle.id,
-                      );
-                    }}
-                    className="flex items-center gap-1 text-[9px] font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-100 px-2 py-1 rounded shadow-sm transition-colors"
-                  >
-                    <icons.calendar className="text-[10px]" />
-                    {openSchedule === vehicle.id
-                      ? "Close Schedule"
-                      : "View Schedule"}
-                  </button>
+                <div className="absolute top-5 right-15">
+                  <div className="relative group  ">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenSchedule(
+                          openSchedule === vehicle.id ? null : vehicle.id,
+                        );
+                      }}
+                      className="flex items-center gap-1 text-[9px] font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-100 px-2 py-1 rounded shadow-sm transition-colors"
+                    >
+                      <icons.calendar className="text-[10px]" />
+                      {openSchedule === vehicle.id
+                        ? "Close Schedule"
+                        : "View Schedule"}
+                    </button>
 
-                  {/* The "Better" Popover: Hidden by default, shows on hover or click */}
-                  {openSchedule === vehicle.id && (
-                    <>
-                      {/* Invisible backdrop to close when clicking outside */}
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setOpenSchedule(null)}
-                      />
+                    {/* The "Better" Popover: Hidden by default, shows on hover or click */}
+                    {openSchedule === vehicle.id && (
+                      <>
+                        {/* Invisible backdrop to close when clicking outside */}
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setOpenSchedule(null)}
+                        />
 
-                      <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl p-3 z-50 animate-in fade-in zoom-in duration-200">
-                        <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2 border-b border-gray-50 pb-1">
-                          Booking Dates
-                        </h4>
-                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                          {selectDate
-                            .filter(
-                              (date) =>
-                                date.car_plate_number === vehicle.plate_number,
-                            )
-                            .map((date) => (
-                              <div
-                                key={date.id}
-                                className="flex flex-col gap-0.5 p-2 bg-gray-50 rounded-lg border border-gray-100"
-                              >
-                                <div className="flex items-center justify-between text-[10px]">
-                                  <span className="text-gray-400">Start</span>
-                                  <span className="font-bold text-gray-700">
-                                    {formatDate(date.start_date)}
-                                  </span>
+                        <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl p-3 z-50 animate-in fade-in zoom-in duration-200">
+                          <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2 border-b border-gray-50 pb-1">
+                            Booking Dates
+                          </h4>
+                          <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                            {selectDate
+                              .filter(
+                                (date) =>
+                                  date.car_plate_number ===
+                                  vehicle.plate_number,
+                              )
+                              .map((date) => (
+                                <div
+                                  key={date.id}
+                                  className="flex flex-col gap-0.5 p-2 bg-gray-50 rounded-lg border border-gray-100"
+                                >
+                                  <div>
+                                    <span className="text-gray-800 font-bold text-xs">
+                                      {date.full_name}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="text-gray-400">Start</span>
+                                    <span className="font-bold text-gray-700">
+                                      {formatDate(date.start_date)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="text-gray-400">End</span>
+                                    <span className="font-bold text-gray-700">
+                                      {formatDate(date.end_date)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[10px]">
+                                    <span className="font-bold text-gray-700">
+                                      {date.status}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center justify-between text-[10px]">
-                                  <span className="text-gray-400">End</span>
-                                  <span className="font-bold text-gray-700">
-                                    {formatDate(date.end_date)}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                          </div>
                         </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                      </>
+                    )}
                   </div>
-                
+                </div>
               )}
               {/* Action Dropdown */}
               <div className="absolute top-4 right-4 z-10">
@@ -338,7 +355,10 @@ const VehicleHistory = () => {
                     </button>
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-50 transition-colors"
-                      onClick={() => setOpenDelete(true)}
+                      onClick={() => {
+                        setSelectVehicleId(vehicle);
+                        setOpenDelete(true);
+                      }}
                     >
                       <icons.trash /> Delete Vehicle
                     </button>
@@ -385,18 +405,20 @@ const VehicleHistory = () => {
                       History <icons.rightArrow />
                     </button>
                     <button
-                      disabled={vehicle.status === "On Service"}
+                      disabled={vehicle.status === "On Service" || vehicle.status === "On Maintenance"}
                       onClick={() => {
                         setShowForm(true);
                         setSelectedVehicle(vehicle);
                       }}
-                      className={`flex-1  flex items-center justify-center gap-2 px-3 py-2  text-white rounded-lg text-xs font-semibold transition-all cursor-pointer ${vehicle.status === "On Service" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}
+                      className={`flex-1  flex items-center justify-center gap-2 px-3 py-2  text-white rounded-lg text-xs font-semibold transition-all cursor-pointer ${vehicle.status === "On Service" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : vehicle.status === "On Maintenance" ? "bg-red-500" : "bg-gray-900 hover:bg-black"}`}
                     >
                       {vehicle.status === "On Service"
                         ? "Rented"
                         : vehicle.status === "On Reservation"
-                          ? "Reserved"
-                          : "Rent"}{" "}
+                        ? "Reserved"
+                        : vehicle.status === "On Maintenance"
+                        ? "Maintenance"
+                        : "Rent"}
                       <icons.rightArrow />
                     </button>
                   </div>

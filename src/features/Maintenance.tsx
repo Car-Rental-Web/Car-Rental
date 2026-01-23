@@ -38,21 +38,44 @@ const Maintenance = () => {
   }, [onClose]);
 
   const handleUpdate = async (id: number) => {
-    setLoading(true);
-    const { data, error } = await supabase
+  setLoading(true);
+  try {
+    // 1. Get the maintenance record first to find out which car it belongs to
+    const { data: maintenanceRecord, error: fetchError } = await supabase
+      .from("maintenance")
+      .select("car") // Assuming 'car' stores the plate number
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !maintenanceRecord) throw new Error("Maintenance record not found");
+
+    // 2. Update the maintenance status to "Maintained"
+    const { error: maintenanceError } = await supabase
       .from("maintenance")
       .update({ status: "Maintained" })
       .eq("id", id);
 
-    if (error) {
-      toast.error("Update Failed");
-    } else {
-      console.log('Update Successful', data)
-      toast.success("Update Successfully");
-      setOpenStatus(false);
-    }
+    if (maintenanceError) throw maintenanceError;
+
+    // 3. Update the vehicle status to "Available" using the plate number
+    const { error: vehicleError } = await supabase
+      .from("vehicle")
+      .update({ status: "Available" })
+      .eq("plate_number", maintenanceRecord.car); // Match by Plate, not ID
+
+    if (vehicleError) throw vehicleError;
+
+    toast.success("Update Successfully");
+    setOpenStatus(false);
+    
+    // Refresh your data here if necessary
+  } catch (err: any) {
+    console.error(err.message);
+    toast.error("Update Failed: " + err.message);
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   const handleDelete = async (id: number) => {
     setLoading(true);

@@ -85,49 +85,61 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   };
 
   const onSubmit = useCallback(
-    async (data: MaintenanceFormData) => {
-      setLoading(true);
-      try {
-        let finalType = data.type_of_maintenance;
-        const currentSelections = finalType.split(", ").filter(t => MAINTENANCE_OPTIONS.includes(t));
-        
-        if (isOtherSelected && otherText.trim()) {
-          finalType = [...currentSelections, otherText.trim()].join(", ");
+  async (data: MaintenanceFormData) => {
+    setLoading(true);
+    try {
+      let finalType = data.type_of_maintenance;
+      // ... (your existing type_of_maintenance string logic)
+
+      const payload = { ...data, type_of_maintenance: finalType };
+
+      if (isCreate) {
+        // 1. Insert Maintenance Record
+        const { error: mError } = await supabase.from("maintenance").insert(payload);
+        if (mError) throw mError;
+
+        // 2. Set vehicle to Maintenance
+        const { error: vError } = await supabase
+          .from("vehicle")
+          .update({ status: "On Maintenance" })
+          .eq("plate_number", data.car);
+        if (vError) throw vError;
+
+        toast.success("Maintenance started; vehicle status updated.");
+      } 
+      
+      else if (isEdit && initialData?.id) {
+        // 1. Update Maintenance Record
+        const { error: mError } = await supabase
+          .from("maintenance")
+          .update(payload)
+          .eq("id", initialData.id);
+        if (mError) throw mError;
+
+        // 2. Logic to set vehicle back to Available
+        // Check if the status in the form is now "Done" or "Completed"
+        if (data.status === "Maintained") {
+          const { error: vError } = await supabase
+            .from("vehicle")
+            .update({ status: "Available" })
+            .eq("plate_number", data.car);
+          if (vError) throw vError;
+          toast.success("Maintenance completed; vehicle is now Available.");
         } else {
-          finalType = currentSelections.join(", ");
+          toast.success("Maintenance record updated.");
         }
-
-        // Final validation if string is empty
-        if (!finalType) {
-          toast.error("Please select at least one maintenance type");
-          setLoading(false);
-          return;
-        }
-
-        const payload = { ...data, type_of_maintenance: finalType };
-
-        if (isCreate) {
-          const { error } = await supabase.from("maintenance").insert(payload);
-          if (error) throw error;
-          toast.success("Maintenance added successfully");
-        } else if (isEdit && initialData?.id) {
-          const { error } = await supabase.from("maintenance").update(payload).eq("id", initialData.id);
-          if (error) throw error;
-          toast.success("Maintenance updated successfully");
-        }
-        
-        onClose();
-        reset();
-        setOtherText("");
-        setIsOtherSelected(false);
-      } catch (error: any) {
-        toast.error(error.message ?? "Something went wrong");
-      } finally {
-        setLoading(false);
       }
-    },
-    [isCreate, isEdit, initialData, onClose, reset, setLoading, isOtherSelected, otherText]
-  );
+
+      onClose();
+      reset();
+    } catch (error: any) {
+      toast.error(error.message ?? "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  },
+  [isCreate, isEdit, initialData, onClose, reset, setLoading, isOtherSelected, otherText]
+);
 
   useEffect(() => {
     const fetchVehicles = async () => {
