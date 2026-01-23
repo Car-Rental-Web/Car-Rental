@@ -143,7 +143,7 @@ const RenterProfile = () => {
 
     if (deleteError) throw deleteError;
 
-    toast.success("Renter and associated files deleted");
+    toast.success(`"Renter and associated files deleted"`);
     setOpenDelete(false);
     fetchRenter();
 

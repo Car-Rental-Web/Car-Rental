@@ -72,7 +72,7 @@ const Renter = () => {
 
       if (deleteError) throw deleteError;
 
-      toast.success("Deleted Successfully");
+      toast.success(`"Deleted Successfully" ${booking.car_plate_number}`);
       await supabase.from('vehicle').update({ status: "Available" }).eq("plate_number", booking.car_plate_number);
 
       setOpenDelete(false);

@@ -67,14 +67,22 @@ const Header = () => {
   };
 
   const fetchReminders = async () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isoTomorrow = tomorrow.toISOString().split("T")[0];
+ const date = new Date();
+  // Add 1 day
+  date.setDate(date.getDate() + 1);
+  
+  // Safely format to YYYY-MM-DD using local time
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const localTomorrow = `${year}-${month}-${day}`;
+
+  console.log("Checking reminders for local date:", localTomorrow);
 
     const { data } = await supabase
       .from("renter_booking")
       .select("id, full_name, car_plate_number, start_date, status")
-      .eq("start_date", isoTomorrow)
+      .eq("start_date", localTomorrow)
       .eq("status", "On Reservation") // Disappears automatically when status changes
       .order("start_date", { ascending: true });
 
@@ -132,28 +140,31 @@ const Header = () => {
         toast.info((payload.new as Notification).message_text);
       }
     )
-    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "renter_booking" }, 
-      (payload) => {
-        const isNowOnService = payload.new.status === "On Service";
-        const isReserved = payload.new.status === "On Reservation";
-        
-        if (isNowOnService) {
-          // Remove from list if it moved to On Service
-          setBookingReminders(prev => prev.filter(r => r.id !== payload.new.id));
-        } else {
-          // Refresh reminders
-          fetchReminders();
-          
-          // Only play sound if it was changed TO 'On Reservation'
-          // This prevents sound from playing for random updates like price changes
-          if (isReserved) {
-            playSound(); 
-            toast.warning(`New Reminder: ${payload.new.full_name}'s reservation is tomorrow!`);
-          }
-        }
+    .on("postgres_changes", { event: "*", schema: "public", table: "renter_booking" }, 
+    (payload) => {
+      const booking = payload.new as BookingReminder;
+      const isReserved = booking.status === "On Reservation";
+      
+      // Get Local Tomorrow string (YYYY-MM-DD)
+      const date = new Date();
+      date.setDate(date.getDate() + 1);
+      const localTomorrow = date.toLocaleDateString('en-CA'); // "en-CA" gives YYYY-MM-DD
+
+      if (isReserved && booking.start_date === localTomorrow) {
+        // If it's for tomorrow, refresh the list and notify
+        fetchReminders();
+        playSound(); 
+        toast.warning(`New Reminder: ${booking.full_name}'s reservation is tomorrow!`);
+      } else if (booking.status === "On Service") {
+        // If it's now On Service, remove it from the list
+        setBookingReminders(prev => prev.filter(r => r.id !== booking.id));
+      } else {
+        // Just refresh the data silently for any other changes
+        fetchReminders();
       }
-    )
-    .subscribe();
+    }
+  )
+  .subscribe();
 
   return () => { supabase.removeChannel(channel); };
 }, []);
