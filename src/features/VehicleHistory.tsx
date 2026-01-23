@@ -13,8 +13,11 @@ import { toast } from "react-toastify";
 import { DeleteModal } from "../modals";
 import { VehicleRenterForm } from "../components";
 import { usePagination } from "../utils/Pagination";
+import { formatDate } from "../utils/timeFormatter";
 
 const VehicleHistory = () => {
+  const [selectDate, setSelectDate] = useState<DataBookingRow[]>([]);
+  const [openSchedule, setOpenSchedule] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedVehicle, setSelectedVehicle] =
     useState<DataVehicleTypes | null>(null);
@@ -32,22 +35,23 @@ const VehicleHistory = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All");
-  const [selectedStatus, setSelectedStatus] = useState("All")
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const filteredVehicles = vehicleCard.filter((vehicle) => {
-  // 1. Search Filter (Brand, Model, Plate)
-  const matchesSearch =
-    vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.plate_number.toLowerCase().includes(searchTerm.toLowerCase());
+    // 1. Search Filter (Brand, Model, Plate)
+    const matchesSearch =
+      vehicle.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.plate_number.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // 2. Type Filter (Sedan, SUV, etc.)
-  const matchesType = selectedType === "All" || vehicle.type === selectedType;
+    // 2. Type Filter (Sedan, SUV, etc.)
+    const matchesType = selectedType === "All" || vehicle.type === selectedType;
 
-  // 3. Status Filter (Available, On Service, etc.)
-  const matchesStatus = selectedStatus === "All" || vehicle.status === selectedStatus;
+    // 3. Status Filter (Available, On Service, etc.)
+    const matchesStatus =
+      selectedStatus === "All" || vehicle.status === selectedStatus;
 
-  return matchesSearch && matchesType && matchesStatus;
-});
+    return matchesSearch && matchesType && matchesStatus;
+  });
   const { open, onOpen, onClose } = useModalStore();
   const {
     currentPage,
@@ -76,14 +80,11 @@ const VehicleHistory = () => {
     try {
       const { data } = await supabase.from("vehicle").select("*");
       setVehicleCard(data || []);
+      console.log('Fetched Vehicle', data)
     } catch (error) {
       console.log("Failed Fetching Vehicle", error);
     }
   };
-
-  useEffect(() => {
-    fetchVehicle();
-  }, [open, openDelete, onClose]);
 
   const fetchHistory = async (vehicle: DataVehicleTypes) => {
     const { data, error } = await supabase
@@ -99,6 +100,22 @@ const VehicleHistory = () => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 100);
   };
+
+  const fetchBookingDate = async () => {
+    const { data, error } = await supabase.from("renter_booking").select("*");
+
+    if (error) {
+      console.log("Failed to fetch");
+      return;
+    }
+    console.log("Fetch Date", data);
+    setSelectDate(data);
+  };
+
+  useEffect(() => {
+    fetchVehicle();
+    fetchBookingDate();
+  }, [open, openDelete, onClose]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
@@ -183,15 +200,107 @@ const VehicleHistory = () => {
             </p>
           </div>
         ) : (
-         filteredVehicles.map((vehicle) => (
+          filteredVehicles.map((vehicle) => (
             <div
               key={vehicle.id}
               className={`group bg-white border  rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${vehicle.status === "On Service" ? "border-red-500" : vehicle.status === "On Reservation" ? "border-blue-500" : vehicle.status === "Completed" ? "border-gray-100" : vehicle.status === "Available" ? "border-green-500" : "border-none"} `}
             >
+              {/* status */}
+              <div className="absolute top-5 left-5">
+                <div
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    vehicle.status === "On Service"
+                      ? "bg-red-50 text-red-600 border-red-100"
+                      : vehicle.status === "On Reservation"
+                        ? "bg-blue-50 text-blue-600 border-blue-100"
+                        : vehicle.status === "Completed"
+                          ? "bg-gray-50 text-gray-600 border-gray-100"
+                          : "bg-green-50 text-green-600 border-green-100" // Available
+                  }`}
+                >
+                  {/* Small Status Dot */}
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      vehicle.status === "On Service"
+                        ? "bg-red-500"
+                        : vehicle.status === "On Reservation"
+                          ? "bg-blue-500"
+                          : vehicle.status === "Completed"
+                            ? "bg-gray-400"
+                            : "bg-green-500"
+                    }`}
+                  />
+                  {vehicle.status}
+                </div>
+              </div>
+              {(vehicle.status === "On Service" ||
+                vehicle.status === "On Reservation") && (
+                  <div className="absolute top-5 right-15">
+<div className="relative group  ">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenSchedule(
+                        openSchedule === vehicle.id ? null : vehicle.id,
+                      );
+                    }}
+                    className="flex items-center gap-1 text-[9px] font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-100 px-2 py-1 rounded shadow-sm transition-colors"
+                  >
+                    <icons.calendar className="text-[10px]" />
+                    {openSchedule === vehicle.id
+                      ? "Close Schedule"
+                      : "View Schedule"}
+                  </button>
+
+                  {/* The "Better" Popover: Hidden by default, shows on hover or click */}
+                  {openSchedule === vehicle.id && (
+                    <>
+                      {/* Invisible backdrop to close when clicking outside */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setOpenSchedule(null)}
+                      />
+
+                      <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl p-3 z-50 animate-in fade-in zoom-in duration-200">
+                        <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2 border-b border-gray-50 pb-1">
+                          Booking Dates
+                        </h4>
+                        <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                          {selectDate
+                            .filter(
+                              (date) =>
+                                date.car_plate_number === vehicle.plate_number,
+                            )
+                            .map((date) => (
+                              <div
+                                key={date.id}
+                                className="flex flex-col gap-0.5 p-2 bg-gray-50 rounded-lg border border-gray-100"
+                              >
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-gray-400">Start</span>
+                                  <span className="font-bold text-gray-700">
+                                    {formatDate(date.start_date)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-gray-400">End</span>
+                                  <span className="font-bold text-gray-700">
+                                    {formatDate(date.end_date)}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                  </div>
+                
+              )}
               {/* Action Dropdown */}
               <div className="absolute top-4 right-4 z-10">
                 <div className="flex justify-between items-center">
-                  <p>{vehicle.status}</p>
                   <button
                     onClick={() =>
                       setopenAction(
@@ -281,9 +390,14 @@ const VehicleHistory = () => {
                         setShowForm(true);
                         setSelectedVehicle(vehicle);
                       }}
-                      className={`flex-1  flex items-center justify-center gap-2 px-3 py-2  text-white rounded-lg text-xs font-semibold transition-all cursor-pointer ${vehicle.status === "On Service" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" :"bg-gray-900 hover:bg-black"}` }
+                      className={`flex-1  flex items-center justify-center gap-2 px-3 py-2  text-white rounded-lg text-xs font-semibold transition-all cursor-pointer ${vehicle.status === "On Service" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}
                     >
-                      {vehicle.status === "On Service" ? "Rented" : vehicle.status === "On Reservation" ? "Reserved" : "Rent"} <icons.rightArrow />
+                      {vehicle.status === "On Service"
+                        ? "Rented"
+                        : vehicle.status === "On Reservation"
+                          ? "Reserved"
+                          : "Rent"}{" "}
+                      <icons.rightArrow />
                     </button>
                   </div>
                 </div>

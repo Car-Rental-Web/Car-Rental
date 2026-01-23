@@ -22,7 +22,6 @@ import { useRestoreSession } from "../hooks/useRestoreSession";
 import { ToastContainer } from "react-toastify";
 import { NotFound} from "../components";
 import PublicRoutes from "./PublicRoutes";
-import TestForm from "../modals/testForm";
 
 const AppRoutes = () => {
   useRestoreSession();
@@ -41,7 +40,6 @@ const AppRoutes = () => {
 
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<RootLayout />}>
-          <Route path="test" element={<TestForm/>}></Route>
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
             {/* <Route path="bookings" element={<Bookings />}></Route> */}

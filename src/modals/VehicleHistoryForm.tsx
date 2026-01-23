@@ -121,10 +121,10 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
   const labelStyles = "block text-sm font-semibold text-gray-700 mb-1";
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-999 flex justify-center items-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-1300 flex justify-center items-center p-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+        className="bg-white w-full max-w-3xl max-h-full overflow-auto  rounded-2xl shadow-2xl  animate-in fade-in zoom-in duration-200"
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">

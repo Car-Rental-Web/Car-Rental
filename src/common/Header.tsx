@@ -303,14 +303,13 @@ const Header = () => {
                             setOpenNotif(false);
                             navigate(
                               n.type_text === "new_booking"
-                                ? "/historyofrent"
-                                : "/renterprofile",
+                                ? "/historyofrent" : n.type_text === "status_update" ? "/historyofrent" : "renterprofile"
                             );
                           }}
                           className="p-4 border-b flex gap-3 hover:bg-slate-50 cursor-pointer"
                         >
                           <div
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${n.type_text === "new_booking" ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600"}`}
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${n.type_text === "new_booking" ? "bg-blue-200 text-blue-500" : "bg-green-500 text-amber-50"}`}
                           >
                             {n.type_text === "new_booking" ? (
                               <icons.rent size={16} />

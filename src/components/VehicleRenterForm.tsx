@@ -244,7 +244,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-999 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}
+      className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-1300 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}
     >
       <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
@@ -396,7 +396,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   />
                 </div>
               </div>
-              <div className=" flex w-full gap-4">
+              <div className=" md:flex w-full gap-4">
                 <div className="w-full">
                   <label className={labelStyles}>Pick Up Time</label>
                   <input
@@ -429,7 +429,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                     <label className={labelStyles}>Type of Rent</label>
                     <select
                       {...register("type_of_rent")}
-                      className={`${inputStyles} font-bold appearance-none`}
+                      className={`${inputStyles} font-bold appearance-none text-sm md:text-base`}
                     >
                       <option value="">Choose Type</option>
                       <option value="Self Drive">Self Drive</option>
@@ -443,7 +443,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   <label className={labelStyles}>Booking Status</label>
                   <select
                     {...register("status")}
-                    className={`${inputStyles} font-bold`}
+                    className={`${inputStyles} font-bold text-sm md:text-base`}
                   >
                     <option value="">Select Status</option>
                     <option value="On Service">On Service</option>

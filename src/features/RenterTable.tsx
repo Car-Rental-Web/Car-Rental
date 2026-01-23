@@ -246,9 +246,9 @@ const Renter = () => {
                     <td className="p-4">
                       <div className="flex justify-center">
                         <span className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter shadow-sm border
-                          ${row.status === "Completed" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : 
-                            row.status === "On Service" ? "bg-amber-50 text-amber-700 border-amber-100" : 
-                            row.status === "On Reservation" ? "bg-blue-50 text-blue-700 border-blue-100" : 
+                          ${row.status === "Completed" ? "bg-red-500 text-red-100 border-emerald-100" : 
+                            row.status === "On Service" ? "bg-emerald-500 text-emerald-100 border-emerald-100" : 
+                            row.status === "On Reservation" ? "bg-blue-500 text-blue-100 border-blue-100" : 
                             "bg-slate-50 text-slate-700 border-slate-200"}`}
                         >
                           {row.status}

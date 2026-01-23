@@ -291,8 +291,8 @@ const RenterForm: React.FC<RenterFormProps> = ({
         {/* SECTION: RENTER IDENTITY */}
         <h3 className={sectionTitle}>1. Identity Information</h3>
         <div className=" flex flex-col gap-5 mb-10">
-          <div className="flex w-full gap-4">
-            <div className="flex flex-col lg:col-span-2 w-4/8">
+          <div className="md:flex w-full gap-4">
+            <div className="flex flex-col lg:col-span-2 w-full md:w-4/8">
               <label className={labelBase}>Full Name</label>
               <input
                 readOnly
@@ -314,7 +314,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
               <ErrorMessage field="address" />
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="md:flex gap-4">
             <div className="flex flex-col">
               <label className={labelBase}>License Number</label>
               <input
@@ -370,7 +370,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
         {/* SECTION: RENTAL LOGISTICS */}
         <h3 className={sectionTitle}>2. Vehicle Selection</h3>
-        <div className="flex w-full gap-4 mb-5 bg-gray-50 rounded-xl border border-gray-100 p-6">
+        <div className="md:flex w-full gap-4 mb-5 bg-gray-50 rounded-xl border border-gray-100 p-6">
           <div className="flex flex-col relative w-full">
             <label className={labelBase}>Plate Number</label>
             <select
@@ -382,12 +382,12 @@ const RenterForm: React.FC<RenterFormProps> = ({
               <option value="">Select Vehicle</option>
               {vehicles.map((v) => (
                 <option
-                  disabled={v.status === "On Rent" || v.status === "On Service"}
+                  disabled={ v.status === "On Service"}
                   key={v.id}
                   value={v.plate_number}
-                  className={`${v.status === "On Service" ? "text-red-500" : ""}`}
+                  className={`${v.status === "On Service" ? "text-red-500" : v.status === "On Reservation" ? "text-blue-500" : ""}`}
                 >
-                  {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""}
+                  {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""} {v.status === "On Reservation" ? "(Reserved)" : ""}
                 </option>
               ))}
             </select>
@@ -419,7 +419,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
         </div>
         <h3 className={sectionTitle}>3. Rental Schedule</h3>
         <div className="w-full gap-5 mb-10 p-6 bg-gray-50 rounded-xl border border-gray-100">
-         <div className="flex w-full gap-4">
+         <div className="md:flex w-full gap-4">
            <div className="flex flex-col w-full">
             <label className={labelBase}>Start Date</label>
             <input
@@ -453,7 +453,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             <ErrorMessage field="duration" />
           </div>
          </div>
-<div className="flex w-full gap-4">
+<div className="md:flex w-full gap-4">
  <div className="flex flex-col w-full">
             <label className={labelBase}>Pick Up Time</label>
             <input
