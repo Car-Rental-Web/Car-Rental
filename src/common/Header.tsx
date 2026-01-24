@@ -67,17 +67,17 @@ const Header = () => {
   };
 
   const fetchReminders = async () => {
- const date = new Date();
-  // Add 1 day
-  date.setDate(date.getDate() + 1);
-  
-  // Safely format to YYYY-MM-DD using local time
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const localTomorrow = `${year}-${month}-${day}`;
+    const date = new Date();
+    // Add 1 day
+    date.setDate(date.getDate() + 1);
 
-  console.log("Checking reminders for local date:", localTomorrow);
+    // Safely format to YYYY-MM-DD using local time
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const localTomorrow = `${year}-${month}-${day}`;
+
+    console.log("Checking reminders for local date:", localTomorrow);
 
     const { data } = await supabase
       .from("renter_booking")
@@ -122,52 +122,71 @@ const Header = () => {
   };
 
   useEffect(() => {
-  fetchNotifications();
-  fetchReminders();
+    fetchNotifications();
+    fetchReminders();
 
-  // Helper to play notification sound
-  const playSound = () => {
-    new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3")
-      .play()
-      .catch((err) => console.log("Audio play blocked by browser:", err));
-  };
+    // Helper to play notification sound
+    const playSound = () => {
+      new Audio(
+        "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+      )
+        .play()
+        .catch((err) => console.log("Audio play blocked by browser:", err));
+    };
 
-  const channel = supabase.channel("header-live")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "notification" }, 
-      (payload) => {
-        setNotifications((prev) => [payload.new as Notification, ...prev]);
-        playSound(); // Play sound for new message
-        toast.info((payload.new as Notification).message_text);
-      }
-    )
-    .on("postgres_changes", { event: "*", schema: "public", table: "renter_booking" }, 
-    (payload) => {
-      const booking = payload.new as BookingReminder;
-      const isReserved = booking.status === "On Reservation";
-      
-      // Get Local Tomorrow string (YYYY-MM-DD)
-      const date = new Date();
-      date.setDate(date.getDate() + 1);
-      const localTomorrow = date.toLocaleDateString('en-CA'); // "en-CA" gives YYYY-MM-DD
+    const channel = supabase
+      .channel("header-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notification" },
+        (payload) => {
+          setNotifications((prev) => [payload.new as Notification, ...prev]);
+          playSound(); // Play sound for new message
+          toast.info((payload.new as Notification).message_text);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "renter_booking" },
+        (payload) => {
+          const booking = payload.new as BookingReminder;
+          const isReserved = booking.status === "On Reservation";
 
-      if (isReserved && booking.start_date === localTomorrow) {
-        // If it's for tomorrow, refresh the list and notify
-        fetchReminders();
-        playSound(); 
-        toast.warning(`New Reminder: ${booking.full_name}'s reservation is tomorrow!`);
-      } else if (booking.status === "On Service") {
-        // If it's now On Service, remove it from the list
-        setBookingReminders(prev => prev.filter(r => r.id !== booking.id));
-      } else {
-        // Just refresh the data silently for any other changes
-        fetchReminders();
-      }
-    }
-  )
-  .subscribe();
+          // Get Local Tomorrow string (YYYY-MM-DD)
+          const date = new Date();
+          date.setDate(date.getDate() + 1);
+          const localTomorrow = date.toLocaleDateString("en-CA"); // "en-CA" gives YYYY-MM-DD
 
-  return () => { supabase.removeChannel(channel); };
-}, []);
+          if (isReserved && booking.start_date === localTomorrow) {
+            // If it's for tomorrow, refresh the list and notify
+            fetchReminders();
+            playSound();
+            toast.warning(
+              `New Reminder: ${booking.full_name}'s reservation is tomorrow!`,
+              {
+                toastId: booking.id,
+              },
+            );
+          } else if (booking.status === "On Service") {
+            // If it's now On Service, remove it from the list
+            setBookingReminders((prev) =>
+              prev.filter((r) => r.id !== booking.id),
+            );
+          } else if (booking.status === "Completed") {
+            fetchNotifications();
+            fetchReminders()
+          } else {
+            fetchNotifications();
+            fetchReminders();
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     const close = () => {
@@ -314,7 +333,10 @@ const Header = () => {
                             setOpenNotif(false);
                             navigate(
                               n.type_text === "new_booking"
-                                ? "/historyofrent" : n.type_text === "status_update" ? "/historyofrent" : "renterprofile"
+                                ? "/historyofrent"
+                                : n.type_text === "status_update"
+                                  ? "/historyofrent"
+                                  : "renterprofile",
                             );
                           }}
                           className="p-4 border-b flex gap-3 hover:bg-slate-50 cursor-pointer"
