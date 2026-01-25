@@ -15,6 +15,11 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RenterAgreementPDF } from "./RenterAgreementPDF";
 import React from "react";
 
+// ADDED FOR DATEPICKER
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { differenceInDays, parseISO, format } from "date-fns";
+
 interface RenterFormProps {
   open: boolean;
   onClose: () => void;
@@ -45,6 +50,12 @@ const RenterForm: React.FC<RenterFormProps> = ({
   const [existingPaths, setExistingPaths] = useState({
     uploaded_proof: [] as string[],
   });
+  const [loading, setLoading] = useState(false);
+
+  // ADDED: State for booked dates
+  const [bookedIntervals, setBookedIntervals] = useState<
+    { start: Date; end: Date }[]
+  >([]);
 
   const {
     register,
@@ -65,10 +76,16 @@ const RenterForm: React.FC<RenterFormProps> = ({
   const selectedPlate = watch("car_plate_number");
   const watchedProof = watch("uploaded_proof");
 
+  // ADDED: Watch dates for duration calculation
+  const watchedStartDate = watch("start_date");
+  const watchedEndDate = watch("end_date");
+
+  // Logic for Auto-filling Vehicle and Duration
   useEffect(() => {
     if (!selectedPlate) {
       setValue("car_model", "");
       setValue("car_type", "");
+      setBookedIntervals([]); // Clear intervals if no plate
     }
     const selectedVehicle = vehicles.find(
       (v) => v.plate_number === selectedPlate,
@@ -77,7 +94,39 @@ const RenterForm: React.FC<RenterFormProps> = ({
       setValue("car_model", selectedVehicle.model);
       setValue("car_type", selectedVehicle.type);
     }
-  }, [selectedPlate, vehicles, setValue]);
+
+    // NEW: Calculate Duration Automatically
+    if (watchedStartDate && watchedEndDate) {
+      const start = new Date(watchedStartDate);
+      const end = new Date(watchedEndDate);
+      const diff = differenceInDays(end, start);
+      setValue("duration", diff > 0 ? diff.toString() : "1");
+    }
+  }, [selectedPlate, vehicles, setValue, watchedStartDate, watchedEndDate]);
+
+  // NEW: Fetch existing bookings to disable dates
+  useEffect(() => {
+    if (!selectedPlate) return;
+
+    const fetchDisabledDates = async () => {
+      const { data } = await supabase
+        .from("renter_booking")
+        .select("start_date, end_date")
+        .eq("car_plate_number", selectedPlate)
+        .in("status", ["On Reservation", "On Service"])
+        .neq("id", selectedData?.id || "00000000-0000-0000-0000-000000000000");
+
+      if (data) {
+        const intervals = data.map((item) => ({
+          start: parseISO(item.start_date),
+          end: parseISO(item.end_date),
+        }));
+        setBookedIntervals(intervals);
+      }
+    };
+
+    fetchDisabledDates();
+  }, [selectedPlate, selectedData]);
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -132,12 +181,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
       onClose();
       return;
     }
-
     try {
+      setLoading(true);
+
       let finalProofArray: string[] = [...existingPaths.uploaded_proof];
 
       if (mode === "edit" && selectedData?.uploaded_proof) {
-        const originalPaths: string[] = selectedData.uploaded_proof;
+        const originalPaths: string[] = selectedData.uploaded_proof as any;
         const pathsToDelete = originalPaths.filter(
           (path) => !existingPaths.uploaded_proof.includes(path),
         );
@@ -178,10 +228,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
         cleanPayload.e_signature = watchedSignature;
       }
 
-      /* ==========================================================
-          DYNAMIC VEHICLE STATUS LOGIC (CHECKING FUTURE BOOKINGS)
-      ========================================================== */
-      let vehicleStatus = "Available"; 
+      let vehicleStatus = "Available";
       const plateNumber = cleanPayload.car_plate_number;
 
       if (cleanPayload.status === "On Service") {
@@ -189,17 +236,17 @@ const RenterForm: React.FC<RenterFormProps> = ({
       } else if (cleanPayload.status === "On Reservation") {
         vehicleStatus = "On Reservation";
       } else if (cleanPayload.status === "Completed") {
-        // Logic: Check if there is another "On Reservation" for this specific car
         const { data: futureBookings } = await supabase
           .from("renter_booking")
           .select("id")
           .eq("car_plate_number", plateNumber)
           .eq("status", "On Reservation")
-          .neq("id", selectedData?.id || ""); // Exclude the current row
+          .neq("id", selectedData?.id || "");
 
-        vehicleStatus = (futureBookings && futureBookings.length > 0) 
-          ? "On Reservation" 
-          : "Available";
+        vehicleStatus =
+          futureBookings && futureBookings.length > 0
+            ? "On Reservation"
+            : "Available";
       }
 
       if (mode === "edit") {
@@ -216,10 +263,13 @@ const RenterForm: React.FC<RenterFormProps> = ({
             .eq("plate_number", plateNumber);
         }
 
-        toast.success(vehicleStatus === "On Reservation" && cleanPayload.status === "Completed" 
-            ? "Record Completed. Car remains 'Reserved' for next customer." 
-            : "Updated successfully");
-            
+        toast.success(
+          vehicleStatus === "On Reservation" &&
+            cleanPayload.status === "Completed"
+            ? "Record Completed. Car remains 'Reserved' for next customer."
+            : "Updated successfully",
+        );
+
         if (onSuccess) onSuccess();
       } else {
         const { error } = await supabase
@@ -241,6 +291,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
     } catch (err: any) {
       console.error("Error submitting form:", err);
       toast.error(err.message);
+      setLoading(false);
     }
   };
 
@@ -260,8 +311,10 @@ const RenterForm: React.FC<RenterFormProps> = ({
       </span>
     ) : null;
 
-  const labelBase = "text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 ml-1";
-  const sectionTitle = "text-sm font-black text-blue-600 uppercase tracking-widest mb-4 border-b pb-2 flex items-center gap-2";
+  const labelBase =
+    "text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 ml-1";
+  const sectionTitle =
+    "text-sm font-black text-blue-600 uppercase tracking-widest mb-4 border-b pb-2 flex items-center gap-2";
 
   return (
     <div
@@ -281,9 +334,15 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
         <header className="mb-8">
           <h2 className="text-2xl font-black text-gray-800 tracking-tight">
-            {mode === "view" ? "Booking Summary" : mode === "edit" ? "Modify Booking" : "New Rental Registration"}
+            {mode === "view"
+              ? "Booking Summary"
+              : mode === "edit"
+                ? "Modify Booking"
+                : "New Rental Registration"}
           </h2>
-          <p className="text-gray-500 text-sm">Fill in all required fields to proceed.</p>
+          <p className="text-gray-500 text-sm">
+            Fill in all required fields to proceed.
+          </p>
         </header>
 
         <h3 className={sectionTitle}>1. Identity Information</h3>
@@ -291,40 +350,75 @@ const RenterForm: React.FC<RenterFormProps> = ({
           <div className="md:flex w-full gap-4">
             <div className="flex flex-col lg:col-span-2 w-full md:w-4/8">
               <label className={labelBase}>Full Name</label>
-              <input readOnly {...register("full_name")} type="text" className={getInputClass("full_name")} />
+              <input
+                readOnly
+                {...register("full_name")}
+                type="text"
+                className={getInputClass("full_name")}
+              />
               <ErrorMessage field="full_name" />
             </div>
 
             <div className="flex flex-col md:col-span-2 lg:col-span-3 w-full">
               <label className={labelBase}>Current Address</label>
-              <input readOnly {...register("address")} type="text" className={getInputClass("address")} />
+              <input
+                readOnly
+                {...register("address")}
+                type="text"
+                className={getInputClass("address")}
+              />
               <ErrorMessage field="address" />
             </div>
           </div>
           <div className="md:flex gap-4">
             <div className="flex flex-col">
               <label className={labelBase}>License Number</label>
-              <input readOnly {...register("license_number")} type="text" className={getInputClass("license_number")} />
+              <input
+                readOnly
+                {...register("license_number")}
+                type="text"
+                className={getInputClass("license_number")}
+              />
               <ErrorMessage field="license_number" />
             </div>
             <div className="flex flex-col">
               <label className={labelBase}>PhilHealth No.</label>
-              <input readOnly {...register("philhealth_number")} type="text" className={getInputClass("philhealth_number")} />
+              <input
+                readOnly
+                {...register("philhealth_number")}
+                type="text"
+                className={getInputClass("philhealth_number")}
+              />
               <ErrorMessage field="philhealth_number" />
             </div>
             <div className="flex flex-col">
               <label className={labelBase}>TIN No.</label>
-              <input readOnly {...register("tin_number")} type="text" className={getInputClass("tin_number")} />
+              <input
+                readOnly
+                {...register("tin_number")}
+                type="text"
+                className={getInputClass("tin_number")}
+              />
               <ErrorMessage field="tin_number" />
             </div>
             <div className="flex flex-col">
               <label className={labelBase}>SSS No.</label>
-              <input readOnly {...register("sss_number")} type="text" className={getInputClass("sss_number")} />
+              <input
+                readOnly
+                {...register("sss_number")}
+                type="text"
+                className={getInputClass("sss_number")}
+              />
               <ErrorMessage field="sss_number" />
             </div>
             <div className="flex flex-col">
               <label className={labelBase}>Pag-IBIG No.</label>
-              <input readOnly {...register("pagibig_number")} type="text" className={getInputClass("pagibig_number")} />
+              <input
+                readOnly
+                {...register("pagibig_number")}
+                type="text"
+                className={getInputClass("pagibig_number")}
+              />
               <ErrorMessage field="pagibig_number" />
             </div>
           </div>
@@ -343,12 +437,16 @@ const RenterForm: React.FC<RenterFormProps> = ({
               <option value="">Select Vehicle</option>
               {vehicles.map((v) => (
                 <option
-                  disabled={ v.status === "On Service" || v.status === "On Maintenance"}
+                  disabled={
+                    v.status === "On Service" || v.status === "On Maintenance"
+                  }
                   key={v.id}
                   value={v.plate_number}
                   className={`${v.status === "On Service" ? "text-red-500" : v.status === "On Reservation" ? "text-blue-500" : v.status === "On Maintenance" ? "text-red-500" : ""}`}
                 >
-                  {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""} {v.status === "On Reservation" ? "(Reserved)" : ""} {v.status === "On Maintenance" ? "(Maintenance)" : ""}
+                  {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""}{" "}
+                  {v.status === "On Reservation" ? "(Reserved)" : ""}{" "}
+                  {v.status === "On Maintenance" ? "(Maintenance)" : ""}
                 </option>
               ))}
             </select>
@@ -358,57 +456,120 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
           <div className="flex flex-col w-full">
             <label className={labelBase}>Model</label>
-            <input readOnly {...register("car_model")} type="text" className={getInputClass("car_model")} />
+            <input
+              readOnly
+              {...register("car_model")}
+              type="text"
+              className={getInputClass("car_model")}
+            />
             <ErrorMessage field="car_model" />
           </div>
 
           <div className="flex flex-col w-full">
             <label className={labelBase}>Body Type</label>
-            <input readOnly {...register("car_type")} type="text" className={getInputClass("car_type")} />
+            <input
+              readOnly
+              {...register("car_type")}
+              type="text"
+              className={getInputClass("car_type")}
+            />
             <ErrorMessage field="car_type" />
           </div>
         </div>
 
         <h3 className={sectionTitle}>3. Rental Schedule</h3>
         <div className="w-full gap-5 mb-10 p-6 bg-gray-50 rounded-xl border border-gray-100">
-         <div className="md:flex w-full gap-4">
-           <div className="flex flex-col w-full">
-            <label className={labelBase}>Start Date</label>
-            <input disabled={isReadOnly} {...register("start_date")} type="date" className={getInputClass("start_date")} />
-            <ErrorMessage field="start_date" />
+          <div className="md:flex w-full gap-4">
+            {/* START DATE DATEPICKER */}
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Start Date</label>
+              <DatePicker
+                disabled={isReadOnly || !selectedPlate}
+                selected={watchedStartDate ? new Date(watchedStartDate) : null}
+                onChange={(date: Date | null) =>
+                  setValue("start_date", date ? format(date, "yyyy-MM-dd") : "")
+                }
+                excludeDateIntervals={bookedIntervals}
+                minDate={new Date()}
+                placeholderText="Select start date"
+                className={getInputClass("start_date")}
+              />
+              <ErrorMessage field="start_date" />
+            </div>
+
+            {/* END DATE DATEPICKER */}
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>End Date</label>
+              <DatePicker
+                disabled={isReadOnly || !watchedStartDate}
+                selected={watchedEndDate ? new Date(watchedEndDate) : null}
+                onChange={(date: Date | null) =>
+                  setValue("end_date", date ? format(date, "yyyy-MM-dd") : "")
+                }
+                excludeDateIntervals={bookedIntervals}
+                minDate={
+                  watchedStartDate ? new Date(watchedStartDate) : new Date()
+                }
+                placeholderText="Select end date"
+                className={getInputClass("end_date")}
+              />
+              <ErrorMessage field="end_date" />
+            </div>
+
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Duration (Days)</label>
+              <input
+                placeholder="0"
+                readOnly
+                disabled={isReadOnly}
+                {...register("duration")}
+                type="text"
+                className={getInputClass("duration")}
+              />
+              <ErrorMessage field="duration" />
+            </div>
           </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>End Date</label>
-            <input disabled={isReadOnly} {...register("end_date")} type="date" className={getInputClass("end_date")} />
-            <ErrorMessage field="end_date" />
+          <div className="md:flex w-full gap-4">
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Pick Up Time</label>
+              <input
+                disabled={isReadOnly}
+                {...register("start_time")}
+                type="time"
+                className={getInputClass("start_time")}
+              />
+              <ErrorMessage field="start_time" />
+            </div>
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Drop Off Time</label>
+              <input
+                disabled={isReadOnly}
+                {...register("end_time")}
+                type="time"
+                className={getInputClass("end_time")}
+              />
+              <ErrorMessage field="end_time" />
+            </div>
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Destination/Location</label>
+              <input
+                disabled={isReadOnly}
+                {...register("location")}
+                type="text"
+                className={getInputClass("location")}
+                placeholder="Baguio City"
+              />
+              <ErrorMessage field="location" />
+            </div>
           </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Duration (Days)</label>
-            <input placeholder="0" disabled={isReadOnly} {...register("duration")} type="text" className={getInputClass("duration")} />
-            <ErrorMessage field="duration" />
-          </div>
-         </div>
-         <div className="md:flex w-full gap-4">
-           <div className="flex flex-col w-full">
-            <label className={labelBase}>Pick Up Time</label>
-            <input disabled={isReadOnly} {...register("start_time")} type="time" className={getInputClass("start_time")} />
-            <ErrorMessage field="start_time" />
-          </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Drop Off Time</label>
-            <input disabled={isReadOnly} {...register("end_time")} type="time" className={getInputClass("end_time")} />
-            <ErrorMessage field="end_time" />
-          </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Destination/Location</label>
-            <input disabled={isReadOnly} {...register("location")} type="text" className={getInputClass("location")} placeholder="Baguio City" />
-            <ErrorMessage field="location" />
-          </div>
-         </div>
           <div className="flex w-full gap-4 pt-4">
             <div className="flex flex-col relative w-full">
               <label className={labelBase}>Rental Type</label>
-              <select disabled={isReadOnly} {...register("type_of_rent")} className={`${getInputClass("type_of_rent")} appearance-none font-bold`}>
+              <select
+                disabled={isReadOnly}
+                {...register("type_of_rent")}
+                className={`${getInputClass("type_of_rent")} appearance-none font-bold`}
+              >
                 <option value="">Choose Type</option>
                 <option value="Self Drive">Self Drive</option>
                 <option value="With Driver">With Driver</option>
@@ -419,7 +580,11 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
             <div className="flex flex-col relative w-full">
               <label className={labelBase}>Booking Status</label>
-              <select disabled={isReadOnly} {...register("status")} className={`${getInputClass("status")} appearance-none font-bold text-blue-600`}>
+              <select
+                disabled={isReadOnly}
+                {...register("status")}
+                className={`${getInputClass("status")} appearance-none font-bold text-blue-600`}
+              >
                 <option value="">Set Status</option>
                 <option value="On Service">On Service</option>
                 <option value="On Reservation">On Reservation</option>
@@ -431,20 +596,36 @@ const RenterForm: React.FC<RenterFormProps> = ({
           </div>
         </div>
 
-        <h3 className={sectionTitle}><icons.upload size={16} /> Verification & Documents</h3>
+        <h3 className={sectionTitle}>
+          <icons.upload size={16} /> Verification & Documents
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className={labelBase}>E-Signature</label>
-              <button type="button" onClick={() => setShowSignature(!showSignature)} className="text-[10px] font-bold text-blue-500 hover:text-blue-700 underline uppercase tracking-tighter">
+              <button
+                type="button"
+                onClick={() => setShowSignature(!showSignature)}
+                className="text-[10px] font-bold text-blue-500 hover:text-blue-700 underline uppercase tracking-tighter"
+              >
                 {showSignature ? "Close Preview" : "View Current Signature"}
               </button>
             </div>
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 bg-gray-50 flex flex-col items-center justify-center min-h-40">
               {showSignature && selectedData?.e_signature ? (
                 <div className="text-center">
-                  <img src={selectedData.e_signature} className="h-20 object-contain mix-blend-multiply mb-4" />
-                  {!isReadOnly && <input {...register("e_signature")} type="file" className="text-xs" accept="image/*" />}
+                  <img
+                    src={selectedData.e_signature}
+                    className="h-20 object-contain mix-blend-multiply mb-4"
+                  />
+                  {!isReadOnly && (
+                    <input
+                      {...register("e_signature")}
+                      type="file"
+                      className="text-xs"
+                      accept="image/*"
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-gray-400">
@@ -457,30 +638,66 @@ const RenterForm: React.FC<RenterFormProps> = ({
           </div>
 
           <div className="p-4 bg-slate-50 border rounded-xl">
-            <label className="text-sm font-bold text-slate-700 block mb-3">Transaction Proofs</label>
+            <label className="text-sm font-bold text-slate-700 block mb-3">
+              Transaction Proofs
+            </label>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {existingPaths.uploaded_proof.map((path, index) => (
-                  <div key={index} className="relative group w-16 h-16 border rounded bg-white overflow-hidden">
-                    <img src={getPublicUrl("uploaded_proof", path)} className="w-full h-full object-cover" />
+                  <div
+                    key={index}
+                    className="relative group w-16 h-16 border rounded bg-white overflow-hidden"
+                  >
+                    <img
+                      src={getPublicUrl("uploaded_proof", path)}
+                      className="w-full h-full object-cover"
+                    />
                     {!isReadOnly && (
-                      <button type="button" onClick={() => setExistingPaths((prev) => ({...prev, uploaded_proof: prev.uploaded_proof.filter((_, i) => i !== index)}))} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExistingPaths((prev) => ({
+                            ...prev,
+                            uploaded_proof: prev.uploaded_proof.filter(
+                              (_, i) => i !== index,
+                            ),
+                          }))
+                        }
+                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                      >
                         <icons.trash size={10} />
                       </button>
                     )}
                   </div>
                 ))}
-                {watchedProof instanceof FileList && Array.from(watchedProof).map((file, index) => (
-                  <div key={index} className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden">
-                    <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => resetField("uploaded_proof")} className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100">
-                      <icons.trash size={10} />
-                    </button>
-                  </div>
-                ))}
+                {watchedProof instanceof FileList &&
+                  Array.from(watchedProof).map((file, index) => (
+                    <div
+                      key={index}
+                      className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => resetField("uploaded_proof")}
+                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                      >
+                        <icons.trash size={10} />
+                      </button>
+                    </div>
+                  ))}
               </div>
               {!isReadOnly && (
-                <input type="file" {...register("uploaded_proof")} multiple accept="image/*" className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                <input
+                  type="file"
+                  {...register("uploaded_proof")}
+                  multiple
+                  accept="image/*"
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
               )}
             </div>
           </div>
@@ -489,21 +706,44 @@ const RenterForm: React.FC<RenterFormProps> = ({
         {mode === "view" && (
           <div className="mb-10 bg-slate-800 rounded-2xl p-6 text-white shadow-xl">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <button type="button" onClick={() => setShowAgreement(!showAgreement)} className="flex-1 px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-                <icons.openEye size={18} /> {showAgreement ? "Hide Agreement" : "View Signed Document"}
+              <button
+                type="button"
+                onClick={() => setShowAgreement(!showAgreement)}
+                className="flex-1 px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <icons.openEye size={18} />{" "}
+                {showAgreement ? "Hide Agreement" : "View Signed Document"}
               </button>
 
               <PDFDownloadLink
-                document={<RenterAgreementPDF data={{ full_name: watchedName, e_signature: watchedSignature }} />}
+                document={
+                  <RenterAgreementPDF
+                    data={{
+                      full_name: watchedName,
+                      e_signature: watchedSignature,
+                    }}
+                  />
+                }
                 fileName={`Agreement_${watchedName}.pdf`}
                 className="flex-1 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 rounded-xl font-bold text-sm text-slate-900 transition-all flex items-center justify-center gap-2"
               >
-                {({ loading }) => loading ? "Preparing..." : <><icons.download size={18} /> Download Official PDF</>}
+                {({ loading }) =>
+                  loading ? (
+                    "Preparing..."
+                  ) : (
+                    <>
+                      <icons.download size={18} /> Download Official PDF
+                    </>
+                  )
+                }
               </PDFDownloadLink>
             </div>
             {showAgreement && (
               <div className="bg-white text-gray-800 p-8 rounded-xl max-h-96 overflow-y-auto shadow-inner">
-                <RenterAgreement full_name={watchedName} signatureUrl={watchedSignature} />
+                <RenterAgreement
+                  full_name={watchedName}
+                  signatureUrl={watchedSignature}
+                />
               </div>
             )}
           </div>
@@ -511,10 +751,24 @@ const RenterForm: React.FC<RenterFormProps> = ({
 
         <div className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-6 border-t mt-4">
           {(mode === "create" || mode === "edit") && (
-            <button type="button" onClick={onClose} className="flex-1 px-8 py-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all">Cancel</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-8 py-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
+            >
+              Cancel
+            </button>
           )}
-          <button type="submit" className={`flex-2 px-8 py-4 rounded-xl font-black text-white shadow-lg transition-all ${mode === "view" ? "bg-slate-800 hover:bg-slate-700" : "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200"}`}>
-            {mode === "view" ? "Close Portal" : mode === "edit" ? "Save Changes" : "Confirm Booking"}
+          <button
+            disabled={loading}
+            type="submit"
+            className={`flex-2 px-8 py-4 rounded-xl font-black text-white shadow-lg transition-all ${mode === "view" ? "bg-slate-800 hover:bg-slate-700" : "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200"}`}
+          >
+            {mode === "view"
+              ? "Close Portal"
+              : mode === "edit"
+                ? "Save Changes"
+                : "Confirm Booking"}
           </button>
         </div>
       </form>

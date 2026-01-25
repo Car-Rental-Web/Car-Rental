@@ -19,7 +19,7 @@ import Card from "../components/Card";
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);
   const [filterRecords, setFilterRecords] = useState<DataMaintenanceProps[]>(
-    []
+    [],
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectValue, setSelectValue] = useState("");
@@ -30,7 +30,7 @@ const Maintenance = () => {
   const [selectedMaintenanceId, setSelectedMaintenanceId] =
     useState<MaintenanceFormValues | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
-    "create"
+    "create",
   );
 
   useEffect(() => {
@@ -38,44 +38,45 @@ const Maintenance = () => {
   }, [onClose]);
 
   const handleUpdate = async (id: number) => {
-  setLoading(true);
-  try {
-    // 1. Get the maintenance record first to find out which car it belongs to
-    const { data: maintenanceRecord, error: fetchError } = await supabase
-      .from("maintenance")
-      .select("car") // Assuming 'car' stores the plate number
-      .eq("id", id)
-      .single();
+    setLoading(true);
+    try {
+      // 1. Get the maintenance record first to find out which car it belongs to
+      const { data: maintenanceRecord, error: fetchError } = await supabase
+        .from("maintenance")
+        .select("car") // Assuming 'car' stores the plate number
+        .eq("id", id)
+        .single();
 
-    if (fetchError || !maintenanceRecord) throw new Error("Maintenance record not found");
+      if (fetchError || !maintenanceRecord)
+        throw new Error("Maintenance record not found");
 
-    // 2. Update the maintenance status to "Maintained"
-    const { error: maintenanceError } = await supabase
-      .from("maintenance")
-      .update({ status: "Maintained" })
-      .eq("id", id);
+      // 2. Update the maintenance status to "Maintained"
+      const { error: maintenanceError } = await supabase
+        .from("maintenance")
+        .update({ status: "Maintained" })
+        .eq("id", id);
 
-    if (maintenanceError) throw maintenanceError;
+      if (maintenanceError) throw maintenanceError;
 
-    // 3. Update the vehicle status to "Available" using the plate number
-    const { error: vehicleError } = await supabase
-      .from("vehicle")
-      .update({ status: "Available" })
-      .eq("plate_number", maintenanceRecord.car); // Match by Plate, not ID
+      // 3. Update the vehicle status to "Available" using the plate number
+      const { error: vehicleError } = await supabase
+        .from("vehicle")
+        .update({ status: "Available" })
+        .eq("plate_number", maintenanceRecord.car); // Match by Plate, not ID
 
-    if (vehicleError) throw vehicleError;
+      if (vehicleError) throw vehicleError;
 
-    toast.success("Update Successfully");
-    setOpenStatus(false);
-    
-    // Refresh your data here if necessary
-  } catch (err: any) {
-    console.error(err.message);
-    toast.error("Update Failed: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Update Successfully");
+      setOpenStatus(false);
+
+      // Refresh your data here if necessary
+    } catch (err: any) {
+      console.error(err.message);
+      toast.error("Update Failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id: number) => {
     setLoading(true);
@@ -88,7 +89,7 @@ const Maintenance = () => {
       toast.error("Failed to delete");
       return;
     }
-    console.log('Deleted Successfully', data)
+    console.log("Deleted Successfully", data);
     setRecords((prev) => prev.filter((row) => row.id !== id));
     setFilterRecords((prev) => prev.filter((row) => row.id !== id));
     toast.success("Deleted Successfully");
@@ -118,14 +119,23 @@ const Maintenance = () => {
       setFilterRecords(rowsData);
     };
     fetchMaintenance();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [open, openStatus]);
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   useEffect(() => {
     let result = filterData(debounceSearchTerm, filterRecords, [
-      "id", "date", "car", "type_of_maintenance", "cost_of_maintenance", "location", "maintained_by", "status",
+      "id",
+      "date",
+      "car",
+      "type_of_maintenance",
+      "cost_of_maintenance",
+      "location",
+      "maintained_by",
+      "status",
     ]);
     if (selectValue !== "") {
       result = result.filter((item) => item.status === selectValue);
@@ -133,7 +143,10 @@ const Maintenance = () => {
     setRecords(result);
   }, [debounceSearchTerm, selectValue, filterRecords]);
 
-  const totalExpense = records.reduce((sum, row) => sum + Number(row.cost_of_maintenance), 0);
+  const totalExpense = records.reduce(
+    (sum, row) => sum + Number(row.cost_of_maintenance),
+    0,
+  );
   const ongoing = records.filter((r) => r.status === "On Maintenance").length;
   const maintained = records.filter((r) => r.status === "Maintained").length;
 
@@ -149,7 +162,9 @@ const Maintenance = () => {
       cell: (row: DataMaintenanceProps) => (
         <div className="text-gray-700">
           {new Date(row.date).toLocaleDateString("en-Us", {
-            month: "short", day: "2-digit", year: "numeric",
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
           })}
         </div>
       ),
@@ -158,7 +173,7 @@ const Maintenance = () => {
       name: "Vehicle & Type",
       cell: (row: DataMaintenanceProps) => (
         <div className="flex flex-col">
-            <span className="font-semibold text-gray-800">{row.car}</span>
+          <span className="font-semibold text-gray-800">{row.car}</span>
         </div>
       ),
     },
@@ -166,13 +181,19 @@ const Maintenance = () => {
       name: "Type of Maintenance",
       cell: (row: DataMaintenanceProps) => (
         <div className="flex flex-col">
-            <span className="text-[11px] text-gray-500 uppercase">{row.type_of_maintenance}</span>
+          <span className="text-[11px] text-gray-500 uppercase">
+            {row.type_of_maintenance}
+          </span>
         </div>
       ),
     },
     {
       name: "Cost",
-      cell: (row: DataMaintenanceProps) => <div className="font-bold text-gray-900">₱{Number(row.cost_of_maintenance).toLocaleString()}</div>,
+      cell: (row: DataMaintenanceProps) => (
+        <div className="font-bold text-gray-900">
+          ₱{Number(row.cost_of_maintenance).toLocaleString()}
+        </div>
+      ),
     },
     {
       name: "Status",
@@ -182,8 +203,8 @@ const Maintenance = () => {
             row.status === "On Maintenance"
               ? "text-red-700 bg-red-50 border-red-100"
               : row.status === "Maintained"
-              ? "text-blue-700 bg-blue-50 border-blue-100"
-              : "text-gray-600 bg-gray-50"
+                ? "text-blue-700 bg-blue-50 border-blue-100"
+                : "text-gray-600 bg-gray-50"
           }`}
         >
           {row.status}
@@ -218,7 +239,7 @@ const Maintenance = () => {
               onOpen();
             }}
           />
-          
+
           {row.status === "On Maintenance" && (
             <icons.edit
               className="cursor-pointer text-indigo-400 hover:text-indigo-600 text-xl transition-colors"
@@ -250,7 +271,9 @@ const Maintenance = () => {
         <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
           Maintenance
         </h1>
-        <p className="text-gray-500 mt-1">Track and manage vehicle service records.</p>
+        <p className="text-gray-500 mt-1">
+          Track and manage vehicle service records.
+        </p>
       </div>
 
       <div className="flex flex-col gap-8 w-full">
@@ -258,25 +281,51 @@ const Maintenance = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card
             className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-rose-500 hover:shadow-md transition-shadow"
-            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Total Expense</span>}
+            title={
+              <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                Total Expense
+              </span>
+            }
             url={""}
-            amount={<span className="text-4xl font-black text-gray-900">₱{totalExpense.toLocaleString()}</span>}
+            amount={
+              <span className="text-4xl font-black text-gray-900">
+                ₱{totalExpense.toLocaleString()}
+              </span>
+            }
             description="Cumulative costs"
             topIcon={<icons.money className="text-2xl text-rose-500" />}
           />
           <Card
             className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-slate-800 hover:shadow-md transition-shadow"
-            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Completed</span>}
+            title={
+              <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                Completed
+              </span>
+            }
             url={""}
-            amount={<span className="text-4xl font-black text-gray-900">{maintained}</span>}
+            amount={
+              <span className="text-4xl font-black text-gray-900">
+                {maintained}
+              </span>
+            }
             description="Total serviced units"
-            topIcon={<icons.onMaintenance className="text-slate-800 text-2xl" />}
+            topIcon={
+              <icons.onMaintenance className="text-slate-800 text-2xl" />
+            }
           />
           <Card
             className="border border-gray-100 bg-white shadow-sm border-l-4 border-l-blue-600 hover:shadow-md transition-shadow"
-            title={<span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Ongoing</span>}
+            title={
+              <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                Ongoing
+              </span>
+            }
             url={""}
-            amount={<span className="text-4xl font-black text-gray-900">{ongoing}</span>}
+            amount={
+              <span className="text-4xl font-black text-gray-900">
+                {ongoing}
+              </span>
+            }
             description="Currently in shop"
             topIcon={<icons.onMaintenance className="text-blue-600 text-2xl" />}
           />
@@ -334,14 +383,14 @@ const Maintenance = () => {
           </div>
         </div>
         <div className="p-4">
-            <TableData
+          <TableData
             title={null}
             pagination={true}
             fixedHeader={true}
             fixedHeaderScrollHeight="450px"
             data={records}
             columns={columns}
-            />
+          />
         </div>
       </div>
     </div>

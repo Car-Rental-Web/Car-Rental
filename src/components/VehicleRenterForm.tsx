@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
 import { RenterFormDataSchema, type RenterFormValues } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +13,11 @@ import { ModalButton } from "./CustomButtons";
 import { RenterAgreementPDF } from "./RenterAgreementPDF";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import RenterAgreement from "./RenterAgreement";
+
+// ADDED FOR DATEPICKER
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { differenceInDays, format, parseISO } from "date-fns";
 
 interface RenterFormProps {
   open: boolean;
@@ -31,6 +37,9 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const [showSignature, setShowSignature] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
   const [selectToggle, setSelectToggle] = useState(false);
+  const [bookedIntervals, setBookedIntervals] = useState<
+    { start: Date; end: Date }[]
+  >([]);
   const [renter, setRenter] = useState<
     {
       id: string;
@@ -47,11 +56,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const [existingPaths, setExistingPaths] = useState({
     uploaded_proof: [] as string[],
   });
+
   const {
     register,
     handleSubmit,
     reset,
-    resetField,
+    resetField, // Restored
     watch,
     setValue,
     formState: { errors },
@@ -63,7 +73,10 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const isReadOnly = mode === "view";
   const watchedName = watch("full_name");
   const watchedSignature = watch("e_signature");
-  const watchedProof = watch("uploaded_proof");
+  const watchedProof = watch("uploaded_proof"); // Restored
+  const watchedPlate = watch("car_plate_number");
+  const watchedStartDate = watch("start_date");
+  const watchedEndDate = watch("end_date");
 
   useEffect(() => {
     if (open && selectedData) {
@@ -72,6 +85,38 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       setValue("car_type", selectedData.type);
     }
   }, [open, selectedData, setValue]);
+
+  // Fetch booked dates logic
+  useEffect(() => {
+    if (!watchedPlate) return;
+    const fetchBookedDates = async () => {
+      const { data } = await supabase
+        .from("renter_booking")
+        .select("start_date, end_date")
+        .eq("car_plate_number", watchedPlate)
+        .in("status", ["On Reservation", "On Service"])
+        .neq("id", selectedData?.id || "00000000-0000-0000-0000-000000000000");
+
+      if (data) {
+        const intervals = data.map((b) => ({
+          start: parseISO(b.start_date),
+          end: parseISO(b.end_date),
+        }));
+        setBookedIntervals(intervals);
+      }
+    };
+    fetchBookedDates();
+  }, [watchedPlate, selectedData]);
+
+  // Auto-calculate duration
+  useEffect(() => {
+    if (watchedStartDate && watchedEndDate) {
+      const start = new Date(watchedStartDate);
+      const end = new Date(watchedEndDate);
+      const diff = differenceInDays(end, start);
+      setValue("duration", diff > 0 ? diff.toString() : "1");
+    }
+  }, [watchedStartDate, watchedEndDate, setValue]);
 
   useEffect(() => {
     const fetchRenter = async () => {
@@ -95,7 +140,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       fileId = url.split("id=")[1]?.split("&")[0];
     }
     if (!fileId) return url;
-    return `https://lh3.googleusercontent.com/d/${fileId}=s1000?authuser=0`;
+    return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
   };
 
   useEffect(() => {
@@ -134,9 +179,8 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
     try {
       let finalProofArray: string[] = [...existingPaths.uploaded_proof];
 
-      // 1. Handle File Deletions (Edit Mode)
-      if (mode === "edit" && selectedData?.uploaded_proof) {
-        const originalPaths: string[] = selectedData.uploaded_proof;
+      if (mode === "edit" && (selectedData as any)?.uploaded_proof) {
+        const originalPaths: string[] = (selectedData as any).uploaded_proof;
         const pathsToDelete = originalPaths.filter(
           (path) => !existingPaths.uploaded_proof.includes(path),
         );
@@ -149,7 +193,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
         }
       }
 
-      // 2. Handle File Uploads
       if (
         renterData.uploaded_proof instanceof FileList &&
         renterData.uploaded_proof.length > 0
@@ -163,13 +206,11 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
         finalProofArray = [...finalProofArray, ...newPaths];
       }
 
-      // 3. Prepare Payload
       const cleanPayload: any = {
         ...renterData,
         uploaded_proof: finalProofArray,
       };
 
-      // Handle Signature
       if (renterData.e_signature instanceof FileList) {
         if (renterData.e_signature.length > 0) {
           delete cleanPayload.e_signature;
@@ -180,10 +221,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
         cleanPayload.e_signature = watchedSignature;
       }
 
-      /* ==========================================================
-          4. DYNAMIC VEHICLE STATUS LOGIC
-      ========================================================== */
-      let vehicleStatus = "Available"; // Default
+      let vehicleStatus = "Available";
       if (cleanPayload.status === "On Service") {
         vehicleStatus = "On Service";
       } else if (cleanPayload.status === "On Reservation") {
@@ -194,16 +232,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
       const plateNumber = cleanPayload.car_plate_number;
 
-      // 5. Database Operations
       if (mode === "edit") {
-        // Update Booking
         const { error } = await supabase
           .from("renter_booking")
           .update(cleanPayload)
           .eq("id", selectedData?.id);
         if (error) throw error;
 
-        // Update Vehicle Status
         if (plateNumber) {
           await supabase
             .from("vehicle")
@@ -214,13 +249,11 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
         toast.success("Updated successfully");
         if (onSuccess) onSuccess();
       } else {
-        // Insert Booking
         const { error } = await supabase
           .from("renter_booking")
           .insert([cleanPayload]);
         if (error) throw error;
 
-        // Update Vehicle Status
         if (plateNumber) {
           await supabase
             .from("vehicle")
@@ -247,7 +280,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-1300 justify-center items-center p-4 ${open ? "flex" : "hidden"}`}
     >
       <div className="bg-white w-full max-w-4xl max-h-[95vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="px-8 py-5 border-b flex justify-between items-center bg-gray-50">
           <h2 className="text-xl font-bold text-slate-800">
             Vehicle Rental Booking
@@ -259,7 +291,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="overflow-y-auto p-8 flex-1 space-y-6"
         >
-          {/* Section: Renter Identity */}
           <div className="space-y-4">
             <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
               1. Renter Selection
@@ -320,7 +351,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             </div>
           </div>
 
-          {/* Section: Vehicle Details */}
           <div className="space-y-4 pt-4">
             <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
               2. Vehicle Information
@@ -333,11 +363,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   {...register("car_plate_number")}
                   className={`${inputStyles} font-mono font-bold bg-white`}
                 />
-                {errors.car_plate_number && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Selection Required
-                  </p>
-                )}
               </div>
               <div>
                 <label className={labelStyles}>Model</label>
@@ -358,18 +383,28 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             </div>
           </div>
 
-          {/* Section: Schedule */}
           <div className="space-y-4 pt-4">
             <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
               3. Rental Schedule
             </p>
             <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className={labelStyles}>Start Date</label>
-                  <input
-                    type="date"
-                    {...register("start_date")}
+                  <DatePicker
+                    disabled={isReadOnly}
+                    selected={
+                      watchedStartDate ? new Date(watchedStartDate) : null
+                    }
+                    onChange={(date: Date | null) =>
+                      setValue(
+                        "start_date",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      )
+                    }
+                    excludeDateIntervals={bookedIntervals}
+                    minDate={new Date()}
+                    placeholderText="Select start date"
                     className={inputStyles}
                   />
                   {errors.start_date && (
@@ -378,9 +413,20 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 </div>
                 <div>
                   <label className={labelStyles}>End Date</label>
-                  <input
-                    type="date"
-                    {...register("end_date")}
+                  <DatePicker
+                    disabled={isReadOnly || !watchedStartDate}
+                    selected={watchedEndDate ? new Date(watchedEndDate) : null}
+                    onChange={(date: Date | null) =>
+                      setValue(
+                        "end_date",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      )
+                    }
+                    excludeDateIntervals={bookedIntervals}
+                    minDate={
+                      watchedStartDate ? new Date(watchedStartDate) : new Date()
+                    }
+                    placeholderText="Select end date"
                     className={inputStyles}
                   />
                   {errors.end_date && (
@@ -390,17 +436,20 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 <div>
                   <label className={labelStyles}>Duration (Days)</label>
                   <input
+                    readOnly
                     {...register("duration")}
                     className={inputStyles}
                     placeholder="0"
                   />
                 </div>
               </div>
-              <div className=" md:flex w-full gap-4">
+
+              <div className="md:flex w-full gap-4">
                 <div className="w-full">
                   <label className={labelStyles}>Pick Up Time</label>
                   <input
                     type="time"
+                    disabled={isReadOnly}
                     {...register("start_time")}
                     className={inputStyles}
                   />
@@ -409,6 +458,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   <label className={labelStyles}>Drop Off Time</label>
                   <input
                     type="time"
+                    disabled={isReadOnly}
                     {...register("end_time")}
                     className={inputStyles}
                   />
@@ -416,34 +466,34 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 <div className="w-full">
                   <label className={labelStyles}>Location</label>
                   <input
+                    disabled={isReadOnly}
                     {...register("location")}
                     className={inputStyles}
                     placeholder="Ex: Baguio"
                   />
                 </div>
               </div>
-              <div className="flex w-full gap-4">
-                <div className="w-full gap-4 pt-4">
-                  {/* Section: Extras */}
-                  <div className="relative">
-                    <label className={labelStyles}>Type of Rent</label>
-                    <select
-                      {...register("type_of_rent")}
-                      className={`${inputStyles} font-bold appearance-none text-sm md:text-base`}
-                    >
-                      <option value="">Choose Type</option>
-                      <option value="Self Drive">Self Drive</option>
-                      <option value="With Driver">With Driver</option>
-                    </select>
-                    <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
-                  </div>
+
+              <div className="flex w-full gap-4 pt-4">
+                <div className="w-full relative">
+                  <label className={labelStyles}>Type of Rent</label>
+                  <select
+                    disabled={isReadOnly}
+                    {...register("type_of_rent")}
+                    className={`${inputStyles} font-bold appearance-none`}
+                  >
+                    <option value="">Choose Type</option>
+                    <option value="Self Drive">Self Drive</option>
+                    <option value="With Driver">With Driver</option>
+                  </select>
+                  <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
                 </div>
-                {/* Status Section */}
-                <div className="pt-4 w-full">
+                <div className="w-full">
                   <label className={labelStyles}>Booking Status</label>
                   <select
+                    disabled={isReadOnly}
                     {...register("status")}
-                    className={`${inputStyles} font-bold text-sm md:text-base`}
+                    className={`${inputStyles} font-bold`}
                   >
                     <option value="">Select Status</option>
                     <option value="On Service">On Service</option>
@@ -455,7 +505,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             </div>
           </div>
 
-          {/* Signature & Uploads */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
             <div className="p-4 bg-slate-50 border rounded-xl">
               <div className="flex justify-between items-center mb-3">
@@ -471,7 +520,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 </button>
               </div>
               {showSignature && watchedSignature && (
-                <div className="space-y-3">
+                <div className="space-y-3 text-center">
                   <div className="bg-white border rounded p-2 flex justify-center">
                     <img
                       crossOrigin="anonymous"
@@ -479,14 +528,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                       src={watchedSignature}
                       alt="Signature"
                       className="h-20 object-contain"
-                      onError={(e) => {
-                        const fallback = watchedSignature.replace(
-                          "thumbnail?id=",
-                          "uc?export=view&id=",
-                        );
-                        if (e.currentTarget.src !== fallback)
-                          e.currentTarget.src = fallback;
-                      }}
                     />
                   </div>
                   {!isReadOnly && (
@@ -516,20 +557,22 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                         src={getPublicUrl("uploaded_proof", path)}
                         className="w-full h-full object-cover"
                       />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExistingPaths((prev) => ({
-                            ...prev,
-                            uploaded_proof: prev.uploaded_proof.filter(
-                              (_, i) => i !== index,
-                            ),
-                          }))
-                        }
-                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
-                      >
-                        <icons.trash size={10} />
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExistingPaths((prev) => ({
+                              ...prev,
+                              uploaded_proof: prev.uploaded_proof.filter(
+                                (_, i) => i !== index,
+                              ),
+                            }))
+                          }
+                          className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                        >
+                          <icons.trash size={10} />
+                        </button>
+                      )}
                     </div>
                   ))}
                   {watchedProof instanceof FileList &&
@@ -553,21 +596,18 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                     ))}
                 </div>
                 {!isReadOnly && (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      {...register("uploaded_proof")}
-                      multiple
-                      accept="image/*"
-                      className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                  </div>
+                  <input
+                    type="file"
+                    {...register("uploaded_proof")}
+                    multiple
+                    accept="image/*"
+                    className="w-full text-xs text-gray-500"
+                  />
                 )}
               </div>
             </div>
           </div>
 
-          {/* PDF Viewers (Only in view mode) */}
           {isReadOnly && (
             <div className="space-y-4 border-t pt-6">
               <div className="flex flex-col sm:flex-row gap-4">
@@ -587,8 +627,8 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                       }}
                     />
                   }
-                  fileName={`Rental_Agreement_${watchedName || "Booking"}.pdf`}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold text-center hover:bg-green-700 transition-colors"
+                  fileName={`Rental_Agreement_${watchedName}.pdf`}
+                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-bold text-center"
                 >
                   {({ loading }) =>
                     loading ? "Generating PDF..." : "Download as PDF"
@@ -607,7 +647,6 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
           )}
         </form>
 
-        {/* Footer */}
         <div className="p-6 border-t bg-gray-50 flex flex-col sm:flex-row gap-3">
           <button
             type="button"

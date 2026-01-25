@@ -174,7 +174,7 @@ const Header = () => {
             );
           } else if (booking.status === "Completed") {
             fetchNotifications();
-            fetchReminders()
+            fetchReminders();
           } else {
             fetchNotifications();
             fetchReminders();

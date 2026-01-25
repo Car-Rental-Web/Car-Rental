@@ -13,19 +13,24 @@ import { formatDate, to12Hour } from "../utils/timeFormatter";
 const Renter = () => {
   const [openForm, setOpenForm] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [formMode, setFormMode] = useState<"create" | "edit" | "view">("create");
-  const [selectedData, setSelectedData] = useState<DataRenterHistoryProps | null>(null);
-  
+  const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
+    "create",
+  );
+  const [selectedData, setSelectedData] =
+    useState<DataRenterHistoryProps | null>(null);
+
   // renterData is what is currently displayed (filtered/paged)
   const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
   // filterRenterData acts as the "Source of Truth" from the database
-  const [filterRenterData, setFilterRenterData] = useState<DataRenterHistoryProps[]>([]);
-  
+  const [filterRenterData, setFilterRenterData] = useState<
+    DataRenterHistoryProps[]
+  >([]);
+
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -59,7 +64,7 @@ const Renter = () => {
           : JSON.parse(booking.uploaded_proof);
 
         storageTasks.push(
-          supabase.storage.from("uploaded_proof").remove(proofPaths)
+          supabase.storage.from("uploaded_proof").remove(proofPaths),
         );
       }
 
@@ -73,7 +78,10 @@ const Renter = () => {
       if (deleteError) throw deleteError;
 
       toast.success(`"Deleted Successfully" ${booking.car_plate_number}`);
-      await supabase.from('vehicle').update({ status: "Available" }).eq("plate_number", booking.car_plate_number);
+      await supabase
+        .from("vehicle")
+        .update({ status: "Available" })
+        .eq("plate_number", booking.car_plate_number);
 
       setOpenDelete(false);
       setSelectedData(null);
@@ -88,7 +96,10 @@ const Renter = () => {
   // Fetch data and setup subscription
   useEffect(() => {
     const fetchRenter = async () => {
-      const { data, error } = await supabase.from("renter_booking").select("*").order('id', { ascending: false });
+      const { data, error } = await supabase
+        .from("renter_booking")
+        .select("*")
+        .order("id", { ascending: false });
       if (error) {
         console.log("Error fetching renter", error);
         return;
@@ -110,15 +121,23 @@ const Renter = () => {
             setFilterRenterData((prev) => [newData, ...prev]);
           } else if (eventType === "UPDATE") {
             const updatedData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) => prev.map((item) => item.id === updatedData.id ? updatedData : item));
+            setFilterRenterData((prev) =>
+              prev.map((item) =>
+                item.id === updatedData.id ? updatedData : item,
+              ),
+            );
           } else if (eventType === "DELETE") {
-            setFilterRenterData((prev) => prev.filter((item) => item.id !== payload.old.id));
+            setFilterRenterData((prev) =>
+              prev.filter((item) => item.id !== payload.old.id),
+            );
           }
-        }
+        },
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(subscription); };
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, [openForm]);
 
   // Combined Filtering Logic (Search + Status)
@@ -146,14 +165,15 @@ const Renter = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
-      
       {/* Header & Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Rental History</h1>
-          <p className="text-sm text-slate-500 font-medium">Monitoring {renterData.length} total bookings</p>
+          <p className="text-sm text-slate-500 font-medium">
+            Monitoring {renterData.length} total bookings
+          </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
           {/* Status Filter */}
           <div className="relative min-w-[180px]">
@@ -191,52 +211,99 @@ const Renter = () => {
           <table className=" w-full table-auto text-left min-w-[1200px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">No</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Renter Information</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Identity</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Vehicle</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Schedule</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Duration</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Rent Type</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Status</th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Actions</th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  No
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Renter Information
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Identity
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Vehicle
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Schedule
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Duration
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Rent Type
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Status
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {currentItems.length > 0 ? (
                 currentItems.map((row, index) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="p-4 text-center text-sm font-bold text-slate-800">{indexOfFirstItem + index + 1}</td>
+                  <tr
+                    key={row.id}
+                    className="hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="p-4 text-center text-sm font-bold text-slate-800">
+                      {indexOfFirstItem + index + 1}
+                    </td>
                     <td className="p-4">
                       <div className="flex flex-col text-center">
-                        <span className="text-sm font-bold text-slate-800">{row.full_name}</span>
-                        <span className="text-[11px] text-slate-400 truncate max-w-[250px] mx-auto">{row.address}</span>
+                        <span className="text-sm font-bold text-slate-800">
+                          {row.full_name}
+                        </span>
+                        <span className="text-[11px] text-slate-400 truncate max-w-[250px] mx-auto">
+                          {row.address}
+                        </span>
                       </div>
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-slate-500">License:</span>
-                        <span className="text-xs font-mono text-slate-700">{row.license_number}</span>
+                        <span className="text-[11px] font-bold text-slate-500">
+                          License:
+                        </span>
+                        <span className="text-xs font-mono text-slate-700">
+                          {row.license_number}
+                        </span>
                       </div>
                     </td>
                     <td className="p-4 text-center">
-                      <span className="text-xs font-bold text-blue-600">{row.car_plate_number}</span>
+                      <span className="text-xs font-bold text-blue-600">
+                        {row.car_plate_number}
+                      </span>
                     </td>
                     <td className="p-4 text-center">
                       <div className="text-xs font-medium text-slate-700">
-                        {formatDate(row.start_date)} <span className="text-slate-300">|</span> {formatDate(row.end_date)}
-                        <div className="text-[10px] text-slate-400 mt-0.5">{to12Hour(row.start_time)} - {to12Hour(row.end_time)}</div>
+                        {formatDate(row.start_date)}{" "}
+                        <span className="text-slate-300">|</span>{" "}
+                        {formatDate(row.end_date)}
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
+                        </div>
                       </div>
                     </td>
-                    <td className="p-4 text-center text-xs font-black text-slate-700">{row.duration} day/s</td>
-                    <td className="p-4 text-center text-xs font-black text-slate-700">{row.type_of_rent}</td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">
+                      {row.duration} day/s
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">
+                      {row.type_of_rent}
+                    </td>
                     <td className="p-4">
                       <div className="flex justify-center">
-                        <span className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter shadow-sm border
-                          ${row.status === "Completed" ? "bg-red-500 text-red-100 border-red-400" : 
-                            row.status === "On Service" ? "bg-emerald-500 text-emerald-100 border-emerald-400" : 
-                            row.status === "On Reservation" ? "bg-blue-500 text-blue-100 border-blue-400" : 
-                            "bg-slate-50 text-slate-700 border-slate-200"}`}
+                        <span
+                          className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter shadow-sm border
+                          ${
+                            row.status === "Completed"
+                              ? "bg-red-500 text-red-100 border-red-400"
+                              : row.status === "On Service"
+                                ? "bg-emerald-500 text-emerald-100 border-emerald-400"
+                                : row.status === "On Reservation"
+                                  ? "bg-blue-500 text-blue-100 border-blue-400"
+                                  : "bg-slate-50 text-slate-700 border-slate-200"
+                          }`}
                         >
                           {row.status}
                         </span>
@@ -244,13 +311,26 @@ const Renter = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex gap-2 justify-center">
-                        <button onClick={() => handleAction("view", row)} className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm">
+                        <button
+                          onClick={() => handleAction("view", row)}
+                          className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
+                        >
                           <icons.openEye size={16} />
                         </button>
-                        <button onClick={() => handleAction("edit", row)} className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
+                        <button
+                          onClick={() => handleAction("edit", row)}
+                          className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
+                        >
                           <icons.edit size={16} />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); setSelectedData(row); setOpenDelete(true); }} className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedData(row);
+                            setOpenDelete(true);
+                          }}
+                          className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
+                        >
                           <icons.trash size={16} />
                         </button>
                       </div>
@@ -266,18 +346,40 @@ const Renter = () => {
                       </div>
                       <p className="text-sm text-slate-500 font-medium">
                         {searchTerm.length > 0 && selectedStatus !== "All" ? (
-                          <>No matches found for <span className="text-slate-900 font-bold">"{searchTerm}"</span> in <span className="text-slate-900 font-bold">{selectedStatus}</span></>
+                          <>
+                            No matches found for{" "}
+                            <span className="text-slate-900 font-bold">
+                              "{searchTerm}"
+                            </span>{" "}
+                            in{" "}
+                            <span className="text-slate-900 font-bold">
+                              {selectedStatus}
+                            </span>
+                          </>
                         ) : searchTerm.length > 0 ? (
-                          <>No results found for <span className="text-slate-900 font-bold">"{searchTerm}"</span></>
+                          <>
+                            No results found for{" "}
+                            <span className="text-slate-900 font-bold">
+                              "{searchTerm}"
+                            </span>
+                          </>
                         ) : selectedStatus !== "All" ? (
-                          <>No bookings currently <span className="text-slate-900 font-bold">{selectedStatus}</span></>
+                          <>
+                            No bookings currently{" "}
+                            <span className="text-slate-900 font-bold">
+                              {selectedStatus}
+                            </span>
+                          </>
                         ) : (
                           "No rental history records found."
                         )}
                       </p>
                       {(searchTerm || selectedStatus !== "All") && (
-                        <button 
-                          onClick={() => {setSearchTerm(""); setSelectedStatus("All");}}
+                        <button
+                          onClick={() => {
+                            setSearchTerm("");
+                            setSelectedStatus("All");
+                          }}
                           className="text-xs text-blue-600 font-bold hover:underline mt-2"
                         >
                           Clear all filters
@@ -296,18 +398,32 @@ const Renter = () => {
       <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 mb-10 shadow-sm gap-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400 uppercase">Show</span>
+            <span className="text-xs font-bold text-slate-400 uppercase">
+              Show
+            </span>
             <select
               value={itemsPerPage}
-              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
               className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {[5, 10, 15, 20].map(val => <option key={val} value={val}>{val}</option>)}
+              {[5, 10, 15, 20].map((val) => (
+                <option key={val} value={val}>
+                  {val}
+                </option>
+              ))}
             </select>
           </div>
           <div className="h-4 w-px bg-slate-200 mx-2" />
           <p className="text-xs font-semibold text-slate-500">
-            Results: <span className="text-slate-900">{renterData.length === 0 ? 0 : indexOfFirstItem + 1}-{Math.min(indexOfLastItem, renterData.length)}</span> of <span className="text-slate-900">{renterData.length}</span>
+            Results:{" "}
+            <span className="text-slate-900">
+              {renterData.length === 0 ? 0 : indexOfFirstItem + 1}-
+              {Math.min(indexOfLastItem, renterData.length)}
+            </span>{" "}
+            of <span className="text-slate-900">{renterData.length}</span>
           </p>
         </div>
 
@@ -320,7 +436,8 @@ const Renter = () => {
             Prev
           </button>
           <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-xl border border-blue-100">
-            {currentPage} <span className="text-blue-300 mx-1">/</span> {totalPages || 1}
+            {currentPage} <span className="text-blue-300 mx-1">/</span>{" "}
+            {totalPages || 1}
           </span>
           <button
             disabled={currentPage >= totalPages}
@@ -341,7 +458,10 @@ const Renter = () => {
 
       {openDelete && selectedData && (
         <DeleteModal
-          onClose={() => { setOpenDelete(false); setSelectedData(null); }}
+          onClose={() => {
+            setOpenDelete(false);
+            setSelectedData(null);
+          }}
           onClick={() => handleDelete(selectedData.id)}
           open={openDelete}
         />
