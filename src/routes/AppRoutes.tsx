@@ -42,13 +42,9 @@ const AppRoutes = () => {
           <Route path="/" element={<RootLayout />}>
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
-            {/* <Route path="bookings" element={<Bookings />}></Route> */}
-            {/* <Route path="renterhistory" element={<RenterHistory />}></Route> */}
-            {/* <Route path="renteragreement" element={<RenterAgreement />}></Route> */}
             <Route path="renterprofile" element={<RenterProfile />}></Route>
             <Route path="historyofrent" element={<RenterTable />}></Route>
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
-            {/* <Route path="vehicle" element={<Vehicles />}></Route> */}
             <Route path="maintenance" element={<Maintenance />}></Route>
           </Route>
         </Route>

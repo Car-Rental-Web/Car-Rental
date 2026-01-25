@@ -389,7 +389,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             </p>
             <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
+                <div className="w-full">
                   <label className={labelStyles}>Start Date</label>
                   <DatePicker
                     disabled={isReadOnly}

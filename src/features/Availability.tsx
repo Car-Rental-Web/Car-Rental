@@ -12,7 +12,6 @@ const VerticalCalendar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [durationFilter, setDurationFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all'); // New Status Filter State
-  const [isLoading, setIsLoading] = useState(false);
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -25,15 +24,12 @@ const VerticalCalendar: React.FC = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      setIsLoading(true);
       try {
         const { data, error } = await supabase.from("renter_booking").select("*");
         if (error) throw error;
         setBookings(data || []);
       } catch (error) {
         console.error("Error:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchBookings();

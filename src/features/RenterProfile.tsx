@@ -91,18 +91,17 @@ const RenterProfile = () => {
   // History Logic
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!selectedName || !selectedLicense) return;
+      if (!selectedLicense) return;
       const { data } = await supabase
         .from("renter_booking")
         .select("*")
-        .eq("full_name", selectedName)
         .eq("license_number", selectedLicense)
         .order("created_at", { ascending: false });
       setRenterHistory(data || []);
       historyPagination.setCurrentPage(1); // Reset to page 1 on new selection
     };
     fetchHistory();
-  }, [selectedName, selectedLicense]);
+  }, [ selectedLicense]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -282,7 +281,6 @@ const RenterProfile = () => {
                 <tr
                   key={row.id}
                   onClick={() => {
-                    setSelectedName(row.full_name);
                     setSelectedLicense(row.license_number);
                   }}
                   className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
@@ -443,7 +441,7 @@ const RenterProfile = () => {
         </div>
       </div>
       {/* History Detail View */}
-      {selectedName && (
+      {selectedLicense  && (
         <div className="mt-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-xl animate-in slide-in-from-bottom-5">
           <div className="flex justify-between items-center mb-6 border-b pb-4">
             <div>
@@ -451,11 +449,12 @@ const RenterProfile = () => {
                 Rental Record
               </h2>
               <p className="text-sm text-blue-500 font-bold uppercase">
-                {selectedName}
+                {selectedName} — <span className="text-slate-400 font-mono">{selectedLicense}</span>
               </p>
             </div>
             <button
-              onClick={() => setSelectedName("")}
+              onClick={() => {setSelectedLicense("") 
+                setSelectedName("")}}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all"
             >
               Close View <icons.closeModal />
