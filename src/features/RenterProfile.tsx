@@ -11,6 +11,7 @@ import RenterForm from "../components/RenterForm";
 import ProfileForm from "../components/ProfileForm";
 import { usePagination } from "../utils/Pagination";
 import Card from "../components/Card";
+import { formatDate } from "../utils/timeFormatter";
 
 const RenterProfile = () => {
   const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
@@ -466,7 +467,10 @@ const RenterProfile = () => {
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="p-4 text-[10px] uppercase font-black">
-                    Plate #
+                    Rent Created
+                  </th>
+                  <th className="p-4 text-[10px] uppercase font-black">
+                    Car Rented
                   </th>
                   <th className="p-4 text-[10px] uppercase font-black">
                     Start Date
@@ -490,14 +494,17 @@ const RenterProfile = () => {
                       className="hover:bg-slate-50 transition-colors"
                     >
                       <td className="p-4 font-bold">
+                        {formatDate(history.created_at.split("T")[0])}
+                      </td>
+                      <td className="p-4 font-bold">
                         {history.car_plate_number}
                       </td>
-                      <td className="p-4 text-xs">{history.start_date}</td>
-                      <td className="p-4 text-xs">{history.end_date}</td>
+                      <td className="p-4 text-xs">{formatDate(history.start_date)}</td>
+                      <td className="p-4 text-xs">{formatDate(history.end_date)}</td>
                       <td className="p-4 text-xs">{history.type_of_rent}</td>
                       <td className="p-4 text-center">
                         <span
-                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${history.status === "Completed" ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"}`}
+                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${history.status === "Completed" ? "bg-red-500 text-red-100" : history.status === "On Service" ? "bg-green-500 text-green-100" : history.status === "On Reservation" ? "bg-blue-500 text-blue-100" : ""}`}
                         >
                           {history.status}
                         </span>

@@ -296,7 +296,7 @@ const VehicleHistory = () => {
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-[10px]">
-                                    <span className="text-gray-400">End</span>
+                                    <span className="text-gray-400">Start</span>
                                     <span className="font-bold text-gray-700">
                                       {formatDate(date.end_date)}
                                     </span>
@@ -441,6 +441,7 @@ const VehicleHistory = () => {
                 <p className="text-gray-500 text-sm mt-1">
                   Tracking logs for{" "}
                   <span className="text-blue-600 font-bold">
+                    {selectedHistoryVehicle.plate_number}{" "}
                     {selectedHistoryVehicle.brand}{" "}
                     {selectedHistoryVehicle.model}
                   </span>
@@ -462,16 +463,16 @@ const VehicleHistory = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-gray-50/50">
-                    <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest ">
                       Date Created
-                    </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    </th> 
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
                       Renter
                     </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
                       License
                     </th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
                       Period
                     </th>
                     <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">
@@ -486,29 +487,30 @@ const VehicleHistory = () => {
                         key={row.id}
                         className="hover:bg-blue-50/30 transition-colors group"
                       >
-                        <td className="px-8 py-4">
+                        <td className="px-8 py-4 ">
                           <p className="text-sm font-semibold text-gray-700">
-                            {row.created_at.split("T")[0]}
+                            {formatDate(row.created_at.split("T")[0])}
                           </p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center">
                           <p className="text-sm font-bold text-gray-900">
                             {row.full_name}
                           </p>
                         </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-500 font-mono">
+                        <td className="px-6 py-4 text-center">
+                          <p className="text-sm text-gray-500 font-mono ">
                             {row.license_number}
                           </p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center">
                           <div className="text-xs space-y-0.5">
-                            <p className="text-gray-700 font-medium">
+                            <span className="text-gray-700 font-medium">
                               Start: {formatDate(row.start_date)}
-                            </p>
-                            <p className="text-gray-400 italic">
+                            </span>
+                            <span className="text-gray-400">{" | "}</span>
+                            <span className="text-gray-400 italic">
                               End: {formatDate(row.end_date)}
-                            </p>
+                            </span>
                           </div>
                         </td>
                         <td className="px-8 py-4 text-center">
