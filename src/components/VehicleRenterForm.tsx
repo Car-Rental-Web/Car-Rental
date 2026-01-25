@@ -411,7 +411,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                     <p className="text-red-500 text-xs mt-1">Required</p>
                   )}
                 </div>
-                <div>
+                <div className="w-full">
                   <label className={labelStyles}>End Date</label>
                   <DatePicker
                     disabled={isReadOnly || !watchedStartDate}
@@ -427,7 +427,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                       watchedStartDate ? new Date(watchedStartDate) : new Date()
                     }
                     placeholderText="Select end date"
-                    className={inputStyles}
+                    className={` w-full ${inputStyles}`}
                   />
                   {errors.end_date && (
                     <p className="text-red-500 text-xs mt-1">Required</p>

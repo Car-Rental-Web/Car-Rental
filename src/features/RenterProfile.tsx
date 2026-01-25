@@ -499,8 +499,12 @@ const RenterProfile = () => {
                       <td className="p-4 font-bold">
                         {history.car_plate_number}
                       </td>
-                      <td className="p-4 text-xs">{formatDate(history.start_date)}</td>
-                      <td className="p-4 text-xs">{formatDate(history.end_date)}</td>
+                      <td className="p-4 text-xs">
+                        {formatDate(history.start_date)}
+                      </td>
+                      <td className="p-4 text-xs">
+                        {formatDate(history.end_date)}
+                      </td>
                       <td className="p-4 text-xs">{history.type_of_rent}</td>
                       <td className="p-4 text-center">
                         <span
