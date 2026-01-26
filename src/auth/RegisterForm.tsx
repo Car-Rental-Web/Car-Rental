@@ -18,7 +18,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="flex justify-center items-center w-full h-screen ">
+    <div className=" bg-[url(public/logo.jpg)] flex justify-center items-center w-full h-screen ">
       {/* bg-[url(assets/car.png)] bg-no-repeat bg-cover */}
       <form
       className="border border-gray-400 px-4 py-2 rounded flex flex-col items-center gap-2"

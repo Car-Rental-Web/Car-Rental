@@ -25,7 +25,7 @@ const handleSubmit = async () => {
 }
 
   return (
-    <div className="bg-[url(assets/car.png)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
+    <div className="bg-[url(public/logo.jpg)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
       <form onSubmit={(e) => {e.preventDefault()
         handleSubmit()}
       } className="w-96 border bg-black/75 border-gray-300 rounded py-4 px-6 flex flex-col gap-4">

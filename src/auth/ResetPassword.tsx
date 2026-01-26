@@ -35,7 +35,7 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="bg-[url(assets/car.png)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
+    <div className="bg-[url(public/logo.jpg)] h-screen w-full flex justify-center items-center bg-no-repeat bg-cover">
       <form  onSubmit={handleSubmit}className="w-96 border bg-black/75 border-gray-300 rounded py-4 px-6 flex flex-col gap-4">
        <SeePassword onChange={(e) => setPassword(e.target.value)} value={password}  label="New Password" className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"/>
         <SeePassword onChange={(e) => setConfirmPassword(e.target.value) } value={confirmPassword} label="Confirm NewPassword" className="w-full border py-3 px-4 border-gray-400 rounded placeholder-gray-400 text-white bg-transparent"/>
