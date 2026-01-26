@@ -33,7 +33,7 @@ const LoginForm = () => {
     }
   
   return (
-    <div className="h-screen bg-[url(public/logo.jpg)] bg-black/90 bg-no-repeat bg-cover flex justify-center items-center w-full">
+    <div className="h-screen bg-[url(/logo.jpg)] bg-black/90 bg-no-repeat bg-cover flex justify-center items-center w-full">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-96 border bg-black/75 border-gray-300 rounded py-6 px-6 flex flex-col gap-5"
