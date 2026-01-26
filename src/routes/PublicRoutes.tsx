@@ -7,7 +7,7 @@ const PublicRoutes = () => {
 
   if (loading)
     return (
-      <div className="w-full min-h-screen flex justify-center items-center bg-body text-white">
+      <div className="w-full min-h-screen flex justify-center items-center bg-black text-white">
         Loading....
       </div>
     );

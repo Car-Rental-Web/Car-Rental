@@ -296,7 +296,7 @@ const VehicleHistory = () => {
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-[10px]">
-                                    <span className="text-gray-400">Start</span>
+                                    <span className="text-gray-400">End</span>
                                     <span className="font-bold text-gray-700">
                                       {formatDate(date.end_date)}
                                     </span>
@@ -389,7 +389,6 @@ const VehicleHistory = () => {
                       {vehicle.plate_number}
                     </span>
                   </div>
-
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => {
@@ -405,7 +404,7 @@ const VehicleHistory = () => {
                       History <icons.rightArrow />
                     </button>
                     <button
-                      disabled={vehicle.status === "On Service" || vehicle.status === "On Maintenance"}
+                      // disabled={vehicle.status === "On Service" || vehicle.status === "On Maintenance"}
                       onClick={() => {
                         setShowForm(true);
                         setSelectedVehicle(vehicle);

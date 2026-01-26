@@ -77,6 +77,12 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const watchedPlate = watch("car_plate_number");
   const watchedStartDate = watch("start_date");
   const watchedEndDate = watch("end_date");
+  const watchedTotal = watch("total_price_rent")
+  const watchedDownpayment = watch("downpayment")
+
+  //calculate balance
+
+  const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
 
   useEffect(() => {
     if (open && selectedData) {
@@ -504,6 +510,45 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               </div>
             </div>
           </div>
+          <h3 className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
+           4. Payment
+        </h3>
+          <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex flex-col w-full">
+              <label className={labelStyles}>Total Price Rent</label>
+              <input
+              placeholder="ex: 3000"
+                disabled={isReadOnly}
+                {...register("total_price_rent")}
+                type="number"
+                className={inputStyles}
+              />
+              {/* <ErrorMessage field="total_price_rent" /> */}
+            </div>
+             <div className="flex flex-col w-full">
+              <label className={labelStyles}>Downpayment</label>
+              <input
+              placeholder="ex: 1000"
+                disabled={isReadOnly}
+                {...register("downpayment")}
+                type="number"
+                className={inputStyles}
+              />
+              {/* <ErrorMessage field="downpayment" /> */}
+            </div>
+             <div className="flex flex-col w-full">
+              <label className={labelStyles}>Remaining Balance</label>
+              <input
+              placeholder="ex: 1000"
+              readOnly
+                value={totalBalance}
+                {...register("remaining_balance")}
+                type="text"
+                className={inputStyles}
+              />
+              {/* <ErrorMessage field="downpayment" /> */}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
             <div className="p-4 bg-slate-50 border rounded-xl">
@@ -601,7 +646,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                     {...register("uploaded_proof")}
                     multiple
                     accept="image/*"
-                    className="w-full text-xs text-gray-500"
+                    className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-500 file:text-blue-700 hover:file:bg-blue-300"
                   />
                 )}
               </div>

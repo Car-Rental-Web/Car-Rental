@@ -75,10 +75,14 @@ const RenterForm: React.FC<RenterFormProps> = ({
   const watchedSignature = watch("e_signature");
   const selectedPlate = watch("car_plate_number");
   const watchedProof = watch("uploaded_proof");
-
+const watchedTotal = watch("total_price_rent")
+const watchedDownpayment = watch("downpayment")
   // ADDED: Watch dates for duration calculation
   const watchedStartDate = watch("start_date");
   const watchedEndDate = watch("end_date");
+
+  // calculate balance
+const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
 
   // Logic for Auto-filling Vehicle and Duration
   useEffect(() => {
@@ -595,7 +599,46 @@ const RenterForm: React.FC<RenterFormProps> = ({
             </div>
           </div>
         </div>
-
+         <h3 className={sectionTitle}>
+           4. Payment
+        </h3>
+          <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex flex-col w-full">
+              <label className={labelBase}>Total Price Rent</label>
+              <input
+              placeholder="ex: 3000"
+                disabled={isReadOnly}
+                {...register("total_price_rent")}
+                type="text"
+                className={getInputClass("total_price_rent")}
+              />
+              <ErrorMessage field="total_price_rent" />
+            </div>
+             <div className="flex flex-col w-full">
+              <label className={labelBase}>Downpayment</label>
+              <input
+              placeholder="ex: 1000"
+                disabled={isReadOnly}
+                {...register("downpayment")}
+                type="number"
+                className={getInputClass("downpayment")}
+              />
+              <ErrorMessage field="downpayment" />
+            </div>
+             <div className="flex flex-col w-full">
+              <label className={labelBase}>Remaining Balance</label>
+              <input
+              value={totalBalance}
+              placeholder="ex: 1000"
+              readOnly
+                disabled={isReadOnly}
+                {...register("remaining_balance")}
+                type="number"
+                className={getInputClass("remaining_balance")}
+              />
+              <ErrorMessage field="remaining_balance" />
+            </div>
+          </div>
         <h3 className={sectionTitle}>
           <icons.upload size={16} /> Verification & Documents
         </h3>
@@ -696,7 +739,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
                   {...register("uploaded_proof")}
                   multiple
                   accept="image/*"
-                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-500 file:text-blue-700 hover:file:bg-blue-300"
                 />
               )}
             </div>

@@ -191,6 +191,8 @@ export interface DataRenterHistoryProps {
   action?: React.ReactNode;
   car_plate_number:string;
   uploaded_proof: any
+  total_price_rent:string;
+  downpayment:string;
   
 }
 

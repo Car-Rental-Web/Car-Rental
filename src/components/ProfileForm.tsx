@@ -6,6 +6,8 @@ import { uploadFile } from "../utils/UploadFile";
 import { toast } from "react-toastify";
 import icons from "../constants/icon";
 import { RenterProfileSchema, type RenterValues } from "../schema/schema";
+import getPublicUrl from "../utils/getPublicUrl";
+import getFilePreview from "../utils/getFilePreview";
 
 interface Props {
   open: boolean;
@@ -26,11 +28,17 @@ const ProfileForm: React.FC<Props> = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<RenterValues>({
     resolver: zodResolver(RenterProfileSchema),
   });
 
+  // watch values
+  const watchedValidId = watch("valid_id");
+  const watchedSignature = watch("e_signature");
+  const idPreview = getFilePreview(watchedValidId, "valid_id");
+  const sigPreview = getFilePreview(watchedSignature, "e_signature");
   useEffect(() => {
     if (open && selectedData) {
       reset(selectedData);
@@ -55,13 +63,15 @@ const ProfileForm: React.FC<Props> = ({
       // 1. Handle Valid ID Upload
       if (data.valid_id?.[0] instanceof File) {
         const { path } = await uploadFile(data.valid_id[0], "valid_id");
-        validIdUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/valid_id/${path}`;
+        // validIdUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/valid_id/${path}`;
+        validIdUrl = getPublicUrl("valid_id", path);
       }
 
       // 2. Handle E-Signature Upload
       if (data.e_signature?.[0] instanceof File) {
         const { path } = await uploadFile(data.e_signature[0], "e_signature");
-        signatureUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/e_signature/${path}`;
+        // signatureUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/e_signature/${path}`;
+        signatureUrl = getPublicUrl("e_signature", path);
       }
 
       const payload = {
@@ -230,20 +240,30 @@ const ProfileForm: React.FC<Props> = ({
               <input
                 type="file"
                 {...register("valid_id")}
-                className="text-xs mb-2 block w-full"
+                className="w-full text-xs text-gray-500 mb-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer"
               />
             )}
-            {selectedData?.valid_id && (
-              <div className="relative w-full h-32 bg-slate-100 rounded-xl overflow-hidden border">
+
+            {/* The container now stays visible regardless of idPreview */}
+            <div className="relative w-full h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+              {idPreview ? (
                 <img
-                  src={selectedData.valid_id}
+                  src={idPreview}
                   className="w-full h-full object-cover"
                   alt="ID Preview"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center gap-1 opacity-30">
+                  <icons.upload size={20} />
+                  <span className="text-[9px] font-black uppercase tracking-tighter">
+                    No ID Selected
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
+          {/* E-Signature */}
           <div className="border-t pt-4 md:col-span-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
               E-Signature
@@ -252,18 +272,25 @@ const ProfileForm: React.FC<Props> = ({
               <input
                 type="file"
                 {...register("e_signature")}
-                className="text-xs mb-2 block w-full"
+                className="w-full text-xs text-gray-500 mb-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer"
               />
             )}
-            {selectedData?.e_signature && (
-              <div className="relative w-full h-32 bg-slate-50 rounded-xl overflow-hidden border border-dashed flex items-center justify-center">
+
+            <div className="relative w-full h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+              {sigPreview ? (
                 <img
-                  src={selectedData.e_signature}
+                  src={sigPreview}
                   className="max-h-full object-contain p-2"
                   alt="Signature Preview"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col items-center gap-1 opacity-30">
+                  <span className="text-[9px] font-black uppercase tracking-tighter">
+                    No Signature
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

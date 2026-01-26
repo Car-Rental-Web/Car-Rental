@@ -146,6 +146,9 @@ export const RenterFormDataSchema = z.object({
   uploaded_proof: z.any().optional(),
   status: z.string().min(1),
   e_signature : z.any(),
+  total_price_rent: z.string().min(1),
+  downpayment: z.string().min(1),
+  remaining_balance: z.string()
 
 });
 

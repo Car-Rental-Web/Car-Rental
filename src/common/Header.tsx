@@ -7,7 +7,7 @@ import { supabase } from "../utils/supabase";
 import icons from "../constants/icon.ts";
 import useSidebarStore from "../store/useSidebarStore.ts";
 import { formatDate } from "../utils/timeFormatter.ts";
-
+import logo from "../assets/logo.jpg"
 interface PageTypes {
   name: string;
   path: string;
@@ -236,6 +236,9 @@ const Header = () => {
           className="flex items-center gap-3 cursor-pointer"
           onClick={() => navigate("/dashboard")}
         >
+          <div>
+            <img src={logo} alt="company logo" className="h-10 w-auto object-contain"></img>
+          </div>
           <p className="text-2xl font-black text-slate-800 tracking-tight hidden sm:block">
             Mboss
           </p>

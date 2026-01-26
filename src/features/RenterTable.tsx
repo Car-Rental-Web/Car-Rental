@@ -233,6 +233,12 @@ const Renter = () => {
                   Rent Type
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Total Price
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Downpayment
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Status
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
@@ -290,6 +296,12 @@ const Renter = () => {
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
                       {row.type_of_rent}
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">
+                      {row.total_price_rent}
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">
+                      {row.downpayment}
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center">
