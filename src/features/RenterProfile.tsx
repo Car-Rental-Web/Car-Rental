@@ -281,7 +281,8 @@ const RenterProfile = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {currentItems.map((row, index) => (
+              {currentItems.length > 0 ? 
+              currentItems.map((row, index) => (
                 <tr
                   key={row.id}
                   onClick={() => {
@@ -388,7 +389,46 @@ const RenterProfile = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )):(
+                <tr>
+                  <td colSpan={15} className="p-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="p-3 bg-slate-100 rounded-full text-slate-400">
+                        <icons.filter size={24} />
+                      </div>
+                      <p className="text-sm text-slate-500 font-medium text-center">
+                        {searchTerm.length > 0  ? (
+                          <>
+                            No matches found for{" "}
+                            <span className="text-slate-900 font-bold">
+                              "{searchTerm}"
+                            </span>{" "}
+                          </>
+                        ) : (
+                          <>
+                            No results found for{" "}
+                            <span className="text-slate-900 font-bold">
+                              "{searchTerm}"
+                            </span>
+                          </>
+                        ) 
+                        }
+                      </p>
+                      {(searchTerm) && (
+                        <button
+                          onClick={() => {
+                            setSearchTerm("");
+                          }}
+                          className="text-xs text-blue-600 font-bold hover:underline mt-2"
+                        >
+                          Clear all filters
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+              }
             </tbody>
           </table>
         </div>

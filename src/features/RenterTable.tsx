@@ -363,12 +363,12 @@ const Renter = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="p-20 text-center">
+                  <td colSpan={13} className="p-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="p-3 bg-slate-100 rounded-full text-slate-400">
                         <icons.filter size={24} />
                       </div>
-                      <p className="text-sm text-slate-500 font-medium">
+                      <p className="text-sm text-slate-500 font-medium text-center">
                         {searchTerm.length > 0 && selectedStatus !== "All" ? (
                           <>
                             No matches found for{" "}
