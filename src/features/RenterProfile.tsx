@@ -270,6 +270,9 @@ const RenterProfile = () => {
                   Signature
                 </th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">
+                  Referral
+                </th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">
                   Add Rent
                 </th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">
@@ -333,6 +336,9 @@ const RenterProfile = () => {
                       alt="Sign"
                     />
                   </td>
+                   <td className="p-4 text-center text-xs text-slate-500">
+                    {row.referral|| "N/A"}
+                  </td>
                   <td className="p-4 text-center">
                     <button
                       onClick={(e) => {
@@ -340,7 +346,7 @@ const RenterProfile = () => {
                         setSelectedRenter(row);
                         setShowBookingForm(true);
                       }}
-                      className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-full transition-all"
+                      className="cursor-pointer p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-full transition-all"
                     >
                       <icons.rent size={18} />
                     </button>
@@ -356,7 +362,7 @@ const RenterProfile = () => {
                           setFormMode("view");
                           setShowRegForm(true);
                         }}
-                        className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                        className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
                       >
                         <icons.openEye />
                       </button>
@@ -366,7 +372,7 @@ const RenterProfile = () => {
                           setFormMode("edit");
                           setShowRegForm(true);
                         }}
-                        className="p-2 text-slate-400 hover:text-amber-500 transition-colors"
+                        className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
                       >
                         <icons.edit />
                       </button>
@@ -375,7 +381,7 @@ const RenterProfile = () => {
                           setSelectedRenter(row);
                           setOpenDelete(true);
                         }}
-                        className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                        className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
                       >
                         <icons.trash />
                       </button>

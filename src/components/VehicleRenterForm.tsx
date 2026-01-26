@@ -77,12 +77,23 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
   const watchedPlate = watch("car_plate_number");
   const watchedStartDate = watch("start_date");
   const watchedEndDate = watch("end_date");
-  const watchedTotal = watch("total_price_rent")
-  const watchedDownpayment = watch("downpayment")
+  const watchedTotal = watch("total_price_rent");
+  const watchedDownpayment = watch("downpayment");
 
   //calculate balance
+  useEffect(() => {
+    const total = parseFloat(watchedTotal || "0");
+    const down = parseFloat(watchedDownpayment || "0");
+    const balance = total - down;
 
-  const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
+    // Only set value if the modal is actually open and values are numbers
+    if (open && !isNaN(balance)) {
+      setValue("remaining_balance", balance, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [watchedTotal, watchedDownpayment, setValue, open]);
 
   useEffect(() => {
     if (open && selectedData) {
@@ -91,7 +102,41 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       setValue("car_type", selectedData.type);
     }
   }, [open, selectedData, setValue]);
-
+  // useEffect(() => {
+  //   if (selectedData) {
+  //     reset({
+  //       full_name: selectedData.full_name,
+  //       address: selectedData.address,
+  //       license_number: selectedData.license_number,
+  //       philhealth_number: selectedData.philhealth_number,
+  //       tin_number: selectedData.tin_number,
+  //       sss_number: selectedData.sss_number,
+  //       pagibig_number: selectedData.pagibig_number,
+  //       car_plate_number: selectedData.car_plate_number,
+  //       car_model: selectedData.car_model,
+  //       car_type: selectedData.car_type,
+  //       start_date: selectedData.start_date,
+  //       end_date: selectedData.end_date,
+  //       start_time: selectedData.start_time,
+  //       end_time: selectedData.end_time,
+  //       duration: selectedData.duration,
+  //       type_of_rent: selectedData.type_of_rent,
+  //       location: selectedData.location,
+  //       status: selectedData.status,
+  //       e_signature: selectedData.e_signature,
+  //       total_price_rent: selectedData.total_price_rent,
+  //       downpayment: selectedData.downpayment,
+  //       remaining_balance: Number(selectedData.remaining_balance) || 0,
+  //     });
+  //   }
+  //   if (selectedData?.uploaded_proof) {
+  //     setExistingPaths({
+  //       uploaded_proof: Array.isArray(selectedData.uploaded_proof)
+  //         ? selectedData.uploaded_proof
+  //         : [],
+  //     });
+  //   }
+  // }, [selectedData, reset]);
   // Fetch booked dates logic
   useEffect(() => {
     if (!watchedPlate) return;
@@ -511,13 +556,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             </div>
           </div>
           <h3 className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
-           4. Payment
-        </h3>
+            4. Payment
+          </h3>
           <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex flex-col w-full">
               <label className={labelStyles}>Total Price Rent</label>
               <input
-              placeholder="ex: 3000"
+                placeholder="ex: 3000"
                 disabled={isReadOnly}
                 {...register("total_price_rent")}
                 type="number"
@@ -525,10 +570,10 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               />
               {/* <ErrorMessage field="total_price_rent" /> */}
             </div>
-             <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full">
               <label className={labelStyles}>Downpayment</label>
               <input
-              placeholder="ex: 1000"
+                placeholder="ex: 1000"
                 disabled={isReadOnly}
                 {...register("downpayment")}
                 type="number"
@@ -536,14 +581,13 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               />
               {/* <ErrorMessage field="downpayment" /> */}
             </div>
-             <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full">
               <label className={labelStyles}>Remaining Balance</label>
               <input
-              placeholder="ex: 1000"
-              readOnly
-                value={totalBalance}
+                placeholder="ex: 1000"
+                readOnly
                 {...register("remaining_balance")}
-                type="text"
+                type="number"
                 className={inputStyles}
               />
               {/* <ErrorMessage field="downpayment" /> */}

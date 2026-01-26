@@ -80,7 +80,6 @@ const VehicleHistory = () => {
     try {
       const { data } = await supabase.from("vehicle").select("*");
       setVehicleCard(data || []);
-      444444444;
       console.log("Fetched Vehicle", data);
     } catch (error) {
       console.log("Failed Fetching Vehicle", error);
@@ -603,11 +602,13 @@ const VehicleHistory = () => {
       />
       {showForm && (
         <VehicleRenterForm
-          selectedData={selectedVehicle}
+          selectedData={selectedVehicle || null}
           open={showForm}
           onClose={() => {
             setShowForm(false);
             setSelectedVehicle(null);
+            fetchVehicle(); 
+      fetchBookingDate();
           }}
         />
       )}

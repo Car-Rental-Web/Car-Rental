@@ -75,14 +75,26 @@ const RenterForm: React.FC<RenterFormProps> = ({
   const watchedSignature = watch("e_signature");
   const selectedPlate = watch("car_plate_number");
   const watchedProof = watch("uploaded_proof");
-const watchedTotal = watch("total_price_rent")
-const watchedDownpayment = watch("downpayment")
+  const watchedTotal = watch("total_price_rent");
+  const watchedDownpayment = watch("downpayment");
   // ADDED: Watch dates for duration calculation
   const watchedStartDate = watch("start_date");
   const watchedEndDate = watch("end_date");
 
   // calculate balance
-const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
+ useEffect(() => {
+  const total = parseFloat(watchedTotal || "0");
+  const down = parseFloat(watchedDownpayment || "0");
+  const balance = total - down;
+
+  // Only set value if the modal is actually open and values are numbers
+  if (open && !isNaN(balance)) {
+    setValue("remaining_balance", balance, { 
+      shouldValidate: true, 
+      shouldDirty: true 
+    });
+  }
+}, [watchedTotal, watchedDownpayment, setValue, open]);
 
   // Logic for Auto-filling Vehicle and Duration
   useEffect(() => {
@@ -169,6 +181,9 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
         location: selectedData.location,
         status: selectedData.status,
         e_signature: selectedData.e_signature,
+        total_price_rent: selectedData.total_price_rent,
+        downpayment: selectedData.downpayment,
+        remaining_balance: Number(selectedData.remaining_balance) || 0,
       });
     }
     if (selectedData?.uploaded_proof) {
@@ -177,6 +192,9 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
           ? selectedData.uploaded_proof
           : [],
       });
+    } else {
+      reset();
+      setExistingPaths({uploaded_proof:[]})
     }
   }, [selectedData, reset]);
 
@@ -273,7 +291,7 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
             ? "Record Completed. Car remains 'Reserved' for next customer."
             : "Updated successfully",
         );
-
+        reset();
         if (onSuccess) onSuccess();
       } else {
         const { error } = await supabase
@@ -291,6 +309,7 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
         toast.success("Added Rent Successfully");
         reset();
       }
+      setLoading(false)
       onClose();
     } catch (err: any) {
       console.error("Error submitting form:", err);
@@ -599,46 +618,43 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
             </div>
           </div>
         </div>
-         <h3 className={sectionTitle}>
-           4. Payment
-        </h3>
-          <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Total Price Rent</label>
-              <input
+        <h3 className={sectionTitle}>4. Payment</h3>
+        <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex flex-col w-full">
+            <label className={labelBase}>Total Price Rent</label>
+            <input
               placeholder="ex: 3000"
-                disabled={isReadOnly}
-                {...register("total_price_rent")}
-                type="text"
-                className={getInputClass("total_price_rent")}
-              />
-              <ErrorMessage field="total_price_rent" />
-            </div>
-             <div className="flex flex-col w-full">
-              <label className={labelBase}>Downpayment</label>
-              <input
+              disabled={isReadOnly}
+              {...register("total_price_rent")}
+              type="text"
+              className={getInputClass("total_price_rent")}
+            />
+            <ErrorMessage field="total_price_rent" />
+          </div>
+          <div className="flex flex-col w-full">
+            <label className={labelBase}>Downpayment</label>
+            <input
               placeholder="ex: 1000"
-                disabled={isReadOnly}
-                {...register("downpayment")}
-                type="number"
-                className={getInputClass("downpayment")}
-              />
-              <ErrorMessage field="downpayment" />
-            </div>
-             <div className="flex flex-col w-full">
-              <label className={labelBase}>Remaining Balance</label>
-              <input
-              value={totalBalance}
+              disabled={isReadOnly}
+              {...register("downpayment")}
+              type="number"
+              className={getInputClass("downpayment")}
+            />
+            <ErrorMessage field="downpayment" />
+          </div>
+          <div className="flex flex-col w-full">
+            <label className={labelBase}>Remaining Balance</label>
+            <input
               placeholder="ex: 1000"
               readOnly
-                disabled={isReadOnly}
-                {...register("remaining_balance")}
-                type="number"
-                className={getInputClass("remaining_balance")}
-              />
-              <ErrorMessage field="remaining_balance" />
-            </div>
+              disabled={isReadOnly}
+              {...register("remaining_balance")}
+              type="number"
+              className={getInputClass("remaining_balance")}
+            />
+            <ErrorMessage field="remaining_balance" />
           </div>
+        </div>
         <h3 className={sectionTitle}>
           <icons.upload size={16} /> Verification & Documents
         </h3>
@@ -797,7 +813,7 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-8 py-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
+              className="cursor-pointer flex-1 px-8 py-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
             >
               Cancel
             </button>
@@ -805,7 +821,7 @@ const totalBalance = Number(watchedTotal) - Number(watchedDownpayment)
           <button
             disabled={loading}
             type="submit"
-            className={`flex-2 px-8 py-4 rounded-xl font-black text-white shadow-lg transition-all ${mode === "view" ? "bg-slate-800 hover:bg-slate-700" : "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200"}`}
+            className={`cursor-pointer flex-2 px-8 py-4 rounded-xl font-black text-white shadow-lg transition-all  ${mode === "view" ? "bg-slate-800 hover:bg-slate-700" : "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200"}`}
           >
             {mode === "view"
               ? "Close Portal"

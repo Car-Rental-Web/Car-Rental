@@ -292,6 +292,17 @@ const ProfileForm: React.FC<Props> = ({
               )}
             </div>
           </div>
+           <div className="md:col-span-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Referral
+            </label>
+            <input
+              placeholder="ex: John Doe"
+              {...register("referral")}
+              disabled={isView}
+              className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50"
+            />
+          </div>
         </div>
 
         {/* Footer Actions */}

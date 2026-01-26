@@ -208,7 +208,7 @@ const Renter = () => {
       {/* Table Area */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ">
         <div className="overflow-x-auto">
-          <table className=" w-full table-auto text-left min-w-[1200px]">
+          <table className=" w-full table-auto text-left min-w-[1000px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
@@ -230,6 +230,9 @@ const Renter = () => {
                   Duration
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Location
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Rent Type
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
@@ -237,6 +240,9 @@ const Renter = () => {
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Downpayment
+                </th>
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Balance
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Status
@@ -298,10 +304,16 @@ const Renter = () => {
                       {row.type_of_rent}
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
+                      {row.location}
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-slate-700">
                       {row.total_price_rent}
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
                       {row.downpayment}
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-red-500">
+                      {row.remaining_balance}
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center">
@@ -325,13 +337,13 @@ const Renter = () => {
                       <div className="flex gap-2 justify-center">
                         <button
                           onClick={() => handleAction("view", row)}
-                          className="p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
+                          className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
                         >
                           <icons.openEye size={16} />
                         </button>
                         <button
                           onClick={() => handleAction("edit", row)}
-                          className="p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
+                          className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
                         >
                           <icons.edit size={16} />
                         </button>
@@ -341,7 +353,7 @@ const Renter = () => {
                             setSelectedData(row);
                             setOpenDelete(true);
                           }}
-                          className="p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
+                          className="cursor-pointer p-2 bg-white border border-slate-200 rounded-lg text-red-500 hover:bg-red-50 transition-all shadow-sm"
                         >
                           <icons.trash size={16} />
                         </button>

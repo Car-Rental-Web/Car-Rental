@@ -193,6 +193,11 @@ export interface DataRenterHistoryProps {
   uploaded_proof: any
   total_price_rent:string;
   downpayment:string;
+  remaining_balance:string
+  referral:string;
+  // plate_number:string;
+  // model:string;
+  // type:string;
   
 }
 

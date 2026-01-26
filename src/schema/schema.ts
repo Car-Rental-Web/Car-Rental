@@ -71,6 +71,7 @@ export const RenterProfileSchema = z.object({
   pagibig_number: z.string().optional(),
   valid_id: z.any().optional(), // For file uploads
   e_signature: z.any().optional(), // For file uploads
+  referral: z.string().optional(),
 });
 
 export type RenterValues = z.infer<typeof RenterProfileSchema>;
@@ -148,7 +149,7 @@ export const RenterFormDataSchema = z.object({
   e_signature : z.any(),
   total_price_rent: z.string().min(1),
   downpayment: z.string().min(1),
-  remaining_balance: z.string()
+  remaining_balance: z.number(),
 
 });
 
