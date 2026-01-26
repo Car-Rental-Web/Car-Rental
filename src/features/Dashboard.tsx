@@ -75,7 +75,7 @@ const Dashboard = () => {
             linkIcon={<icons.rightArrow className="text-blue-500" />}
             url="/renterprofile"
             amount={<span className="text-5xl font-black text-slate-800">{renter}</span>}
-            description={<span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Customers</span>}
+            description={<span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Customers</span>}
           />
           <Card
             className="bg-white border-none shadow-sm hover:shadow-md transition-shadow rounded-2xl p-2"
