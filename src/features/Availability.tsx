@@ -25,7 +25,7 @@ const VerticalCalendar: React.FC = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const { data, error } = await supabase.from("renter_booking").select("*");
+        const { data, error } = await supabase.from("renter_booking").select("*").is("deleted_at",null);
         if (error) throw error;
         setBookings(data || []);
       } catch (error) {
@@ -40,7 +40,7 @@ const VerticalCalendar: React.FC = () => {
     return bookings.filter(b => {
       const start = b.start_date ? parseISO(b.start_date) : new Date();
       const end = b.end_date ? parseISO(b.end_date) : new Date();
-      const duration = differenceInDays(end, start) + 1;
+      const duration = differenceInDays(end, start)
 
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
@@ -138,7 +138,7 @@ const VerticalCalendar: React.FC = () => {
                   <div style={styles.eventStack}>
                     {dayEvents.map(event => {
                       const style = getStatusStyles(event.status);
-                      const duration = differenceInDays(parseISO(event.end_date), parseISO(event.start_date)) + 1;
+                      const duration = differenceInDays(parseISO(event.end_date), parseISO(event.start_date)) ;
 
                       return (
                         <div key={event.id} style={{ ...styles.portraitCard, backgroundColor: style.bg, borderLeft: `6px solid ${style.border}` }}>
