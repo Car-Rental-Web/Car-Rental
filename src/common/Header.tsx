@@ -146,58 +146,68 @@ const Header = () => {
         },
       )
       .on(
-  "postgres_changes",
-  { event: "*", schema: "public", table: "renter_booking" },
-  (payload) => {
-    // We cast to 'any' here to safely check for deleted_at without TS errors
-    const booking = payload.new as any; 
-    const oldBooking = payload.old as any;
+        "postgres_changes",
+        { event: "*", schema: "public", table: "renter_booking" },
+        (payload) => {
+          // We cast to 'any' here to safely check for deleted_at without TS errors
+          const booking = payload.new as any;
+          const oldBooking = payload.old as any;
 
-    // 1. PHYSICAL DELETE (If someone hard-deletes from DB)
-    if (payload.eventType === "DELETE") {
-      setBookingReminders((prev) => prev.filter((r) => r.id !== oldBooking.id));
-      toast.dismiss(oldBooking.id);
-      return;
-    }
+          // 1. PHYSICAL DELETE (If someone hard-deletes from DB)
+          if (payload.eventType === "DELETE") {
+            setBookingReminders((prev) =>
+              prev.filter((r) => r.id !== oldBooking.id),
+            );
+            toast.dismiss(oldBooking.id);
+            return;
+          }
 
-    // 2. SOFT DELETE (Moved to Trash)
-    // Check if it was just updated to have a deleted_at value
-    if (booking && booking.deleted_at !== null) {
-      // Remove from the Reminders list in the Header UI
-      setBookingReminders((prev) => prev.filter((r) => r.id !== booking.id));
-      // Kill the Toast warning immediately
-      toast.dismiss(booking.id);
-      return; // Stop here! Don't process reminders for trashed items.
-    }
+          // 2. SOFT DELETE (Moved to Trash)
+          // Check if it was just updated to have a deleted_at value
+          if (booking && booking.deleted_at !== null) {
+            // Remove from the Reminders list in the Header UI
+            setBookingReminders((prev) =>
+              prev.filter((r) => r.id !== booking.id),
+            );
+            // Kill the Toast warning immediately
+            toast.dismiss(booking.id);
+            return; // Stop here! Don't process reminders for trashed items.
+          }
 
-    // 3. RESTORE OR NEW BOOKING LOGIC
-    const isReserved = booking?.status === "On Reservation";
-    
-    // Get Local Tomorrow string (YYYY-MM-DD)
-    const date = new Date();
-    date.setDate(date.getDate() + 1);
-    const localTomorrow = date.toLocaleDateString("en-CA");
+          // 3. RESTORE OR NEW BOOKING LOGIC
+          const isReserved = booking?.status === "On Reservation";
 
-    if (isReserved && booking.start_date === localTomorrow && !booking.deleted_at) {
-      // If it's for tomorrow and NOT in trash, fetch/update
-      fetchReminders();
-      playSound();
-      toast.warning(
-        `New Reminder: ${booking.full_name}'s reservation is tomorrow!`,
-        {
-          toastId: booking.id, // Prevents duplicates
-        }
-      );
-    } else {
-      // If it no longer fits the reminder criteria (e.g. status changed or date changed)
-      setBookingReminders((prev) => prev.filter((r) => r.id !== booking.id));
-      toast.dismiss(booking.id);
-      
-      // Refresh notifications for other status changes
-      fetchNotifications();
-    }
-  },
-)
+          // Get Local Tomorrow string (YYYY-MM-DD)
+          const date = new Date();
+          date.setDate(date.getDate() + 1);
+          const localTomorrow = date.toLocaleDateString("en-CA");
+
+          if (
+            isReserved &&
+            booking.start_date === localTomorrow &&
+            !booking.deleted_at
+          ) {
+            // If it's for tomorrow and NOT in trash, fetch/update
+            fetchReminders();
+            playSound();
+            toast.warning(
+              `New Reminder: ${booking.full_name}'s reservation is tomorrow!`,
+              {
+                toastId: booking.id, // Prevents duplicates
+              },
+            );
+          } else {
+            // If it no longer fits the reminder criteria (e.g. status changed or date changed)
+            setBookingReminders((prev) =>
+              prev.filter((r) => r.id !== booking.id),
+            );
+            toast.dismiss(booking.id);
+
+            // Refresh notifications for other status changes
+            fetchNotifications();
+          }
+        },
+      )
       .subscribe();
 
     return () => {
