@@ -10,6 +10,7 @@ const SideBarData = [
   { label: "Rent History", path: "/historyofrent", icon: <icons.history /> },
   { label: "Vehicle", path: "/vehiclehistory", icon: <icons.vehicle /> },
   { label: "Maintenance", path: "/maintenance", icon: <icons.onMaintenance /> },
+  { label: "Qr Codes", path: "/qrcode", icon: <icons.qr /> },
   { label: "Recycle Bin", path: "/trashfile", icon: <icons.trash /> },
 ];
 

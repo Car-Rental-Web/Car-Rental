@@ -5,3 +5,4 @@ export { default as VehicleHistory } from "./VehicleHistory";
 export { default as RenterProfile } from "./RenterProfile";
 export { default as RenterTable } from "./RenterTable";
 export { default as TrashFiles } from "./TrashFiles";
+export {default as QrFiles} from './QrFiles'

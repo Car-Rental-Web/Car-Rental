@@ -46,6 +46,7 @@ import { FaCalendarAlt } from "react-icons/fa";
 import { ImMenu } from "react-icons/im";
 import { FaFilter } from "react-icons/fa";
 import { FaArrowRotateLeft } from "react-icons/fa6";
+import { BsQrCode } from "react-icons/bs";
 
 
 
@@ -98,6 +99,7 @@ const icons = {
     menu:ImMenu,
     filter:FaFilter,
     restore:FaArrowRotateLeft,
+    qr:BsQrCode,
 }
 
 export default icons

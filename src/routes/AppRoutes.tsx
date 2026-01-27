@@ -8,6 +8,7 @@ import {
   RenterProfile,
   RenterTable,
   TrashFiles,
+  QrFiles,
 } from "../features/index";
 import {
   ForgotPassword,
@@ -45,6 +46,7 @@ const AppRoutes = () => {
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
             <Route path="maintenance" element={<Maintenance />}></Route>
             <Route path="trashfile" element={<TrashFiles />}></Route>
+            <Route path="qrcode" element={<QrFiles />}></Route>
           </Route>
         </Route>
       </Routes>
