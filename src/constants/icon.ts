@@ -47,6 +47,8 @@ import { ImMenu } from "react-icons/im";
 import { FaFilter } from "react-icons/fa";
 import { FaArrowRotateLeft } from "react-icons/fa6";
 import { BsQrCode } from "react-icons/bs";
+import { MdOutlineKeyboardDoubleArrowLeft } from "react-icons/md";
+import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 
 
 
@@ -100,6 +102,8 @@ const icons = {
     filter:FaFilter,
     restore:FaArrowRotateLeft,
     qr:BsQrCode,
+    leftPagination:MdOutlineKeyboardDoubleArrowLeft,
+    rightPagination:MdOutlineKeyboardDoubleArrowRight,
 }
 
 export default icons

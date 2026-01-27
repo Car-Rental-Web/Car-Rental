@@ -72,6 +72,7 @@ export const RenterProfileSchema = z.object({
   valid_id: z.any().optional(), // For file uploads
   e_signature: z.any().optional(), // For file uploads
   referral: z.string().optional(),
+  renter_selfie: z.any().optional(),
 });
 
 export type RenterValues = z.infer<typeof RenterProfileSchema>;

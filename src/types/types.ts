@@ -196,6 +196,7 @@ export interface DataRenterHistoryProps {
   downpayment:string;
   remaining_balance:string
   referral:string;
+  renter_selfie:any;
   // plate_number:string;
   // model:string;
   // type:string;

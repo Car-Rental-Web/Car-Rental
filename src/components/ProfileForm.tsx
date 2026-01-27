@@ -37,8 +37,12 @@ const ProfileForm: React.FC<Props> = ({
   // watch values
   const watchedValidId = watch("valid_id");
   const watchedSignature = watch("e_signature");
+  const watchedSelfie = watch("renter_selfie" as any); // Watch the new selfie field
+
   const idPreview = getFilePreview(watchedValidId, "valid_id");
   const sigPreview = getFilePreview(watchedSignature, "e_signature");
+  const selfiePreview = getFilePreview(watchedSelfie, "renter_selfie"); // Get selfie preview
+
   useEffect(() => {
     if (open && selectedData) {
       reset(selectedData);
@@ -59,25 +63,32 @@ const ProfileForm: React.FC<Props> = ({
     try {
       let validIdUrl = selectedData?.valid_id;
       let signatureUrl = selectedData?.e_signature;
+      let selfieUrl = selectedData?.renter_selfie; // Track selfie URL
 
       // 1. Handle Valid ID Upload
       if (data.valid_id?.[0] instanceof File) {
         const { path } = await uploadFile(data.valid_id[0], "valid_id");
-        // validIdUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/valid_id/${path}`;
         validIdUrl = getPublicUrl("valid_id", path);
       }
 
       // 2. Handle E-Signature Upload
       if (data.e_signature?.[0] instanceof File) {
         const { path } = await uploadFile(data.e_signature[0], "e_signature");
-        // signatureUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/e_signature/${path}`;
         signatureUrl = getPublicUrl("e_signature", path);
+      }
+
+      // 3. Handle Renter Selfie Upload
+      const selfieFile = (data as any).renter_selfie?.[0];
+      if (selfieFile instanceof File) {
+        const { path } = await uploadFile(selfieFile, "renter_selfie");
+        selfieUrl = getPublicUrl("renter_selfie", path);
       }
 
       const payload = {
         ...data,
         valid_id: validIdUrl,
         e_signature: signatureUrl,
+        renter_selfie: selfieUrl, // Include in payload
       };
 
       if (mode === "edit") {
@@ -86,16 +97,6 @@ const ProfileForm: React.FC<Props> = ({
           .update(payload)
           .eq("id", selectedData.id);
         if (profileError) throw profileError;
-
-        // await supabase
-        //   .from("renter_booking")
-        //   .update({
-        //     full_name: data.full_name,
-        //     address: data.address,
-        //     // Only update license if you allow license editing
-        //     license_number: data.license_number,
-        //   })
-        //   .eq("license_number", selectedData.license_number);
 
         toast.success("Renter updated!");
       } else {
@@ -244,12 +245,11 @@ const ProfileForm: React.FC<Props> = ({
               />
             )}
 
-            {/* The container now stays visible regardless of idPreview */}
-            <div className="relative w-full h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <div className="relative w-full min-h-32  bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
               {idPreview ? (
                 <img
                   src={idPreview}
-                  className="w-full h-full object-cover"
+                  className="w-full max-h-[400px] object-cover"
                   alt="ID Preview"
                 />
               ) : (
@@ -276,7 +276,7 @@ const ProfileForm: React.FC<Props> = ({
               />
             )}
 
-            <div className="relative w-full h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <div className="relative w-full min-h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
               {sigPreview ? (
                 <img
                   src={sigPreview}
@@ -292,7 +292,39 @@ const ProfileForm: React.FC<Props> = ({
               )}
             </div>
           </div>
-           <div className="md:col-span-2">
+
+          {/* Renter Selfie (Flexible/Responsive Preview) */}
+          <div className="border-t pt-4 md:col-span-2">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              Renter Selfie
+            </label>
+            {!isView && (
+              <input
+                type="file"
+                {...register("renter_selfie" as any)}
+                className="w-full text-xs text-gray-500 mb-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer"
+              />
+            )}
+
+            <div className="relative w-full min-h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+              {selfiePreview ? (
+                <img
+                  src={selfiePreview}
+                  className="w-full h-auto max-h-[400px] object-contain p-1"
+                  alt="Selfie Preview"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-1 opacity-30 py-8">
+                  <icons.upload size={20} />
+                  <span className="text-[9px] font-black uppercase tracking-tighter">
+                    No Selfie Selected
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Referral
             </label>
