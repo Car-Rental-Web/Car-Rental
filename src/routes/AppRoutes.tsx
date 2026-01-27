@@ -2,14 +2,12 @@ import { Route, Routes } from "react-router-dom";
 import RootLayout from "../layout/RootLayout";
 import {
   Aavailability,
-  // Vehicles,
-  // Bookings,
   Dashboard,
   Maintenance,
-  // RenterHistory,
   VehicleHistory,
   RenterProfile,
   RenterTable,
+  TrashFiles,
 } from "../features/index";
 import {
   ForgotPassword,
@@ -46,6 +44,7 @@ const AppRoutes = () => {
             <Route path="historyofrent" element={<RenterTable />}></Route>
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
             <Route path="maintenance" element={<Maintenance />}></Route>
+            <Route path="trashfile" element={<TrashFiles />}></Route>
           </Route>
         </Route>
       </Routes>

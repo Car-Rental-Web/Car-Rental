@@ -45,6 +45,7 @@ import { CiBellOn } from "react-icons/ci";
 import { FaCalendarAlt } from "react-icons/fa";
 import { ImMenu } from "react-icons/im";
 import { FaFilter } from "react-icons/fa";
+import { FaArrowRotateLeft } from "react-icons/fa6";
 
 
 
@@ -96,6 +97,7 @@ const icons = {
     calendar:FaCalendarAlt,
     menu:ImMenu,
     filter:FaFilter,
+    restore:FaArrowRotateLeft,
 }
 
 export default icons

@@ -72,12 +72,14 @@ const Renter = () => {
 
       const { error: deleteError } = await supabase
         .from("renter_booking")
-        .delete()
+        .update({deleted_at: new Date().toISOString()})
         .eq("id", id);
 
-      if (deleteError) throw deleteError;
+        if(deleteError) {
+          toast.error("Failed to Move to Trash")
+        }
 
-      toast.success(`"Deleted Successfully" ${booking.car_plate_number}`);
+      toast.success(`"Moved to Trash Successfully" ${booking.car_plate_number}`);
       await supabase
         .from("vehicle")
         .update({ status: "Available" })
@@ -99,7 +101,8 @@ const Renter = () => {
       const { data, error } = await supabase
         .from("renter_booking")
         .select("*")
-        .order("id", { ascending: false });
+        .order("id", { ascending: false })
+        .is("deleted_at", null)
       if (error) {
         console.log("Error fetching renter", error);
         return;

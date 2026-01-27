@@ -65,12 +65,12 @@ const VehicleHistory = () => {
   } = usePagination(historyData, 5);
 
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from("vehicle").delete().eq("id", id);
+    const { error } = await supabase.from("vehicle").update({deleted_at:  new Date().toISOString()}).eq("id", id)
     if (error) {
-      toast.error("Failed to Delete");
+      toast.error("Failed to Move to Trash");
       return;
     }
-    toast.success("Successfully Deleted");
+    toast.success("Moved to Trash Successfully");
     setOpenDelete(false);
     setopenAction(null);
     fetchVehicle();
@@ -78,7 +78,7 @@ const VehicleHistory = () => {
 
   const fetchVehicle = async () => {
     try {
-      const { data } = await supabase.from("vehicle").select("*");
+      const { data } = await supabase.from("vehicle").select("*").is("deleted_at", null);
       setVehicleCard(data || []);
       console.log("Fetched Vehicle", data);
     } catch (error) {
@@ -301,6 +301,12 @@ const VehicleHistory = () => {
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between text-[10px]">
+                                    <span className="text-gray-400">Duration</span>
+                                      <span className="text-gray-400 italic">
+                                    Duration: {date.duration} {date.duration > "1" ? "Days" : "day"}
+                            </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-[10px]">
                                     <span className="font-bold text-gray-700">
                                       {date.status}
                                     </span>
@@ -509,6 +515,7 @@ const VehicleHistory = () => {
                             <span className="text-gray-400 italic">
                               End: {formatDate(row.end_date)}
                             </span>
+                          
                           </div>
                         </td>
                         <td className="px-8 py-4 text-center">

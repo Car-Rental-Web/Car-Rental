@@ -82,17 +82,17 @@ const Maintenance = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("maintenance")
-      .delete()
+      .update({deleted_at: new Date().toISOString()})
       .eq("id", id);
 
     if (error) {
-      toast.error("Failed to delete");
+      toast.error("Failed to Move to Trash");
       return;
     }
     console.log("Deleted Successfully", data);
+    toast.success("Moved to Trash Successfully");
     setRecords((prev) => prev.filter((row) => row.id !== id));
     setFilterRecords((prev) => prev.filter((row) => row.id !== id));
-    toast.success("Deleted Successfully");
     setOpenDelete(false);
     setLoading(false);
   };

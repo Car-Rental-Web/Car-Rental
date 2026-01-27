@@ -20,7 +20,6 @@ const RenterProfile = () => {
   >([]);
   const [renterHistory, setRenterHistory] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-
   // Modal Control States
   const [showRegForm, setShowRegForm] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -52,7 +51,8 @@ const RenterProfile = () => {
     const { data, error } = await supabase
       .from("renter")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .is("deleted_at", null)
     if (error) return;
     setRenterData(data || []);
     setFilterRenterData(data || []);
@@ -72,6 +72,7 @@ const RenterProfile = () => {
       supabase.removeChannel(subscription);
     };
   }, [fetchRenter]);
+
 
   // Search Logic
   useEffect(() => {
@@ -140,12 +141,14 @@ const RenterProfile = () => {
       // 5. Finally, delete the database record
       const { error: deleteError } = await supabase
         .from("renter")
-        .delete()
+        .update({deleted_at: new Date().toISOString()})
         .eq("id", id);
+      if(deleteError) {
+        console.log('Failed to Move to Trash',deleteError)
+        toast.error("Failed to move to Trash")
+      }
 
-      if (deleteError) throw deleteError;
-
-      toast.success(`"Renter and associated files deleted"`);
+      toast.success(`"Moved to Trash Successfully"`);
       setOpenDelete(false);
       fetchRenter();
     } catch (error: any) {
@@ -153,6 +156,9 @@ const RenterProfile = () => {
       toast.error(error.message || "Failed to delete");
     }
   };
+
+ 
+
   return (
     <div className="min-h-screen w-full pt-10 px-6 bg-[#f8fafc] flex flex-col gap-6 pb-10">
       {/* Metrics Cards */}
@@ -172,9 +178,9 @@ const RenterProfile = () => {
           }
           description="Total registered in database"
           topIcon={
-            <div className="p-3 bg-blue-50 rounded-xl">
+            <p className="p-3 bg-blue-50 rounded-xl">
               <icons.person className="text-blue-600 text-2xl" />
-            </div>
+            </p>
           }
         />
         <Card
@@ -192,9 +198,9 @@ const RenterProfile = () => {
           }
           description="Renter entries found"
           topIcon={
-            <div className="p-3 bg-emerald-50 rounded-xl">
+            <p className="p-3 bg-emerald-50 rounded-xl">
               <icons.rent className="text-emerald-600 text-2xl" />
-            </div>
+            </p>
           }
         />
       </div>
@@ -281,7 +287,7 @@ const RenterProfile = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {currentItems.length > 0 ? 
+            {currentItems.length > 0 ? 
               currentItems.map((row, index) => (
                 <tr
                   key={row.id}
@@ -325,14 +331,14 @@ const RenterProfile = () => {
                   </td>
                   <td className="p-4 text-center">
                     <img
-                      className="w-10 h-10 object-cover rounded-lg mx-auto border"
+                      className="w-10 h-10 object-cover rounded-lg mx-auto "
                       src={row.valid_id}
                       alt="ID"
                     />
                   </td>
                   <td className="p-4 text-center">
                     <img
-                      className="w-10 h-10 object-contain bg-slate-50 rounded-lg mx-auto border"
+                      className="w-10 h-10 object-contain bg-slate-50 rounded-lg mx-auto "
                       src={row.e_signature}
                       alt="Sign"
                     />
@@ -396,7 +402,7 @@ const RenterProfile = () => {
                       <div className="p-3 bg-slate-100 rounded-full text-slate-400">
                         <icons.filter size={24} />
                       </div>
-                      <p className="text-sm text-slate-500 font-medium text-center">
+                      <div className="text-sm text-slate-500 font-medium text-center">
                         {searchTerm.length > 0  ? (
                           <>
                             No matches found for{" "}
@@ -413,7 +419,7 @@ const RenterProfile = () => {
                           </>
                         ) 
                         }
-                      </p>
+                      </div>
                       {(searchTerm) && (
                         <button
                           onClick={() => {

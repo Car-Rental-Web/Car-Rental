@@ -30,7 +30,7 @@ const Card: React.FC<CardProps> = ({ ...CardProps }) => {
           >
             {CardProps.linkText} {CardProps.linkIcon}
           </Link>
-          <p>{CardProps.topIcon}</p>
+          <div>{CardProps.topIcon}</div>
         </div>
       </div>
       <p className="text-center   pb-2 font-extrabold flex justify-center items-center ">

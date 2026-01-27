@@ -101,6 +101,7 @@ export interface DataBookingRow {
   notes: string;
   uploaded_proof: any;
   status: string;
+  duration:string;
 }
 export interface DataBookingFormValues {
   id: number;
