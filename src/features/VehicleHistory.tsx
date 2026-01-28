@@ -272,7 +272,7 @@ const VehicleHistory = () => {
                                     <p className="font-bold text-gray-800">{date.full_name}</p>
                                     <p className="text-gray-600"><span className="font-extrabold">Start:</span> {formatDate(date.start_date)}</p>
                                     <p className="text-gray-600"><span className="font-extrabold">End:</span> {formatDate(date.end_date)}</p>
-                                    <p className="text-gray-600"><span className="font-extrabold">Duration</span> {date.duration} {date.duration.length > 1 ? "Days" : "Day"}</p>
+                                    <p className="text-gray-600"><span className="font-extrabold">Duration</span> {date.duration} Day/s</p>
                                   </div>
                                 ))}
                              </div>

@@ -293,12 +293,13 @@ const RenterProfile = () => {
             <button onClick={() => { setSelectedLicense(""); setSelectedName(""); }} className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold">Close View</button>
           </div>
           <div className="overflow-hidden rounded-xl border">
-            <table className="w-full text-left">
+            <table className="w-full text-center table-fixed">
               <thead className="bg-slate-800 text-white">
                 <tr>
                   <th className="p-4 text-[10px] uppercase">Rent Created</th>
                   <th className="p-4 text-[10px] uppercase">Car Rented</th>
-                  <th className="p-4 text-[10px] uppercase">Status</th>
+                  <th className="p-4 text-[10px] uppercase">Schedule</th>
+                  <th className="p-4 text-[10px] uppercase">Location</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -306,9 +307,8 @@ const RenterProfile = () => {
                   <tr key={history.id}>
                     <td className="p-4 font-bold text-sm">{formatDate(history.created_at.split("T")[0])}</td>
                     <td className="p-4 font-bold text-sm">{history.car_plate_number}</td>
-                    <td className="p-4">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-blue-500 text-white">{history.status}</span>
-                    </td>
+                    <td className="p-4 font-bold text-sm"><span>{formatDate(history.start_date)}</span> | <span>{formatDate(history.end_date)}</span></td>
+                    <td className="p-4 font-bold text-sm">{history.location}</td>
                   </tr>
                 ))}
               </tbody>
