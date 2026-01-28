@@ -157,6 +157,7 @@ const VehicleHistory = () => {
             <option value="All">Status</option>
             <option value="Available">Available</option>
             <option value="On Service">On Service</option>
+            <option value="On Service">Rented</option>
             <option value="On Reservation">On Reservation</option>
             <option value="On Maintenance">On Maintenance</option>
           </select>
@@ -269,8 +270,9 @@ const VehicleHistory = () => {
                                 {selectDate.filter((d) => d.car_plate_number === vehicle.plate_number).map((date) => (
                                   <div key={date.id} className="p-2 bg-gray-50 rounded-lg border border-gray-100 text-[10px]">
                                     <p className="font-bold text-gray-800">{date.full_name}</p>
-                                    <p className="text-gray-500">Start: {formatDate(date.start_date)}</p>
-                                    <p className="text-gray-500">End: {formatDate(date.end_date)}</p>
+                                    <p className="text-gray-600"><span className="font-extrabold">Start:</span> {formatDate(date.start_date)}</p>
+                                    <p className="text-gray-600"><span className="font-extrabold">End:</span> {formatDate(date.end_date)}</p>
+                                    <p className="text-gray-600"><span className="font-extrabold">Duration</span> {date.duration} {date.duration.length > 1 ? "Days" : "Day"}</p>
                                   </div>
                                 ))}
                              </div>
@@ -294,11 +296,11 @@ const VehicleHistory = () => {
                         </div>
                         <div className="flex gap-2 mt-4">
                           <button onClick={() => { fetchHistory(vehicle); setIsClicked(vehicle.id); }}
-                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${isClicked === vehicle.id ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
+                            className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${isClicked === vehicle.id ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
                             History <icons.rightArrow />
                           </button>
                           <button onClick={() => { setShowForm(true); setSelectedVehicle(vehicle); }}
-                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-white rounded-lg text-xs font-semibold transition-all ${vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}>
+                            className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 text-white rounded-lg text-xs font-semibold transition-all ${vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}>
                             {vehicle.status === "Available" ? "Rent" : vehicle.status} <icons.rightArrow />
                           </button>
                         </div>

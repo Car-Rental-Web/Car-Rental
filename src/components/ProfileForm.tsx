@@ -170,6 +170,29 @@ const ProfileForm: React.FC<Props> = ({
               className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50"
             />
           </div>
+{/* CONTACT NUMBER AND FACEBOOK */}
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Contact #
+            </label>
+            <input
+              placeholder="ex: 09212400232"
+              {...register("contact_number")}
+              disabled={isView}
+              className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Facebook Account
+            </label>
+            <input
+              placeholder="ex: John Doe"
+              {...register("facebook_account")}
+              disabled={isView}
+              className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50"
+            />
+          </div>
 
           {/* Section: Government IDs */}
           <div>

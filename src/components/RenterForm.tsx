@@ -397,7 +397,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
             <div className="flex flex-col">
               <label className={labelBase}>License Number</label>
               <input
-                readOnly
+                // readOnly
                 {...register("license_number")}
                 type="text"
                 className={getInputClass("license_number")}

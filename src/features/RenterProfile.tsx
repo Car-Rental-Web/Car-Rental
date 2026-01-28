@@ -189,7 +189,8 @@ const RenterProfile = () => {
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Created</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Renter Name</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Address</th>
-
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Contact #</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Facebook</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">License #</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Tin No.</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Philhealth No.</th>
@@ -214,6 +215,8 @@ const RenterProfile = () => {
                   <td className="p-4 text-center text-xs text-slate-600">{row.created_at.split("T")[0]}</td>
                   <td className="p-4 text-center text-xs font-bold text-slate-800">{row.full_name || "N/A"}</td>
                   <td className="p-4 text-center text-xs text-slate-600 truncate max-w-[150px]">{row.address || "N/A"}</td>
+                  <td className="p-4 text-center text-xs font-mono text-slate-500">{row.contact_number || "N/A"}</td>
+                  <td className="p-4 text-center text-xs font-mono text-slate-500">{row.facebook_account || "N/A"}</td>
                   <td className="p-4 text-center text-xs font-mono text-slate-500">{row.license_number || "N/A"}</td>
                   <td className="p-4 text-center text-xs font-mono text-slate-500">{row.tin_number || "N/A"}</td>
                   <td className="p-4 text-center text-xs font-mono text-slate-500">{row.philhealth_number || "N/A"}</td>
@@ -229,7 +232,6 @@ const RenterProfile = () => {
                       onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/40")}
                     />
                   </td>
-
                   <td className="p-4 text-center">
                     <img className="w-10 h-10 object-cover rounded-lg mx-auto" src={row.valid_id} alt="ID" />
                   </td>

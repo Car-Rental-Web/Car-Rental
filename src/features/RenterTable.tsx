@@ -232,11 +232,11 @@ const Renter = () => {
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Duration
                 </th>
-                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
-                  Location
+                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                  Rent Type
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
-                  Rent Type
+                  Location
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Total Price

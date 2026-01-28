@@ -197,6 +197,8 @@ export interface DataRenterHistoryProps {
   remaining_balance:string
   referral:string;
   renter_selfie:any;
+  contact_number:string;
+  facebook_account:string;
   // plate_number:string;
   // model:string;
   // type:string;
