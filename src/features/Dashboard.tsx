@@ -82,7 +82,7 @@ const Dashboard = () => {
             title={<span className="text-slate-800">Total Bookings</span>}
             linkText="View All"
             linkIcon={<icons.rightArrow className="text-blue-500" />}
-            url="/bookings"
+            url="/historyofrent"
             amount={<span className="text-5xl font-black text-slate-800">{booking}</span>}
             description={<span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Lifetime Bookings</span>}
           />

@@ -129,6 +129,7 @@ const Renter = () => {
                 item.id === updatedData.id ? updatedData : item,
               ),
             );
+            setSelectedData((current) => current?.id === updatedData.id ? updatedData : current);
           } else if (eventType === "DELETE") {
             setFilterRenterData((prev) =>
               prev.filter((item) => item.id !== payload.old.id),
@@ -141,7 +142,7 @@ const Renter = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [openForm]);
+  }, []);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
