@@ -49,6 +49,7 @@ import { FaArrowRotateLeft } from "react-icons/fa6";
 import { BsQrCode } from "react-icons/bs";
 import { MdOutlineKeyboardDoubleArrowLeft } from "react-icons/md";
 import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
+import { FaChevronDown } from "react-icons/fa";
 
 
 
@@ -104,6 +105,7 @@ const icons = {
     qr:BsQrCode,
     leftPagination:MdOutlineKeyboardDoubleArrowLeft,
     rightPagination:MdOutlineKeyboardDoubleArrowRight,
+    chevronDown:FaChevronDown,
 }
 
 export default icons

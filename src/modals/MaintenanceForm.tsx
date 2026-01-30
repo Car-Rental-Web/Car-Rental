@@ -88,7 +88,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   async (data: MaintenanceFormData) => {
     setLoading(true);
     try {
-      let finalType = data.type_of_maintenance;
+      const finalType = data.type_of_maintenance;
       // ... (your existing type_of_maintenance string logic)
 
       const payload = { ...data, type_of_maintenance: finalType };
@@ -138,7 +138,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
       setLoading(false);
     }
   },
-  [isCreate, isEdit, initialData, onClose, reset, setLoading, isOtherSelected, otherText]
+  [isCreate, isEdit, initialData, onClose, reset, setLoading]
 );
 
   useEffect(() => {

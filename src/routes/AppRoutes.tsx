@@ -21,6 +21,9 @@ import { useRestoreSession } from "../hooks/useRestoreSession";
 import { ToastContainer } from "react-toastify";
 import { NotFound} from "../components";
 import PublicRoutes from "./PublicRoutes";
+import OnService from "../components/OnService";
+import OnReservation from "../components/OnReservation";
+import Completed from "../components/Completed";
 
 const AppRoutes = () => {
   useRestoreSession();
@@ -42,7 +45,10 @@ const AppRoutes = () => {
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
             <Route path="renterprofile" element={<RenterProfile />}></Route>
-            <Route path="historyofrent" element={<RenterTable />}></Route>
+            <Route path="bookings" element={<RenterTable />}></Route>
+            <Route path="bookings/on-service" element={<OnService />}></Route>
+            <Route path="bookings/on-reservation" element={<OnReservation />}></Route>
+            <Route path="bookings/on-completed" element={<Completed />}></Route>
             <Route path="vehiclehistory" element={<VehicleHistory />}></Route>
             <Route path="maintenance" element={<Maintenance />}></Route>
             <Route path="trashfile" element={<TrashFiles />}></Route>
