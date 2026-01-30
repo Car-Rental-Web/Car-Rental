@@ -199,6 +199,7 @@ export interface DataRenterHistoryProps {
   renter_selfie:any;
   contact_number:string;
   facebook_account:string;
+  deleted_at:string | null
   // plate_number:string;
   // model:string;
   // type:string;

@@ -145,7 +145,7 @@ const Completed = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [openForm]);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {

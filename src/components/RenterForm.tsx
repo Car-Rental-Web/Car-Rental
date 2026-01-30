@@ -460,9 +460,9 @@ const RenterForm: React.FC<RenterFormProps> = ({
               <option value="">Select Vehicle</option>
               {vehicles.map((v) => (
                 <option
-                  disabled={
-                    v.status === "On Service" || v.status === "On Maintenance"
-                  }
+                  // disabled={
+                  //   v.status === "On Service" || v.status === "On Maintenance"
+                  // }
                   key={v.id}
                   value={v.plate_number}
                   className={`${v.status === "On Service" ? "text-red-500" : v.status === "On Reservation" ? "text-blue-500" : v.status === "On Maintenance" ? "text-red-500" : ""}`}

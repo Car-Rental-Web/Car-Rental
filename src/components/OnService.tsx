@@ -97,15 +97,18 @@ const OnService = () => {
   };
 
   // Fetch data and setup subscription
+ // Fetch data and setup subscription
   useEffect(() => {
+    const statusFilter = "On Service";
+
     const fetchRenter = async () => {
-       const statusFilter = "On Service";
       const { data, error } = await supabase
         .from("renter_booking")
         .select("*")
         .eq("status", statusFilter)
         .order("id", { ascending: false })
-        .is("deleted_at", null)
+        .is("deleted_at", null);
+
       if (error) {
         console.log("Error fetching renter", error);
         return;
@@ -113,27 +116,57 @@ const OnService = () => {
       setRenterData(data);
       setFilterRenterData(data);
     };
+
     fetchRenter();
 
     const subscription = supabase
-      .channel("schema-db-changes")
+      .channel("onservice-changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "renter_booking" },
         (payload) => {
           const eventType = payload.eventType;
+          const newData = payload.new as DataRenterHistoryProps;
+
           if (eventType === "INSERT") {
-            const newData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) => [newData, ...prev]);
-          } else if (eventType === "UPDATE") {
-            const updatedData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) =>
-              prev.map((item) =>
-                item.id === updatedData.id ? updatedData : item,
-              ),
-            );
-            setSelectedData((current) => current?.id === updatedData.id ? updatedData : current);
-          } else if (eventType === "DELETE") {
+            // Only add if it belongs in this tab
+            if (newData.status === statusFilter && !newData.deleted_at) {
+              setFilterRenterData((prev) => [newData, ...prev]);
+              toast.success(`New Booking: ${newData.full_name}`);
+            }
+          } 
+          
+          else if (eventType === "UPDATE") {
+            // 1. GLOBAL NOTIFICATION LOGIC
+            // This works even if the item isn't in the current list yet
+            if (newData.status === "On Service" && !newData.deleted_at) {
+              toast.info(`Booking Started: ${newData.full_name} (${newData.car_plate_number})`);
+            }
+
+            // 2. STATE SYNC LOGIC
+            setFilterRenterData((prev) => {
+              const isAlreadyInList = prev.some(item => item.id === newData.id);
+
+              // If it just became 'On Service', add it to the list
+              if (newData.status === statusFilter && !isAlreadyInList && !newData.deleted_at) {
+                return [newData, ...prev];
+              }
+
+              // If it's no longer 'On Service' or was deleted, remove it
+              if (newData.status !== statusFilter || newData.deleted_at) {
+                return prev.filter((item) => item.id !== newData.id);
+              }
+
+              // Otherwise, just update the existing entry
+              return prev.map((item) =>
+                item.id === newData.id ? newData : item
+              );
+            });
+
+            setSelectedData((current) => current?.id === newData.id ? newData : current);
+          } 
+          
+          else if (eventType === "DELETE") {
             setFilterRenterData((prev) =>
               prev.filter((item) => item.id !== payload.old.id),
             );
@@ -145,7 +178,8 @@ const OnService = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+    // Added statusFilter to dependencies for safety
+  }, [openForm]);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
