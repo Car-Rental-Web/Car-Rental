@@ -128,9 +128,9 @@ const Header = () => {
                 });
               } else if (booking.status === "Completed") {
                 playSound();
-                toast.info(`Trip Completed: ${booking.full_name} has returned.`, {
-                  position: "top-right",
-                });
+                // toast.info(`Trip Completed: ${booking.full_name} has returned.`, {
+                //   position: "top-right",
+                // });
               }
             }
           }

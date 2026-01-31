@@ -96,11 +96,9 @@ const OnService = () => {
     }
   };
 
-  // Fetch data and setup subscription
  // Fetch data and setup subscription
   useEffect(() => {
     const statusFilter = "On Service";
-
     const fetchRenter = async () => {
       const { data, error } = await supabase
         .from("renter_booking")

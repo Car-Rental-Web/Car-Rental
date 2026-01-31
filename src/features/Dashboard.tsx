@@ -3,6 +3,7 @@ import icons from "../constants/icon";
 import { supabase } from "../utils/supabase";
 import React from "react";
 import Card from "../components/Card";
+import Renter from "./RenterTable";
 
 const BookingVisual = React.lazy(() => import("../components/BookingVisual"));
 const RenterVisual = React.lazy(() => import("../components/RenterVisual"));
@@ -120,6 +121,7 @@ const Dashboard = () => {
             />
           </div>
         </div>
+        <Renter/>
       </div>
     </div>
   );
