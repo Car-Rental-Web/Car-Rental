@@ -171,7 +171,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
   useEffect(() => {
     const fetchRenter = async () => {
-      const { data, error } = await supabase.from("renter").select("*");
+      const { data, error } = await supabase.from("renter").select("*").is("deleted_at", null);
       if (error) {
         console.log("Failed to Fetched Renters", error);
         return;

@@ -117,7 +117,7 @@ const VehicleHistory = () => {
   }, [open, openDelete, onClose]);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
+    <div className="overflow-y-auto h-full bg-gray-50/50 p-4 md:p-8">
       {/* Header Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
