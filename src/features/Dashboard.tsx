@@ -173,7 +173,7 @@ const Dashboard = () => {
                   ₱{value.toLocaleString()}
                 </span>
               }
-              description={"Earnings minus maintenance (Filtered)"}
+              description={"Revenue minus maintenance Expense"}
               linkIcon={<icons.money className="text-emerald-500" />}
             />
 
