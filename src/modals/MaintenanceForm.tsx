@@ -31,7 +31,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   mode,
   initialData,
 }) => {
-  const [vehicles, setVehicles] = useState<{ id: string; plate_number: string }[]>([]);
+  const [vehicles, setVehicles] = useState<{ id: string; plate_number: string; status:string; }[]>([]);
   const { loading, setLoading } = useLoadingStore();
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [otherText, setOtherText] = useState("");
@@ -143,7 +143,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
 
   useEffect(() => {
     const fetchVehicles = async () => {
-      const { data, error } = await supabase.from("vehicle").select("id, plate_number");
+      const { data, error } = await supabase.from("vehicle").select("id, plate_number, status");
       if (!error && data) setVehicles(data);
     };
     fetchVehicles();
@@ -176,7 +176,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             <label className={labelClass}>Registered Vehicle</label>
             <select {...register("car")} disabled={isView} className={inputClass(errors.car)}>
               <option value="">Select Plate Number</option>
-              {vehicles.map((v) => <option key={v.id} value={v.plate_number}>{v.plate_number}</option>)}
+              {vehicles.map((v) => <option disabled={v.status === "On Service"} key={v.id} value={v.plate_number}>{v.plate_number}</option>)}
             </select>
             {errorMsg(errors.car?.message)}
           </div>

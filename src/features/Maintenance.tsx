@@ -89,6 +89,13 @@ const Maintenance = () => {
       toast.error("Failed to Move to Trash");
       return;
     }
+    const {error:vehicleStatus} = await supabase.from("vehicle").update({status: "Available"}).eq("id", id)
+    
+    if(vehicleStatus) {
+      toast.error('Failed to Update in Vehicle')
+      return
+    }
+
     console.log("Deleted Successfully", data);
     toast.success("Moved to Trash Successfully");
     setRecords((prev) => prev.filter((row) => row.id !== id));
