@@ -100,7 +100,7 @@ const Maintenance = () => {
   useEffect(() => {
     let isMounted = true;
     const fetchMaintenance = async () => {
-      const { data, error } = await supabase.from("maintenance").select("*");
+      const { data, error } = await supabase.from("maintenance").select("*").is("deleted_at", null);
       if (!isMounted) return;
 
       if (error) return;
