@@ -17,7 +17,7 @@ const VerticalCalendar: React.FC = () => {
     switch (status) {
       case "On Service": return { bg: "#ecfdf5", text: "#065f46", border: "#10b981" };
       case "On Reservation": return { bg: "#eff6ff", text: "#1e40af", border: "#3b82f6" };
-      case "Completed": return { bg: "#fef2f2", text: "#991b1b", border: "#ef4444" };
+      // case "Completed": return { bg: "#fef2f2", text: "#991b1b", border: "#ef4444" };
       default: return { bg: "#f9fafb", text: "#374151", border: "#d1d5db" };
     }
   };
@@ -25,7 +25,8 @@ const VerticalCalendar: React.FC = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const { data, error } = await supabase.from("renter_booking").select("*").is("deleted_at",null);
+        const statuses = ["On Service" , "On Reservation"]
+        const { data, error } = await supabase.from("renter_booking").select("*").in("status", statuses).is("deleted_at",null);
         if (error) throw error;
         setBookings(data || []);
       } catch (error) {
@@ -95,7 +96,6 @@ const VerticalCalendar: React.FC = () => {
             <option value="all">Status</option>
             <option value="On Service">On Service</option>
             <option value="On Reservation">On Reservation</option>
-            <option value="Completed">Completed</option>
           </select>
         </div>
       </div>

@@ -219,7 +219,7 @@ const VehicleHistory = () => {
                     }`}
                   >
                     {/* Status Badge */}
-                    <div className="absolute top-5 left-5 z-10">
+                    <div className={`absolute top-5 left-5 z-10 ${vehicle.status === "On Service" ? "animate-pulse" : ""} `}>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                         vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500 text-white border-red-600" :
                         vehicle.status === "On Reservation" ? "bg-blue-50 text-blue-600 border-blue-100" :
