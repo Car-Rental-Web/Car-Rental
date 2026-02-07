@@ -46,55 +46,80 @@ const OnService = () => {
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      const { data: booking, error: fetchError } = await supabase
-        .from("renter_booking")
-        .select("uploaded_proof, car_plate_number")
-        .eq("id", id)
-        .maybeSingle();
+  try {
+    // 1. Fetch the booking to get details needed for cleanup
+    const { data: booking, error: fetchError } = await supabase
+      .from("renter_booking")
+      .select("uploaded_proof, car_plate_number, start_date")
+      .eq("id", id)
+      .maybeSingle();
 
-      if (fetchError || !booking) {
-        toast.error("Booking not found");
-        return;
-      }
-
-      const storageTasks: Promise<any>[] = [];
-      if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
-        const proofPaths = Array.isArray(booking.uploaded_proof)
-          ? booking.uploaded_proof
-          : JSON.parse(booking.uploaded_proof);
-
-        storageTasks.push(
-          supabase.storage.from("uploaded_proof").remove(proofPaths),
-        );
-      }
-
-      await Promise.all(storageTasks);
-
-      const { error: deleteError } = await supabase
-        .from("renter_booking")
-        .update({deleted_at: new Date().toISOString()})
-        .eq("id", id);
-
-        if(deleteError) {
-          toast.error("Failed to Move to Trash")
-        }
-
-      toast.success(`"Moved to Trash Successfully" ${booking.car_plate_number}`);
-      await supabase
-        .from("vehicle")
-        .update({ status: "Available" })
-        .eq("plate_number", booking.car_plate_number);
-
-      setOpenDelete(false);
-      setSelectedData(null);
-      // Update local state source of truth
-      setFilterRenterData((prev) => prev.filter((row) => row.id !== id));
-    } catch (error) {
-      console.error("Failed to delete:", error);
-      toast.error("Failed to delete everything");
+    if (fetchError || !booking) {
+      toast.error("Booking not found");
+      return;
     }
-  };
+
+    // 2. Handle File Storage Deletion (if any proofs exist)
+    const storageTasks: Promise<any>[] = [];
+    if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
+      const proofPaths = Array.isArray(booking.uploaded_proof)
+        ? booking.uploaded_proof
+        : JSON.parse(booking.uploaded_proof);
+
+      storageTasks.push(
+        supabase.storage.from("uploaded_proof").remove(proofPaths),
+      );
+    }
+    await Promise.all(storageTasks);
+
+    // 3. Mark the booking as deleted in database (Soft Delete)
+    const { error: deleteError } = await supabase
+      .from("renter_booking")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (deleteError) {
+      toast.error("Failed to Move to Trash");
+      return;
+    }
+
+    toast.success(`Moved to Trash Successfully: ${booking.car_plate_number}`);
+
+    // 4. Update Vehicle Status intelligently
+    // Check if there are OTHER active bookings for this vehicle
+    const { data: otherActiveBookings, error: checkError } = await supabase
+      .from("renter_booking")
+      .select("status")
+      .eq("car_plate_number", booking.car_plate_number)
+      .is("deleted_at", null)
+      .neq("id", id) // Exclude the one we just deleted
+      .in("status", ["On Service", "On Reservation"]);
+
+    if (checkError) {
+      console.error("Error checking other bookings", checkError);
+    }
+
+    // Determine new status: If no other active bookings, make it Available
+    const newVehicleStatus =
+      otherActiveBookings && otherActiveBookings.length > 0
+        ? "On Service" // Or keep as is, but this ensures it stays occupied
+        : "Available";
+
+    // Update vehicle status
+    await supabase
+      .from("vehicle")
+      .update({ status: newVehicleStatus })
+      .eq("plate_number", booking.car_plate_number);
+
+    // 5. Update Local State to reflect change without refreshing
+    setOpenDelete(false);
+    setSelectedData(null);
+    setFilterRenterData((prev) => prev.filter((row) => row.id !== id));
+  } catch (error) {
+    console.error("Failed to delete:", error);
+    toast.error("Failed to delete booking");
+  }
+};
 
  // Fetch data and setup subscription
   useEffect(() => {
@@ -334,6 +359,9 @@ const OnService = () => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
+                         <div className="text-xs text-red-500 text-left text-ellipsis" >
+                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
+                      </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">

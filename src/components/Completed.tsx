@@ -302,6 +302,9 @@ const Completed = () => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
+                         <div className="text-xs text-red-500 text-left text-ellipsis" >
+                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
+                      </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">

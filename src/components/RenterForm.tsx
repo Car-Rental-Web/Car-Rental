@@ -184,6 +184,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
         total_price_rent: selectedData.total_price_rent,
         downpayment: selectedData.downpayment,
         remaining_balance: Number(selectedData.remaining_balance) || 0,
+        remarks: selectedData.remarks || "",
       });
     }
     if (selectedData?.uploaded_proof) {
@@ -807,6 +808,17 @@ const RenterForm: React.FC<RenterFormProps> = ({
             )}
           </div>
         )}
+        <div className="flex flex-col w-full">
+            <label className={labelBase}>Remarks / Notes</label>
+            <input
+            disabled={isReadOnly}
+              placeholder="Notes"
+              {...register("remarks")}
+              type="text"
+              className={getInputClass("remarks")}
+            />
+            <ErrorMessage field="remarks" />
+          </div>
 
         <div className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-6 border-t mt-4">
           {(mode === "create" || mode === "edit") && (

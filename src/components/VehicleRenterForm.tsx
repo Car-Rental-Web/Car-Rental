@@ -734,6 +734,16 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
               )}
             </div>
           )}
+          <div className="flex flex-col w-full">
+            <label className={labelStyles}>Remarks / Notes</label>
+            <input
+            disabled={isReadOnly}
+              placeholder="Notes"
+              {...register("remarks")}
+              type="text"
+              className={`${inputStyles}`}
+            />
+          </div>
         </form>
 
         <div className="p-6 border-t bg-gray-50 flex flex-col sm:flex-row gap-3">

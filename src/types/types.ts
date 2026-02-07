@@ -102,6 +102,7 @@ export interface DataBookingRow {
   uploaded_proof: any;
   status: string;
   duration:string;
+  remarks:string;
 }
 export interface DataBookingFormValues {
   id: number;
@@ -200,6 +201,7 @@ export interface DataRenterHistoryProps {
   contact_number:string;
   facebook_account:string;
   deleted_at:string | null
+  remarks:string;
   // plate_number:string;
   // model:string;
   // type:string;

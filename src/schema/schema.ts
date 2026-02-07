@@ -153,6 +153,7 @@ export const RenterFormDataSchema = z.object({
   total_price_rent: z.string().min(1),
   downpayment: z.string().min(1),
   remaining_balance: z.number(),
+  remarks: z.string().optional(),
 
 });
 

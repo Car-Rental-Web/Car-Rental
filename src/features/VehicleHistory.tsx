@@ -94,7 +94,7 @@ const VehicleHistory = () => {
   };
 
   const fetchBookingDate = async () => {
-    const { data, error } = await supabase.from("renter_booking").select("*").in("status", ["On Service", "On Reservation"]);
+    const { data, error } = await supabase.from("renter_booking").select("*").in("status", ["On Service", "On Reservation"]).is("deleted_at", null);
     if (error) return;
     setSelectDate(data);
   };
@@ -273,6 +273,7 @@ const VehicleHistory = () => {
                                     <p className="text-gray-600"><span className="font-extrabold">Start:</span> {formatDate(date.start_date)}</p>
                                     <p className="text-gray-600"><span className="font-extrabold">End:</span> {formatDate(date.end_date)}</p>
                                     <p className="text-gray-600"><span className="font-extrabold">Duration</span> {date.duration} Day/s</p>
+                                    <p className="text-gray-600"><span className="font-extrabold">Remarks:</span> {date.remarks} </p>
                                   </div>
                                 ))}
                              </div>
