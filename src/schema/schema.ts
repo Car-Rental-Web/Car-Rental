@@ -23,6 +23,7 @@ export const VehicleFormSchema = z.object({
   color: z.string().min(1).max(24),
   plate_no: z.string().min(1).max(24),
   status: z.string(),
+  last_registration_date: z.string(),
 });
 export type VehicleFormData = z.infer<typeof VehicleFormSchema>;
 
@@ -34,6 +35,7 @@ export const VehicleHistorySchema = z.object({
   color: z.string().min(1).max(24),
   plate_number: z.string().min(1).max(24),
   status: z.string(),
+  last_registration_date: z.string(),
 });
 export type VehicleHistoryData = z.infer<typeof VehicleHistorySchema>;
 

@@ -47,6 +47,9 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
       color: "",
       plate_number: "",
       status: "Available",
+      // --- NEW DEFAULT VALUE ---
+      last_registration_date: new Date().toISOString().split("T")[0],
+      // -------------------------
     },
   });
 
@@ -56,7 +59,15 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
   useEffect(() => {
     if (open) {
       if (initialData) {
-        reset(initialData);
+        // --- FORMAT DATE FOR INPUT FIELD ---
+        const formattedData = {
+          ...initialData,
+          last_registration_date: initialData.last_registration_date
+            ? new Date(initialData.last_registration_date).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0],
+        };
+        reset(formattedData);
+        // -----------------------------------
       } else {
         reset({
           brand: "",
@@ -66,6 +77,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
           plate_number: "",
           car_image: "",
           status: "Available",
+          last_registration_date: new Date().toISOString().split("T")[0],
         });
       }
     }
@@ -90,6 +102,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
       }
 
       const { car_image, ...rest } = data;
+      // payload will now include last_registration_date
       const payload = { ...rest, car_image: imageUrl };
 
       if (isEdit && initialData?.id) {
@@ -124,7 +137,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-1300 flex justify-center items-center p-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white w-full max-w-3xl max-h-full overflow-auto  rounded-2xl shadow-2xl  animate-in fade-in zoom-in duration-200"
+        className="bg-white w-full max-w-3xl max-h-full overflow-auto rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200"
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
@@ -150,7 +163,7 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               
               {!isView && (
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                   <p className="text-white text-xs font-bold">Change Image</p>
+                    <p className="text-white text-xs font-bold">Change Image</p>
                 </div>
               )}
             </div>
@@ -201,6 +214,19 @@ const VehicleHistoryForm: React.FC<ModalProps> = ({
               />
               {errors.plate_number && <p className="text-red-500 text-[10px] mt-1">Valid plate number required</p>}
             </div>
+
+            {/* --- NEW INPUT FIELD: REGISTRATION DATE --- */}
+            <div className="sm:col-span-2">
+              <label className={labelStyles}>Last Registration Date</label>
+              <input 
+                disabled={isView} 
+                {...register("last_registration_date")} 
+                type="date" 
+                className={inputStyles}
+              />
+              {errors.last_registration_date && <p className="text-red-500 text-[10px] mt-1">Date is required</p>}
+            </div>
+            {/* ------------------------------------------ */}
           </div>
         </div>
 

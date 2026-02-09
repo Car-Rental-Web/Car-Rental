@@ -6,6 +6,7 @@ import {
   eachMonthOfInterval
 } from 'date-fns';
 import { supabase } from '../utils/supabase';
+import { to12Hour } from '../utils/timeFormatter';
 
 const VerticalCalendar: React.FC = () => {
   // NEW STATE: Tracks the selected year for filtering
@@ -186,14 +187,18 @@ const VerticalCalendar: React.FC = () => {
                                   <p><strong>{event.car_type}</strong></p>
                                   🚗 <strong>{event.car_model}</strong> - <strong>{event.car_plate_number}</strong>
                                   <p><strong>{event.car_color}</strong></p>
-                                  
                                 </div>
+                                   <div className='text-red-500' style={{ fontSize: '0.85rem', fontWeight: '700' }}> REMARKS: {event.remarks}</div>
                                 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
                                   <div style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '6px', backgroundColor: style.border, color: '#fff', fontWeight: 'bold' }}>
                                     {event.status}
                                   </div>
+                                  <div>
+                                  <div style={{ fontSize: '0.85rem', color: style.text, fontWeight: '700' }}> Dispatch: {to12Hour(event.start_time)}</div>
+                                  <div style={{ fontSize: '0.85rem', color: style.text, fontWeight: '700' }}> Drop Off: {to12Hour(event.end_time)}</div>
                                   <div style={{ fontSize: '0.85rem', color: style.text, fontWeight: '700' }}>{duration} Day/s</div>
+                                  </div>
                                 </div>
                               </div>
                             );

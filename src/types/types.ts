@@ -177,6 +177,7 @@ export interface DataRenterHistoryProps {
   tin_number: string;
   car_model:string;
   car_type:string
+  car_color:string
   philhealth_number: string;
   license_number: string;
   lastDateRented?: string;
@@ -262,6 +263,8 @@ export interface DataVehicleTypes {
   action?: React.ReactNode;
   e_signature:any;
   uploaded_proof:any;
+  last_registration_date:string;
+  
 }
 export interface DataVehicleForm {
   id: number;
@@ -283,6 +286,7 @@ export interface VehicleFormValues {
   plate_number: string;
   status: string;
   action?: React.ReactNode;
+  last_registration_date:string;
 }
 
 // renter

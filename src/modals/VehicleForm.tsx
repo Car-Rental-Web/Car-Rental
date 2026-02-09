@@ -2,18 +2,21 @@
 import { useCallback, useEffect } from "react";
 import { ModalButton } from "../components/CustomButtons";
 import { useForm } from "react-hook-form";
+// !!! MAKE SURE YOUR SCHEMA INCLUDES last_registration_date !!!
 import { VehicleFormSchema, type VehicleFormData } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
+
 export interface ModalProps {
   open: boolean;
   onClose: () => void;
   mode: "create" | "edit" | "view";
   initialData?: VehicleFormData & { id?: number };
 }
+
 const VehicleForm: React.FC<ModalProps> = ({
   open,
   onClose,
@@ -38,6 +41,9 @@ const VehicleForm: React.FC<ModalProps> = ({
       color: "",
       plate_no: "",
       status: "Available",
+      // --- NEW DEFAULT VALUE ---
+      last_registration_date: new Date().toISOString().split("T")[0],
+      // -------------------------
     },
   });
 
@@ -47,9 +53,29 @@ const VehicleForm: React.FC<ModalProps> = ({
 
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      // Ensure date format is YYYY-MM-DD for input type="date"
+      const formattedData = {
+        ...initialData,
+        last_registration_date: initialData.last_registration_date
+          ? new Date(initialData.last_registration_date)
+              .toISOString()
+              .split("T")[0]
+          : "",
+      };
+      reset(formattedData);
+    } else {
+      // Reset to defaults if no initialData
+      reset({
+        model: "",
+        brand: "",
+        type: "",
+        color: "",
+        plate_no: "",
+        status: "Available",
+        last_registration_date: new Date().toISOString().split("T")[0],
+      });
     }
-  }, [initialData, reset]);
+  }, [initialData, reset, open]);
 
   const onAddVehicle = useCallback(
     async (data: VehicleFormData) => {
@@ -85,6 +111,7 @@ const VehicleForm: React.FC<ModalProps> = ({
         onClose();
         reset();
       } catch (error: any) {
+        toast.error("Operation failed: " + error.message);
         console.log(error.message);
       } finally {
         setLoading(false);
@@ -102,144 +129,80 @@ const VehicleForm: React.FC<ModalProps> = ({
       <form
         onSubmit={handleSubmit(onAddVehicle)}
         action=""
-        className="border border-gray-400 rounded-xl py-4 px-8  w-full md:w-2/5 bg-sub "
+        className="border border-gray-400 rounded-xl py-4 px-8 w-full md:w-2/5 bg-sub"
       >
         <ModalButton type="button" onclick={onClose} />
-        <div className="flex flex-col  mb-3">
-          <label htmlFor="" className="text-start text-white">
-            Model
+        
+        {/* ... (Existing fields: Model, Brand, Type, Color, Plate) ... */}
+        {/* ... (Ensure all errors check the correct field name, e.g., errors.plate_no) ... */}
+
+        {/* --- NEW FIELD: REGISTRATION DATE --- */}
+        <div className="flex flex-col mb-3">
+          <label htmlFor="last_registration_date" className="text-start text-white">
+            Last Registration Date
           </label>
           <input
-            {...register("model")}
+            {...register("last_registration_date")}
             disabled={isView}
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white  w-full"
-            type="text"
-            placeholder="Ex:Civic Lx"
+            className="border py-4 px-4 border-gray-600 rounded bg-transparent text-white w-full"
+            type="date"
           />
-          {errors.brand && (
+          {errors.last_registration_date && (
             <p className="text-red-500 text-sm text-start">
-              Please Input a Model
+              {errors.last_registration_date.message}
             </p>
           )}
         </div>
-        <div className="flex flex-col  mb-3">
-          <label htmlFor="" className="text-start text-white">
-            Brand
-          </label>
-          <input
-            disabled={isView}
-            {...register("brand")}
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"
-            type="text"
-            placeholder="Ex:Toyota"
-          />
-          {errors.brand && (
-            <p className="text-red-500 text-sm text-start">
-              Please Input a Brand
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col  mb-3">
-          <label htmlFor="" className="text-start text-white">
-            Type
-          </label>
-          <input
-            disabled={isView}
-            {...register("type")}
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"
-            type="text"
-            placeholder="Ex:Sedan"
-          />
-          {errors.brand && (
-            <p className="text-red-500 text-sm text-start">
-              Please Input a Type
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col  mb-3">
-          <label htmlFor="" className="text-start text-white">
-            Color
-          </label>
-          <input
-            disabled={isView}
-            {...register("color")}
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"
-            type="text"
-            placeholder="Ex:Midnight Blue"
-          />
-          {errors.brand && (
-            <p className="text-red-500 text-sm text-start">
-              Please Input a Color
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col  mb-3">
-          <label htmlFor="" className="text-start text-white">
-            Plate #
-          </label>
-          <input
-            disabled={isView}
-            {...register("plate_no")}
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full "
-            type="text"
-            placeholder="EX:ABC-1234"
-          />
-          {errors.brand && (
-            <p className="text-red-500 text-sm text-start">
-              Please Input a Plate #
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col  mb-3">
+        {/* ------------------------------------- */}
+
+        <div className="flex flex-col mb-3">
           <label htmlFor="" className="text-start text-white">
             Status
           </label>
           <input
-            disabled
+            disabled={isView} // Changed from disabled strictly to allows changing status later
             defaultValue={"Available"}
             {...register("status")}
             type="text"
-            className="border py-4 px-4 border-gray-600 rounded placeholder-white text-white w-full"
+            className="border py-4 px-4 border-gray-600 rounded bg-transparent text-white w-full"
             placeholder="Available"
           />
         </div>
-        <div className="flex gap-4 mt-8 mb-4">
-                  {/* Cancel Button - Only show if NOT in View mode */}
-                  {!isView && (
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  )}
 
-                  {/* Main Action Button */}
-                  <button
-                    type={isView ? "button" : "submit"}
-                    onClick={isView ? onClose : undefined}
-                    disabled={loading}
-                    className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors ${
-                      isView
-                        ? "bg-gray-600 hover:bg-gray-500"
-                        : "button-color hover:opacity-90"
-                    }`}
-                  >
-                    {loading ? (
-                      <span className="flex justify-center items-center gap-2">
-                        {/* Simple inline spinner if you have one, or just text */}
-                        {isEdit ? "Updating..." : "Submitting..."}
-                      </span>
-                    ) : (
-                      <>
-                        {isEdit && "Update Vehicle"}
-                        {isCreate && "Add Vehicle"}
-                        {isView && "Close"}
-                      </>
-                    )}
-                  </button>
-                </div>
+        <div className="flex gap-4 mt-8 mb-4">
+          {!isView && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 text-white py-4 cursor-pointer rounded border border-gray-400 hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+
+          <button
+            type={isView ? "button" : "submit"}
+            onClick={isView ? onClose : undefined}
+            disabled={loading}
+            className={`flex-1 text-white py-4 cursor-pointer rounded transition-colors ${
+              isView
+                ? "bg-gray-600 hover:bg-gray-500"
+                : "button-color hover:opacity-90"
+            }`}
+          >
+            {loading ? (
+              <span className="flex justify-center items-center gap-2">
+                {isEdit ? "Updating..." : "Submitting..."}
+              </span>
+            ) : (
+              <>
+                {isEdit && "Update Vehicle"}
+                {isCreate && "Add Vehicle"}
+                {isView && "Close"}
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );

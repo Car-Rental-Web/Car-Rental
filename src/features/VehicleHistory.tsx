@@ -15,7 +15,29 @@ import { VehicleRenterForm } from "../components";
 import { usePagination } from "../utils/Pagination";
 import { formatDate } from "../utils/timeFormatter";
 
+// ... (getRegistrationStatus function remains the same) ...
+const getRegistrationStatus = (lastDate: string | null) => {
+  if (!lastDate) return { text: "Unregistered", color: "bg-gray-400", valid: false };
+
+  const today = new Date();
+  const regDate = new Date(lastDate);
+  const expiryDate = new Date(regDate);
+  expiryDate.setFullYear(regDate.getFullYear() + 1);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+  if (today > expiryDate) {
+    return { text: "Expired", color: "bg-red-600", valid: false };
+  } else if (expiryDate <= thirtyDaysFromNow) {
+    return { text: "Expiring Soon", color: "bg-yellow-500", valid: true };
+  } else {
+    return { text: "Registered", color: "bg-green-500", valid: true };
+  }
+};
+
 const VehicleHistory = () => {
+  // ... (existing state) ...
   const [selectDate, setSelectDate] = useState<DataBookingRow[]>([]);
   const [openSchedule, setOpenSchedule] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -31,6 +53,13 @@ const VehicleHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [regStatusFilter, setRegStatusFilter] = useState("All");
+
+  // --- NEW STATE FOR RENEWAL MODAL ---
+  const [openRenewalModal, setOpenRenewalModal] = useState(false);
+  const [vehicleToRenew, setVehicleToRenew] = useState<DataVehicleTypes | null>(null);
+  const [newRenewalDate, setNewRenewalDate] = useState(new Date().toISOString().split('T')[0]);
+  // ------------------------------------
 
   const { open, onOpen, onClose } = useModalStore();
 
@@ -42,10 +71,14 @@ const VehicleHistory = () => {
       vehicle.plate_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === "All" || vehicle.type === selectedType;
     const matchesStatus = selectedStatus === "All" || vehicle.status === selectedStatus;
-    return matchesSearch && matchesType && matchesStatus;
+    
+    const regStatus = getRegistrationStatus(vehicle.last_registration_date);
+    const matchesReg = regStatusFilter === "All" || regStatus.text === regStatusFilter;
+
+    return matchesSearch && matchesType && matchesStatus && matchesReg;
   });
 
-  // 2. Grouping Logic (Sorts the results into categories)
+  // ... (Grouping and pagination logic remains the same) ...
   const groupedVehicles = useMemo(() => {
     return filteredVehicles.reduce((groups, vehicle) => {
       const type = vehicle.type || "Uncategorized";
@@ -57,7 +90,6 @@ const VehicleHistory = () => {
 
   const vehicleTypes = Object.keys(groupedVehicles).sort();
 
-  // 3. Pagination Logic for History Table
   const {
     currentPage,
     itemsPerPage,
@@ -77,6 +109,56 @@ const VehicleHistory = () => {
       console.log("Failed Fetching Vehicle", error);
     }
   };
+
+  // Automatic Updating Logic
+  useEffect(() => {
+    const autoUpdateExpiredVehicles = async () => {
+      const vehiclesToUpdate = vehicleCard.filter(v => 
+        v.last_registration_date && 
+        getRegistrationStatus(v.last_registration_date).text === "Expired" &&
+        v.status !== "Expired"
+      );
+
+      if (vehiclesToUpdate.length === 0) return;
+      
+      const promises = vehiclesToUpdate.map(vehicle => 
+        supabase
+          .from("vehicle")
+          .update({ status: "Expired" })
+          .eq("id", vehicle.id)
+      );
+
+      await Promise.all(promises);
+      fetchVehicle();
+    };
+
+    if (vehicleCard.length > 0) {
+      autoUpdateExpiredVehicles();
+    }
+  }, [vehicleCard]);
+
+  // --- UPDATED RENEW FUNCTION ---
+  const handleConfirmRenewal = async () => {
+    if (!vehicleToRenew) return;
+
+    const { error } = await supabase
+      .from("vehicle")
+      .update({ 
+        last_registration_date: newRenewalDate,
+        status: "Available"
+      })
+      .eq("id", vehicleToRenew.id);
+
+    if (error) {
+      toast.error("Failed to update registration");
+      return;
+    }
+    toast.success("Registration renewed!");
+    setOpenRenewalModal(false);
+    setVehicleToRenew(null);
+    fetchVehicle();
+  };
+  // ------------------------------
 
   const fetchHistory = async (vehicle: DataVehicleTypes) => {
     const { data, error } = await supabase
@@ -118,7 +200,7 @@ const VehicleHistory = () => {
 
   return (
     <div className="overflow-y-auto h-full bg-gray-50/50 p-4 md:p-8">
-      {/* Header Filters */}
+      {/* ... Filter Section (No changes) ... */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <icons.search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -129,6 +211,21 @@ const VehicleHistory = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-4 py-1">
+          <icons.calendar className="text-gray-400" />
+          <select
+            className="bg-transparent py-2 outline-none text-sm font-medium text-gray-700"
+            value={regStatusFilter}
+            onChange={(e) => setRegStatusFilter(e.target.value)}
+          >
+            <option value="All">All Reg Status</option>
+            <option value="Registered">Registered</option>
+            <option value="Expiring Soon">Expiring Soon</option>
+            <option value="Expired">Expired</option>
+            <option value="Unregistered">Unregistered</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-4 py-1">
@@ -157,14 +254,15 @@ const VehicleHistory = () => {
             <option value="All">Status</option>
             <option value="Available">Available</option>
             <option value="On Service">On Service</option>
-            <option value="On Service">Rented</option>
+            <option value="Rented">Rented</option>
             <option value="On Reservation">On Reservation</option>
             <option value="On Maintenance">On Maintenance</option>
+            <option value="Expired">Expired</option>
           </select>
         </div>
       </div>
-
-      {/* Main Action Bar */}
+      
+      {/* ... Header Actions (No changes) ... */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Vehicle Fleet</h1>
@@ -195,7 +293,7 @@ const VehicleHistory = () => {
         ) : (
           vehicleTypes.map((type) => (
             <div key={type} className="space-y-6">
-              {/* Category Header */}
+              {/* Category Header (No changes) */}
               <div className="flex items-center gap-4">
                 <h2 className="text-sm font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">
                   {type}s
@@ -206,32 +304,41 @@ const VehicleHistory = () => {
                 </span>
               </div>
 
-              {/* Grid for this Category */}
+              {/* Grid for this Category (No changes) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {groupedVehicles[type].map((vehicle) => (
+                {groupedVehicles[type].map((vehicle) => {
+                  const regStatus = getRegistrationStatus(vehicle.last_registration_date);
+                  return (
                   <div
                     key={vehicle.id}
                     className={`group bg-white border rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 relative ${
                       vehicle.status === "On Service" ? "border-red-500" : 
                       vehicle.status === "On Reservation" ? "border-blue-500" : 
                       vehicle.status === "Available" ? "border-green-500" : 
-                      vehicle.status === "On Maintenance" ? "border-red-500" : "border-gray-100"
+                      vehicle.status === "On Maintenance" ? "border-red-500" : 
+                      vehicle.status === "Expired" ? "border-red-600" : "border-gray-100"
                     }`}
                   >
-                    {/* Status Badge */}
+                    {/* Status Badge (No changes) */}
                     <div className={`absolute top-5 left-5 z-10 ${vehicle.status === "On Service" ? "animate-pulse" : ""} `}>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                         vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500 text-white border-red-600" :
                         vehicle.status === "On Reservation" ? "bg-blue-50 text-blue-600 border-blue-100" :
-                        vehicle.status === "Available" ? "bg-green-500 text-white border-green-600" : "bg-gray-50 text-gray-600"
+                        vehicle.status === "Available" ? "bg-green-500 text-white border-green-600" : 
+                        vehicle.status === "Expired" ? "bg-red-700 text-white border-red-800" : "bg-gray-50 text-gray-600"
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-white"}`} />
                         {vehicle.status}
                       </div>
                     </div>
 
-                    {/* Action Menu */}
-                    <div className="absolute top-4 right-4 z-20">
+                    {/* Reg Status Badge (No changes) */}
+                    <div className={`absolute top-5 right-5 z-10 ${regStatus.color} text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+                      {regStatus.text}
+                    </div>
+
+                    {/* Action Menu (No changes) */}
+                    <div className="absolute top-16 right-4 z-20">
                       <button
                         onClick={() => setopenAction(openAction === vehicle.id ? null : vehicle.id)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -252,10 +359,10 @@ const VehicleHistory = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Schedule Dropdown (Simplified) */}
+                    
+                    {/* Schedule Dropdown (Simplified) (No changes) */}
                     {(vehicle.status === "On Service" || vehicle.status === "On Reservation") && (
-                       <div className="absolute top-5 right-14">
+                       <div className="absolute top-16 right-14">
                         <button
                           onClick={(e) => { e.stopPropagation(); setOpenSchedule(openSchedule === vehicle.id ? null : vehicle.id); }}
                           className="flex items-center gap-1 text-[9px] font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-100 px-2 py-1 rounded shadow-sm"
@@ -284,7 +391,7 @@ const VehicleHistory = () => {
                     )}
 
                     {/* Card Content */}
-                    <div className="flex gap-5">
+                    <div className="flex gap-5 mt-8">
                       <div className="w-32 h-32 bg-gray-50 rounded-xl overflow-hidden shrink-0">
                         <img src={vehicle.car_image} alt="car" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                       </div>
@@ -295,28 +402,65 @@ const VehicleHistory = () => {
                           <span className="inline-block mt-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-mono font-bold rounded">
                             {vehicle.plate_number}
                           </span>
+                          <p className="text-gray-800 text-[10px] mt-1 ">Registered Date:  {vehicle.last_registration_date ? formatDate(vehicle.last_registration_date) : "Never"}</p>
                         </div>
                         <div className="flex gap-2 mt-4">
+                          {/* --- UPDATED RENEW BUTTON --- */}
+                          {!regStatus.valid && (
+                            <button onClick={() => { setVehicleToRenew(vehicle); setOpenRenewalModal(true); }}
+                                className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-semibold transition-all hover:bg-red-200">
+                                <icons.calendar /> Renew
+                            </button>
+                          )}
+                          {/* --------------------------- */}
                           <button onClick={() => { fetchHistory(vehicle); setIsClicked(vehicle.id); }}
                             className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${isClicked === vehicle.id ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
                             History <icons.rightArrow />
                           </button>
                           <button onClick={() => { setShowForm(true); setSelectedVehicle(vehicle); }}
-                            className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 text-white rounded-lg text-xs font-semibold transition-all ${vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}>
+                            className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 text-white rounded-lg text-[10px] font-semibold transition-all ${vehicle.status === "On Service" || vehicle.status === "On Maintenance" || vehicle.status === "Expired" ? "bg-red-500" : vehicle.status === "On Reservation" ? "bg-blue-500" : "bg-gray-900 hover:bg-black"}`}>
                             {vehicle.status === "Available" ? "Rent" : vehicle.status} <icons.rightArrow />
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* History Table Section */}
+      {/* --- RENEWAL MODAL UI --- */}
+      {openRenewalModal && vehicleToRenew && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Renew Registration</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Select a new registration date for <strong>{vehicleToRenew.brand} {vehicleToRenew.model} ({vehicleToRenew.plate_number})</strong>.
+            </p>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">New Registration Date</label>
+            <input 
+              type="date" 
+              value={newRenewalDate}
+              onChange={(e) => setNewRenewalDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-700 mb-6"
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setOpenRenewalModal(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100">
+                Cancel
+              </button>
+              <button onClick={handleConfirmRenewal} className="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700">
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ------------------------ */}
+
+      {/* ... History Table and Modals (No changes) ... */}
       {selectedHistoryVehicle && (
         <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
@@ -364,8 +508,7 @@ const VehicleHistory = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* RESTORED PAGINATION CONTROLS */}
+            
             <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-4">
                 <p className="text-xs text-gray-500">Rows:
