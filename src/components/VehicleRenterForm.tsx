@@ -100,6 +100,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
       setValue("car_plate_number", selectedData.plate_number);
       setValue("car_model", selectedData.model);
       setValue("car_type", selectedData.type);
+      setValue("car_color", selectedData.color)
     }
   }, [open, selectedData, setValue]);
   // useEffect(() => {
@@ -422,7 +423,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             <p className="text-xs font-bold text-blue-600 uppercase tracking-widest border-b pb-2">
               2. Vehicle Information
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div>
                 <label className={labelStyles}>Plate #</label>
                 <input
@@ -444,6 +445,14 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                 <input
                   readOnly
                   {...register("car_type")}
+                  className={`${inputStyles} bg-white`}
+                />
+              </div>
+              <div>
+                <label className={labelStyles}>Type</label>
+                <input
+                  readOnly
+                  {...register("car_color")}
                   className={`${inputStyles} bg-white`}
                 />
               </div>

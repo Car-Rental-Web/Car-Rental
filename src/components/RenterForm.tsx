@@ -44,6 +44,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
       plate_number: string;
       model: string;
       type: string;
+      color: string;
       status: string;
     }[]
   >([]);
@@ -101,6 +102,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
     if (!selectedPlate) {
       setValue("car_model", "");
       setValue("car_type", "");
+      setValue("car_color", "");
       setBookedIntervals([]); // Clear intervals if no plate
     }
     const selectedVehicle = vehicles.find(
@@ -109,6 +111,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
     if (selectedVehicle) {
       setValue("car_model", selectedVehicle.model);
       setValue("car_type", selectedVehicle.type);
+      setValue("car_color", selectedVehicle.color);
     }
 
     // NEW: Calculate Duration Automatically
@@ -148,7 +151,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
     const fetchVehicle = async () => {
       const { data, error } = await supabase
         .from("vehicle")
-        .select("id, plate_number, model, type, status");
+        .select("id, plate_number, model, type, color, status");
 
       if (error) {
         console.log("Error fetching Vehicles", error);
@@ -172,6 +175,7 @@ const RenterForm: React.FC<RenterFormProps> = ({
         car_plate_number: selectedData.car_plate_number,
         car_model: selectedData.car_model,
         car_type: selectedData.car_type,
+        car_color: selectedData.car_color,
         start_date: selectedData.start_date,
         end_date: selectedData.end_date,
         start_time: selectedData.start_time,
@@ -508,6 +512,16 @@ const RenterForm: React.FC<RenterFormProps> = ({
               className={getInputClass("car_type")}
             />
             <ErrorMessage field="car_type" />
+          </div>
+          <div className="flex flex-col w-full">
+            <label className={labelBase}>Color</label>
+            <input
+              readOnly
+              {...register("car_color")}
+              type="text"
+              className={getInputClass("car_color")}
+            />
+            <ErrorMessage field="car_color" />
           </div>
         </div>
 

@@ -154,6 +154,7 @@ export const RenterFormDataSchema = z.object({
   downpayment: z.string().min(1),
   remaining_balance: z.number(),
   remarks: z.string().optional(),
+  car_color: z.string(),
 
 });
 

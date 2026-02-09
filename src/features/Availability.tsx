@@ -54,6 +54,7 @@ const VerticalCalendar: React.FC = () => {
         b.car_model?.toLowerCase().includes(searchLower) ||
         b.car_type?.toLowerCase().includes(searchLower) ||
         b.car_plate_number?.toLowerCase().includes(searchLower);
+        b.car_color?.toLowerCase().includes(searchLower);
       
       const matchesDuration = durationFilter === 'all' || duration.toString() === durationFilter;
       const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
@@ -182,7 +183,10 @@ const VerticalCalendar: React.FC = () => {
                                 </div>
                                 
                                 <div style={{ fontSize: '1rem', color: style.text, marginTop: '8px' }}>
-                                  🚗 <strong>{event.car_model}</strong> — {event.car_plate_number}
+                                  <p><strong>{event.car_type}</strong></p>
+                                  🚗 <strong>{event.car_model}</strong> - <strong>{event.car_plate_number}</strong>
+                                  <p><strong>{event.car_color}</strong></p>
+                                  
                                 </div>
                                 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
