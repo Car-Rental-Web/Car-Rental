@@ -6,7 +6,6 @@ import {
   Maintenance,
   VehicleHistory,
   RenterProfile,
-  RenterTable,
   TrashFiles,
   QrFiles,
 } from "../features/index";
@@ -45,7 +44,6 @@ const AppRoutes = () => {
             <Route path="dashboard" element={<Dashboard />}></Route>
             <Route path="availability" element={<Aavailability />}></Route>
             <Route path="renterprofile" element={<RenterProfile />}></Route>
-            <Route path="bookings" element={<RenterTable />}></Route>
             <Route path="bookings/on-service" element={<OnService />}></Route>
             <Route path="bookings/on-reservation" element={<OnReservation />}></Route>
             <Route path="bookings/on-completed" element={<Completed />}></Route>
