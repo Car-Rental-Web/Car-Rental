@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState, useMemo, useCallback } from "react";
 import type {
   DataBookingRow,
   DataVehicleTypes,
@@ -15,7 +16,6 @@ import { VehicleRenterForm } from "../components";
 import { usePagination } from "../utils/Pagination";
 import { formatDate } from "../utils/timeFormatter";
 
-// ... (getRegistrationStatus function remains the same) ...
 const getRegistrationStatus = (lastDate: string | null) => {
   if (!lastDate) return { text: "Unregistered", color: "bg-gray-400", valid: false };
 
@@ -37,7 +37,6 @@ const getRegistrationStatus = (lastDate: string | null) => {
 };
 
 const VehicleHistory = () => {
-  // ... (existing state) ...
   const [selectDate, setSelectDate] = useState<DataBookingRow[]>([]);
   const [openSchedule, setOpenSchedule] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -55,11 +54,9 @@ const VehicleHistory = () => {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [regStatusFilter, setRegStatusFilter] = useState("All");
 
-  // --- NEW STATE FOR RENEWAL MODAL ---
   const [openRenewalModal, setOpenRenewalModal] = useState(false);
   const [vehicleToRenew, setVehicleToRenew] = useState<DataVehicleTypes | null>(null);
   const [newRenewalDate, setNewRenewalDate] = useState(new Date().toISOString().split('T')[0]);
-  // ------------------------------------
 
   const { open, onOpen, onClose } = useModalStore();
 
@@ -78,7 +75,6 @@ const VehicleHistory = () => {
     return matchesSearch && matchesType && matchesStatus && matchesReg;
   });
 
-  // ... (Grouping and pagination logic remains the same) ...
   const groupedVehicles = useMemo(() => {
     return filteredVehicles.reduce((groups, vehicle) => {
       const type = vehicle.type || "Uncategorized";
@@ -101,14 +97,14 @@ const VehicleHistory = () => {
     indexOfLastItem,
   } = usePagination(historyData, 5);
 
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     try {
       const { data } = await supabase.from("vehicle").select("*").is("deleted_at", null);
       setVehicleCard(data || []);
     } catch (error) {
       console.log("Failed Fetching Vehicle", error);
     }
-  };
+  }, []);
 
   // Automatic Updating Logic
   useEffect(() => {
@@ -135,9 +131,8 @@ const VehicleHistory = () => {
     if (vehicleCard.length > 0) {
       autoUpdateExpiredVehicles();
     }
-  }, [vehicleCard]);
+  }, [vehicleCard, fetchVehicle]);
 
-  // --- UPDATED RENEW FUNCTION ---
   const handleConfirmRenewal = async () => {
     if (!vehicleToRenew) return;
 
@@ -158,7 +153,6 @@ const VehicleHistory = () => {
     setVehicleToRenew(null);
     fetchVehicle();
   };
-  // ------------------------------
 
   const fetchHistory = async (vehicle: DataVehicleTypes) => {
     const { data, error } = await supabase
@@ -175,32 +169,60 @@ const VehicleHistory = () => {
     }, 100);
   };
 
-  const fetchBookingDate = async () => {
+  const fetchBookingDate = useCallback(async () => {
     const { data, error } = await supabase.from("renter_booking").select("*").in("status", ["On Service", "On Reservation"]).is("deleted_at", null);
     if (error) return;
-    setSelectDate(data);
-  };
+    setSelectDate(data || []);
+  }, []);
 
+  // UPDATED DELETE LOGIC FOR STORAGE CLEANUP
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from("vehicle").update({ deleted_at: new Date().toISOString() }).eq("id", id);
-    if (error) {
+    try {
+      // 1. Get vehicle data to find image URL
+      const { data: vehicleToDelete, error: fetchError } = await supabase
+        .from("vehicle")
+        .select("car_image")
+        .eq("id", id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+
+      // 2. Perform Soft Delete (move to trash)
+      const { error: deleteError } = await supabase
+        .from("vehicle")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+        
+      if (deleteError) throw deleteError;
+
+      // 3. Remove image from storage
+      if (vehicleToDelete?.car_image) {
+        const fileUrl = vehicleToDelete.car_image;
+        const filePath = fileUrl.split("/").pop(); // Assumes URL structure allows this
+        
+        if (filePath) {
+          await supabase.storage.from("vehicle_image").remove([filePath]);
+        }
+      }
+
+      toast.success("Moved to Trash Successfully");
+      setOpenDelete(false);
+      setopenAction(null);
+      fetchVehicle();
+    } catch (error: any) {
+      console.error(error);
       toast.error("Failed to Move to Trash");
-      return;
     }
-    toast.success("Moved to Trash Successfully");
-    setOpenDelete(false);
-    setopenAction(null);
-    fetchVehicle();
   };
 
   useEffect(() => {
     fetchVehicle();
     fetchBookingDate();
-  }, [open, openDelete, onClose]);
+  }, [open, openDelete, onClose, fetchVehicle, fetchBookingDate]);
 
   return (
     <div className="overflow-y-auto h-full bg-gray-50/50 p-4 md:p-8">
-      {/* ... Filter Section (No changes) ... */}
+      {/* ... Filter Section ... */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <icons.search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -262,7 +284,7 @@ const VehicleHistory = () => {
         </div>
       </div>
       
-      {/* ... Header Actions (No changes) ... */}
+      {/* ... Header Actions ... */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Vehicle Fleet</h1>
@@ -293,7 +315,7 @@ const VehicleHistory = () => {
         ) : (
           vehicleTypes.map((type) => (
             <div key={type} className="space-y-6">
-              {/* Category Header (No changes) */}
+              {/* Category Header */}
               <div className="flex items-center gap-4">
                 <h2 className="text-sm font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">
                   {type}s
@@ -304,7 +326,7 @@ const VehicleHistory = () => {
                 </span>
               </div>
 
-              {/* Grid for this Category (No changes) */}
+              {/* Grid for this Category */}
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {groupedVehicles[type].map((vehicle) => {
                   const regStatus = getRegistrationStatus(vehicle.last_registration_date);
@@ -319,7 +341,7 @@ const VehicleHistory = () => {
                       vehicle.status === "Expired" ? "border-red-600" : "border-gray-100"
                     }`}
                   >
-                    {/* Status Badge (No changes) */}
+                    {/* Status Badge */}
                     <div className={`absolute top-5 left-5 z-10 ${vehicle.status === "On Service" ? "animate-pulse" : ""} `}>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                         vehicle.status === "On Service" || vehicle.status === "On Maintenance" ? "bg-red-500 text-white border-red-600" :
@@ -332,12 +354,12 @@ const VehicleHistory = () => {
                       </div>
                     </div>
 
-                    {/* Reg Status Badge (No changes) */}
+                    {/* Reg Status Badge */}
                     <div className={`absolute top-5 right-5 z-10 ${regStatus.color} text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
                       {regStatus.text}
                     </div>
 
-                    {/* Action Menu (No changes) */}
+                    {/* Action Menu */}
                     <div className="absolute top-16 right-4 z-20">
                       <button
                         onClick={() => setopenAction(openAction === vehicle.id ? null : vehicle.id)}
@@ -360,7 +382,7 @@ const VehicleHistory = () => {
                       )}
                     </div>
                     
-                    {/* Schedule Dropdown (Simplified) (No changes) */}
+                    {/* Schedule Dropdown */}
                     {(vehicle.status === "On Service" || vehicle.status === "On Reservation") && (
                        <div className="absolute top-16 right-14">
                         <button
@@ -405,14 +427,12 @@ const VehicleHistory = () => {
                           <p className="text-gray-800 text-[10px] mt-1 ">Registered Date:  {vehicle.last_registration_date ? formatDate(vehicle.last_registration_date) : "Never"}</p>
                         </div>
                         <div className="flex gap-2 mt-4">
-                          {/* --- UPDATED RENEW BUTTON --- */}
                           {!regStatus.valid && (
                             <button onClick={() => { setVehicleToRenew(vehicle); setOpenRenewalModal(true); }}
                                 className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-semibold transition-all hover:bg-red-200">
                                 <icons.calendar /> Renew
                             </button>
                           )}
-                          {/* --------------------------- */}
                           <button onClick={() => { fetchHistory(vehicle); setIsClicked(vehicle.id); }}
                             className={`cursor-pointer flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${isClicked === vehicle.id ? "bg-blue-50 text-blue-600 border-blue-200" : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"}`}>
                             History <icons.rightArrow />
@@ -458,9 +478,8 @@ const VehicleHistory = () => {
           </div>
         </div>
       )}
-      {/* ------------------------ */}
 
-      {/* ... History Table and Modals (No changes) ... */}
+      {/* ... History Table and Modals ... */}
       {selectedHistoryVehicle && (
         <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">

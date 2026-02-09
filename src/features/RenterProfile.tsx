@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, useCallback } from "react";
 import type { DataRenterHistoryProps } from "../types/types";
 import { supabase } from "../utils/supabase";
@@ -52,10 +53,16 @@ const RenterProfile = () => {
       .select("*")
       .order("created_at", { ascending: false })
       .is("deleted_at", null);
-    if (error) return;
+      
+    if (error) {
+      toast.error("Error fetching renters");
+      return;
+    }
+    
     setRenterData(data || []);
     setFilterRenterData(data || []);
-    console.log("Fetched Renter", data);
+    
+    // Auto-scroll to bottom of the page to see new entries
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 100);
@@ -63,6 +70,7 @@ const RenterProfile = () => {
 
   useEffect(() => {
     fetchRenter();
+    // Real-time subscription
     const subscription = supabase
       .channel("renter-db")
       .on(
@@ -71,6 +79,7 @@ const RenterProfile = () => {
         () => fetchRenter(),
       )
       .subscribe();
+      
     return () => {
       supabase.removeChannel(subscription);
     };
@@ -78,7 +87,7 @@ const RenterProfile = () => {
 
   // Search Logic
   useEffect(() => {
-    let result = filterData(debounceSearchTerm, filterRenterData, [
+    const result = filterData(debounceSearchTerm, filterRenterData, [
       "full_name",
       "address",
       "license_number",
@@ -91,51 +100,30 @@ const RenterProfile = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       if (!selectedName || !selectedLicense) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("renter_booking")
         .select("*")
         .eq("full_name", selectedName)
         .eq("license_number", selectedLicense)
         .order("created_at", { ascending: false });
+        
+      if (error) {
+        toast.error("Failed to load renter history");
+        return;
+      }
+      
       setRenterHistory(data || []);
       historyPagination.setCurrentPage(1);
-      console.log("Fetched History");
     };
+    
     fetchHistory();
   }, [selectedName, selectedLicense]);
 
   const handleDelete = async (id: number) => {
+    if (!selectedRenter) return;
+
     try {
-      const { data: renter, error: fetchError } = await supabase
-        .from("renter")
-        .select("valid_id, e_signature, renter_selfie") // Included renter_selfie
-        .eq("id", id)
-        .single();
-
-      if (fetchError) throw new Error("Could not find renter data");
-
-      // Helper to extract filename from URL
-      const getFileName = (url: string) => url?.split("/").pop();
-
-      // Delete from Storage Buckets
-      if (renter.valid_id) {
-        await supabase.storage
-          .from("valid_id")
-          .remove([getFileName(renter.valid_id)!]);
-      }
-      if (renter.e_signature) {
-        await supabase.storage
-          .from("e_signature")
-          .remove([getFileName(renter.e_signature)!]);
-      }
-      // NEW: Delete Selfie from storage
-      if (renter.renter_selfie) {
-        await supabase.storage
-          .from("renter_selfie")
-          .remove([getFileName(renter.renter_selfie)!]);
-      }
-
-      // Soft delete from Database
+      // 1. Soft delete from Database immediately
       const { error: deleteError } = await supabase
         .from("renter")
         .update({ deleted_at: new Date().toISOString() })
@@ -143,8 +131,24 @@ const RenterProfile = () => {
 
       if (deleteError) throw deleteError;
 
-      toast.success("Moved to Trash Successfully");
+      // 2. Cleanup Storage (Optional but recommended)
+      const getFileName = (url: string) => url?.split("/").pop();
+      
+      const filesToRemove = [];
+      if (selectedRenter.valid_id) filesToRemove.push({ bucket: "valid_id", path: getFileName(selectedRenter.valid_id)! });
+      if (selectedRenter.e_signature) filesToRemove.push({ bucket: "e_signature", path: getFileName(selectedRenter.e_signature)! });
+      if (selectedRenter.renter_selfie) filesToRemove.push({ bucket: "renter_selfie", path: getFileName(selectedRenter.renter_selfie)! });
+
+      // Run storage deletions concurrently
+      await Promise.allSettled(
+        filesToRemove.map(file => 
+          supabase.storage.from(file.bucket).remove([file.path])
+        )
+      );
+
+      toast.success("Renter moved to Trash");
       setOpenDelete(false);
+      setSelectedRenter(null);
       fetchRenter();
     } catch (error: any) {
       console.error(error);
@@ -180,7 +184,7 @@ const RenterProfile = () => {
           className="bg-white border border-slate-200 shadow-sm w-full transition-transform hover:scale-[1.01]"
           title={
             <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-              Total Records
+              Current Records
             </span>
           }
           url={""}
@@ -230,57 +234,16 @@ const RenterProfile = () => {
           <table className="w-full table-auto text-left min-w-[1400px]">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="w-16 p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  ID
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Created
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Renter Name
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Address
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Contact #
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Facebook
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  License #
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Tin No.
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Philhealth No.
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  SSS No.
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Pagibig No.
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Selfie
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Valid ID
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Signature
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Referral
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Add Rent
-                </th>
-                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">
-                  Actions
-                </th>
+                <th className="w-16 p-4 text-[11px] font-bold text-slate-500 uppercase text-center">ID</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Created</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Renter Name</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Address</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Contact #</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">License #</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Selfie</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Valid ID</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Referral</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -309,25 +272,8 @@ const RenterProfile = () => {
                     {row.contact_number || "N/A"}
                   </td>
                   <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.facebook_account || "N/A"}
-                  </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
                     {row.license_number || "N/A"}
                   </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.tin_number || "N/A"}
-                  </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.philhealth_number || "N/A"}
-                  </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.sss_number || "N/A"}
-                  </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.pagibig_number || "N/A"}
-                  </td>
-
-                  {/* NEW: Renter Selfie TD */}
                   <td className="p-4 text-center">
                     <img
                       className="w-10 h-10 object-cover rounded-full mx-auto border-2 border-slate-200"
@@ -345,27 +291,8 @@ const RenterProfile = () => {
                       alt="ID"
                     />
                   </td>
-                  <td className="p-4 text-center">
-                    <img
-                      className="w-10 h-10 object-contain bg-slate-50 rounded-lg mx-auto"
-                      src={row.e_signature}
-                      alt="Sign"
-                    />
-                  </td>
-                  <td className="p-4 text-center text-xs font-mono text-slate-500">
-                    {row.referral || "N/A"}
-                  </td>
-                  <td className="p-4 text-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedRenter(row);
-                        setShowBookingForm(true);
-                      }}
-                      className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-full cursor-pointer"
-                    >
-                      <icons.rent size={18} />
-                    </button>
+                    <td className="p-4 text-center text-xs font-mono text-slate-500">
+                    {row.referral|| "N/A"}
                   </td>
                   <td
                     className="p-4 text-center"

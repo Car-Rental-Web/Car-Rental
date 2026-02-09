@@ -202,7 +202,7 @@ const OnService = () => {
       supabase.removeChannel(subscription);
     };
     // Added statusFilter to dependencies for safety
-  }, [openForm]);
+  }, []);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {

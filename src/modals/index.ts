@@ -1,5 +1,3 @@
-export {default as BookingForm} from './BookingForm'
 export {default as MaintenanceForm} from './MaintenanceForm'
-export {default as VehicleForm} from './VehicleForm'
 export {default as UpdateStatus} from './UpdateStatus'
 export {default as DeleteModal} from './DeleteModal'

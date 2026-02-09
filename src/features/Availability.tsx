@@ -3,13 +3,14 @@ import {
   format, startOfYear, endOfYear, 
   eachDayOfInterval, parseISO,
   isWithinInterval, startOfDay, differenceInDays,
-  eachMonthOfInterval
+  eachMonthOfInterval,
+  startOfMonth, // 1. Added missing import
+  endOfMonth    // 1. Added missing import
 } from 'date-fns';
 import { supabase } from '../utils/supabase';
 import { to12Hour } from '../utils/timeFormatter';
 
 const VerticalCalendar: React.FC = () => {
-  // NEW STATE: Tracks the selected year for filtering
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [bookings, setBookings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +29,6 @@ const VerticalCalendar: React.FC = () => {
     const fetchBookings = async () => {
       try {
         const statuses = ["On Service" , "On Reservation"];
-        // Fetch all relevant bookings
         const { data, error } = await supabase
           .from("renter_booking")
           .select("*")
@@ -45,6 +45,7 @@ const VerticalCalendar: React.FC = () => {
 
   const filteredData = useMemo(() => {
     return bookings.filter(b => {
+      // Parse dates consistently
       const start = b.start_date ? parseISO(b.start_date) : new Date();
       const end = b.end_date ? parseISO(b.end_date) : new Date();
       const duration = differenceInDays(end, start);
@@ -54,14 +55,14 @@ const VerticalCalendar: React.FC = () => {
         b.full_name?.toLowerCase().includes(searchLower) ||
         b.car_model?.toLowerCase().includes(searchLower) ||
         b.car_type?.toLowerCase().includes(searchLower) ||
-        b.car_plate_number?.toLowerCase().includes(searchLower);
+        b.car_plate_number?.toLowerCase().includes(searchLower) ||
         b.car_color?.toLowerCase().includes(searchLower);
       
       const matchesDuration = durationFilter === 'all' || duration.toString() === durationFilter;
       const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
 
-      // NEW LOGIC: Filter bookings by the selected year
-      const matchesYear = start.getFullYear() === selectedYear;
+      // 2. Fixed Year Filter using UTC to ensure consistency
+      const matchesYear = start.getUTCFullYear() === selectedYear;
 
       return matchesSearch && matchesDuration && matchesStatus && matchesYear;
     });
@@ -78,7 +79,6 @@ const VerticalCalendar: React.FC = () => {
 
   return (
     <div style={styles.appContainer}>
-      {/* Search & Multi-Filter Section */}
       <div style={styles.filterContainer}>
         <input 
           type="text" 
@@ -88,7 +88,6 @@ const VerticalCalendar: React.FC = () => {
           style={styles.searchInput}
         />
         <div style={styles.selectRow}>
-          {/* YEAR FILTER DROPDOWN */}
           <select 
             value={selectedYear} 
             onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -185,12 +184,11 @@ const VerticalCalendar: React.FC = () => {
                                 
                                 <div style={{ fontSize: '1rem', color: style.text, marginTop: '8px' }}>
                                   <p><strong>{event.car_type}</strong></p>
-                                  🚗 <strong>{event.car_model}</strong> - <strong>{event.car_plate_number}</strong>
+                                  <p>🚗 <strong>{event.car_model}</strong> - <strong>{event.car_plate_number}</strong></p>
                                   <p><strong>{event.car_color}</strong></p>
                                 </div>
                                    <div className='text-red-500' style={{ fontSize: '0.85rem', fontWeight: '700' }}> REMARKS: {event.remarks}</div>
-                                
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <div style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '6px', backgroundColor: style.border, color: '#fff', fontWeight: 'bold' }}>
                                     {event.status}
                                   </div>
@@ -217,10 +215,6 @@ const VerticalCalendar: React.FC = () => {
   );
 };
 
-// --- Helper Functions ---
-function startOfMonth(date: Date) { return new Date(date.getFullYear(), date.getMonth(), 1); }
-function endOfMonth(date: Date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0); }
-
 // --- Styles ---
 const styles: { [key: string]: React.CSSProperties } = {
   appContainer: { background: '#ffffff', minHeight: '100vh', width: '100%' },
@@ -234,7 +228,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   monthSection: { width: '100%' },
   monthTitle: { fontSize: '1.8rem', fontWeight: '900', padding: '20px 20px 0', color: '#111827', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
   daySection: { display: 'flex', width: '100%', padding: '25px 20px 0', borderBottom: '1px solid #f3f4f6', boxSizing: 'border-box' },
-  leftLineArea: { display: 'flex', flexDirection: 'column', alignItems: 'center', width: '30px' },
+  leftLineArea: { display: 'flex', flexDirection: 'column', alignItems: 'center', width: '30px', pointerEvents: 'none' }, // 3. Added pointerEvents
   dot: { width: '10px', height: '10px', background: '#d1d5db', borderRadius: '50%', marginTop: '15px' },
   connectorLine: { flex: 1, width: '2px', background: '#f3f4f6' },
   rightContentArea: { flex: 1, paddingBottom: '30px' },

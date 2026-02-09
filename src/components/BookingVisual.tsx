@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import icons from "../constants/icon";
 import ReactChartLine from "./ReactChartLine";
 import { supabase } from "../utils/supabase";
@@ -11,54 +11,56 @@ const BookingVisual = () => {
     { month: string; count: number }[]
   >([]);
 
-    const fetchBookings = async () => {
-      const startDate = `${selectedYear}-01-01`;
-      const endDate = `${selectedYear}-12-31`;
+  // 1. Move fetch logic into a useCallback to stabilize the function
+  const fetchBookings = useCallback(async () => {
+    const startDate = `${selectedYear}-01-01`;
+    const endDate = `${selectedYear}-12-31`;
 
-      const { data, error } = await supabase
-        .from("renter_booking")
-        .select("id, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate);
-      if (error) {
-        console.log("Error Fetching");
-        return;
-      }
-      console.log("Fetched Data", data);
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
+    const { data, error } = await supabase
+      .from("renter_booking")
+      .select("id, created_at")
+      .gte("created_at", startDate)
+      .lte("created_at", endDate);
 
-      const counts = Array(12).fill(0);
+    if (error) {
+      console.log("Error Fetching", error);
+      return;
+    }
+    
+    console.log("Fetched Data", data);
+    
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+
+    const counts = Array(12).fill(0);
+    
+    // Safety check: ensure data exists
+    if (data) {
       data.forEach((renter) => {
         const date = new Date(renter.created_at);
         const monthIndex = date.getMonth();
         counts[monthIndex] += 1;
       });
-      const formatted = months.map((m, i) => ({
-        month: m,
-        count: counts[i] ?? 0,
-      }));
-      setChartData(formatted);
-    };
-    fetchBookings();
+    }
 
-    useEffect(() => {
-      fetchBookings()
-    },[fetchBookings])
+    const formatted = months.map((m, i) => ({
+      month: m,
+      count: counts[i] ?? 0,
+    }));
+    
+    setChartData(formatted);
+  }, [selectedYear]); // Only re-run if the year changes
+
+  // 2. useEffect now only calls the stabilized function
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
   return (
     <div className="flex flex-col w-full p-4">
+      {/* ... (Rest of your JSX remains the same) ... */}
       <div className="flex justify-between items-center mb-4">
         <div>
            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Analytics</p>

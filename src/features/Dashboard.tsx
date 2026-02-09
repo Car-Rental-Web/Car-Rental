@@ -4,7 +4,6 @@ import icons from "../constants/icon";
 import { supabase } from "../utils/supabase";
 import React from "react";
 import Card from "../components/Card";
-import Renter from "./RenterTable";
 
 const BookingVisual = React.lazy(() => import("../components/BookingVisual"));
 const RenterVisual = React.lazy(() => import("../components/RenterVisual"));
@@ -18,13 +17,37 @@ const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const fetchData = useCallback(async () => {
-    // 1. Define date range for the month/year filter
+  // 1. Optimized: Fetch all-time data ONCE on mount
+  useEffect(() => {
+    const fetchGlobalStats = async () => {
+      const [allTimeBookingsRes, rentersRes] = await Promise.all([
+        // Count bookings without downloading them
+        supabase.from("renter_booking").select("status", { count: 'exact', head: true }).is("deleted_at", null),
+        // Count renters without downloading them
+        supabase.from("renter").select("id", { count: 'exact', head: true }).is("deleted_at", null),
+      ]);
+
+      // Count only "On Service" bookings
+      const { data: onServiceData } = await supabase
+        .from("renter_booking")
+        .select("status")
+        .eq("status", "On Service")
+        .is("deleted_at", null);
+
+      setBooking(allTimeBookingsRes.count || 0);
+      setRenter(rentersRes.count || 0);
+      setStatus(onServiceData?.length || 0);
+    };
+
+    fetchGlobalStats();
+  }, []);
+
+  // 2. Optimized: Fetch monthly data only when filter changes
+  const fetchMonthlyData = useCallback(async () => {
     const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
     const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
 
-    // 2. Perform simultaneous fetches
-    const [filteredBookings, filteredMaintenance, allTimeBookings, rentersRes] = await Promise.all([
+    const [filteredBookings, filteredMaintenance] = await Promise.all([
       // A. Monthly Bookings (for Revenue)
       supabase
         .from("renter_booking")
@@ -40,18 +63,8 @@ const Dashboard = () => {
         .is("deleted_at", null)
         .gte("created_at", startDate)
         .lte("created_at", endDate),
-
-      // C. All-Time Bookings (for Persistent Counts)
-      supabase
-        .from("renter_booking")
-        .select("status")
-        .is("deleted_at", null),
-
-      // D. Total Renters
-      supabase.from("renter").select("id", { count: 'exact' }),
     ]);
 
-    // --- LOGIC FOR REVENUE (MONTHLY FILTERED) ---
     const monthlyMaintenance = filteredMaintenance.data?.reduce(
       (acc, item) => acc + Number(item.cost_of_maintenance || 0), 0
     ) || 0;
@@ -60,24 +73,12 @@ const Dashboard = () => {
       return item.status === "Completed" ? acc + Number(item.total_price_rent || 0) : acc;
     }, 0) || 0;
 
-    // --- LOGIC FOR STATS (ALL-TIME/LIFETIME) ---
-    let globalOnServiceCount = 0;
-    allTimeBookings.data?.forEach((item) => {
-      if (item.status === "On Service") {
-        globalOnServiceCount += 1;
-      }
-    });
-
-    // 3. Update States
-    setValue(monthlyGrossRevenue - monthlyMaintenance); // Net Profit for Selected Month
-    setStatus(globalOnServiceCount); // Global count of active cars
-    setBooking(allTimeBookings.data?.length || 0); // Lifetime bookings count
-    setRenter(rentersRes.count || 0);
+    setValue(monthlyGrossRevenue - monthlyMaintenance);
   }, [selectedMonth, selectedYear]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchMonthlyData();
+  }, [fetchMonthlyData]);
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-10 pt-8 px-4 lg:px-10">
@@ -187,8 +188,6 @@ const Dashboard = () => {
             />
           </div>
         </div>
-
-        <Renter />
       </div>
     </div>
   );

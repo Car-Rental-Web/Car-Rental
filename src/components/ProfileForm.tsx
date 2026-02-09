@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,14 +35,14 @@ const ProfileForm: React.FC<Props> = ({
     resolver: zodResolver(RenterProfileSchema),
   });
 
-  // watch values
+  // watch values for previews
   const watchedValidId = watch("valid_id");
   const watchedSignature = watch("e_signature");
-  const watchedSelfie = watch("renter_selfie" as any); // Watch the new selfie field
+  const watchedSelfie = watch("renter_selfie" as any);
 
   const idPreview = getFilePreview(watchedValidId, "valid_id");
   const sigPreview = getFilePreview(watchedSignature, "e_signature");
-  const selfiePreview = getFilePreview(watchedSelfie, "renter_selfie"); // Get selfie preview
+  const selfiePreview = getFilePreview(watchedSelfie, "renter_selfie");
 
   useEffect(() => {
     if (open && selectedData) {
@@ -59,20 +60,44 @@ const ProfileForm: React.FC<Props> = ({
     }
   }, [selectedData, reset, open]);
 
+  // Helper to extract file path from URL for deletion
+  const getPathFromUrl = (url: string | undefined, bucket: string) => {
+    if (!url) return null;
+    // Assuming URL structure includes the bucket name
+    return url.split(`${bucket}/`)[1];
+  };
+
   const onSubmit = async (data: RenterValues) => {
     try {
       let validIdUrl = selectedData?.valid_id;
       let signatureUrl = selectedData?.e_signature;
-      let selfieUrl = selectedData?.renter_selfie; // Track selfie URL
+      let selfieUrl = selectedData?.renter_selfie;
 
       // 1. Handle Valid ID Upload
       if (data.valid_id?.[0] instanceof File) {
+        // --- CLEANUP: Delete old file if updating ---
+        if (mode === "edit" && selectedData?.valid_id) {
+          const oldPath = getPathFromUrl(selectedData.valid_id, "valid_id");
+          if (oldPath)
+            await supabase.storage.from("valid_id").remove([oldPath]);
+        }
+
         const { path } = await uploadFile(data.valid_id[0], "valid_id");
         validIdUrl = getPublicUrl("valid_id", path);
       }
 
       // 2. Handle E-Signature Upload
       if (data.e_signature?.[0] instanceof File) {
+        // --- CLEANUP: Delete old file if updating ---
+        if (mode === "edit" && selectedData?.e_signature) {
+          const oldPath = getPathFromUrl(
+            selectedData.e_signature,
+            "e_signature"
+          );
+          if (oldPath)
+            await supabase.storage.from("e_signature").remove([oldPath]);
+        }
+
         const { path } = await uploadFile(data.e_signature[0], "e_signature");
         signatureUrl = getPublicUrl("e_signature", path);
       }
@@ -80,6 +105,16 @@ const ProfileForm: React.FC<Props> = ({
       // 3. Handle Renter Selfie Upload
       const selfieFile = (data as any).renter_selfie?.[0];
       if (selfieFile instanceof File) {
+        // --- CLEANUP: Delete old file if updating ---
+        if (mode === "edit" && selectedData?.renter_selfie) {
+          const oldPath = getPathFromUrl(
+            selectedData.renter_selfie,
+            "renter_selfie"
+          );
+          if (oldPath)
+            await supabase.storage.from("renter_selfie").remove([oldPath]);
+        }
+
         const { path } = await uploadFile(selfieFile, "renter_selfie");
         selfieUrl = getPublicUrl("renter_selfie", path);
       }
@@ -88,7 +123,7 @@ const ProfileForm: React.FC<Props> = ({
         ...data,
         valid_id: validIdUrl,
         e_signature: signatureUrl,
-        renter_selfie: selfieUrl, // Include in payload
+        renter_selfie: selfieUrl,
       };
 
       if (mode === "edit") {
@@ -128,8 +163,8 @@ const ProfileForm: React.FC<Props> = ({
             {mode === "create"
               ? "Register New Renter"
               : mode === "edit"
-                ? "Edit Profile"
-                : "Renter Details"}
+              ? "Edit Profile"
+              : "Renter Details"}
           </h2>
           <button
             type="button"
@@ -150,7 +185,9 @@ const ProfileForm: React.FC<Props> = ({
               placeholder="ex: John Doe"
               {...register("full_name")}
               disabled={isView}
-              className={`w-full p-3 border rounded-xl outline-none transition-all ${errors.full_name ? "border-red-500" : "focus:border-blue-500"} disabled:bg-slate-50`}
+              className={`w-full p-3 border rounded-xl outline-none transition-all ${
+                errors.full_name ? "border-red-500" : "focus:border-blue-500"
+              } disabled:bg-slate-50`}
             />
             {errors.full_name && (
               <p className="text-red-500 text-[10px] mt-1 font-bold">
@@ -170,7 +207,7 @@ const ProfileForm: React.FC<Props> = ({
               className="w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50"
             />
           </div>
-{/* CONTACT NUMBER AND FACEBOOK */}
+          {/* CONTACT NUMBER AND FACEBOOK */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Contact #
@@ -268,7 +305,7 @@ const ProfileForm: React.FC<Props> = ({
               />
             )}
 
-            <div className="relative w-full min-h-32  bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
+            <div className="relative w-full min-h-32 bg-slate-50 rounded-xl overflow-hidden border-2 border-dashed border-slate-200 flex items-center justify-center">
               {idPreview ? (
                 <img
                   src={idPreview}
@@ -316,7 +353,7 @@ const ProfileForm: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Renter Selfie (Flexible/Responsive Preview) */}
+          {/* Renter Selfie */}
           <div className="border-t pt-4 md:col-span-2">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
               Renter Selfie

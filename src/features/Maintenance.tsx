@@ -11,10 +11,11 @@ import { CustomButtons } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
 import { useModalStore } from "../store/useModalStore";
-import { SearchBar, TableData } from "../components";
+import { SearchBar } from "../components";
 import React from "react";
 import { useLoadingStore } from "../store/useLoading";
 import Card from "../components/Card";
+import TableData from "../components/TableData";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);

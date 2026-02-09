@@ -97,55 +97,59 @@ const Completed = () => {
   };
 
   // Fetch data and setup subscription
-  useEffect(() => {
-    const fetchRenter = async () => {
-       const statusFilter = "Completed";
-      const { data, error } = await supabase
-        .from("renter_booking")
-        .select("*")
-        .eq("status", statusFilter)
-        .order("id", { ascending: false })
-        .is("deleted_at", null)
-      if (error) {
-        console.log("Error fetching renter", error);
-        return;
+  // Fetch data and setup subscription
+useEffect(() => {
+  const fetchRenter = async () => {
+    const statusFilter = "Completed";
+    const { data, error } = await supabase
+      .from("renter_booking")
+      .select("*")
+      .eq("status", statusFilter)
+      .order("id", { ascending: false })
+      .is("deleted_at", null);
+    if (error) {
+      console.log("Error fetching renter", error);
+      return;
+    }
+    setRenterData(data);
+    setFilterRenterData(data);
+  };
+  fetchRenter();
+
+  const subscription = supabase
+    .channel("schema-db-changes")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "renter_booking" },
+      (payload) => {
+        // ... (subscription logic remains the same)
+        const eventType = payload.eventType;
+        if (eventType === "INSERT") {
+          const newData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) => [newData, ...prev]);
+        } else if (eventType === "UPDATE") {
+          const updatedData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) =>
+            prev.map((item) =>
+              item.id === updatedData.id ? updatedData : item
+            )
+          );
+          setSelectedData((current) =>
+            current?.id === updatedData.id ? updatedData : current
+          );
+        } else if (eventType === "DELETE") {
+          setFilterRenterData((prev) =>
+            prev.filter((item) => item.id !== payload.old.id)
+          );
+        }
       }
-      setRenterData(data);
-      setFilterRenterData(data);
-    };
-    fetchRenter();
+    )
+    .subscribe();
 
-    const subscription = supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "renter_booking" },
-        (payload) => {
-          const eventType = payload.eventType;
-          if (eventType === "INSERT") {
-            const newData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) => [newData, ...prev]);
-          } else if (eventType === "UPDATE") {
-            const updatedData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) =>
-              prev.map((item) =>
-                item.id === updatedData.id ? updatedData : item,
-              ),
-            );
-            setSelectedData((current) => current?.id === updatedData.id ? updatedData : current);
-          } else if (eventType === "DELETE") {
-            setFilterRenterData((prev) =>
-              prev.filter((item) => item.id !== payload.old.id),
-            );
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [openForm]);
+  return () => {
+    supabase.removeChannel(subscription);
+  };
+}, []); // <--- CHANGE THIS TO AN EMPTY ARRAY
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
