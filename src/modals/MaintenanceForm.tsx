@@ -65,6 +65,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     otherSelected: boolean,
     otherVal: string
   ) => {
+    // Only include standard options in the filter
     let finalValue = types.filter(t => MAINTENANCE_OPTIONS.includes(t)).join(", ");
 
     if (otherSelected && otherVal.trim() !== "") {
@@ -84,7 +85,8 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     if (initialData) {
       reset(initialData);
       const types = initialData.type_of_maintenance?.split(", ").filter(Boolean) || [];
-      const standardTypes = types.filter(t => MAINTENANCE_OPTIONS.includes(t));
+      
+      // Determine if "Other" should be checked based on saved data
       const customValues = types.filter(t => !MAINTENANCE_OPTIONS.includes(t));
       
       if (customValues.length > 0) {
@@ -92,7 +94,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         setOtherText(customValues.join(", "));
       }
       
-      // Sync form state
+      // Sync form state immediately
       setValue("type_of_maintenance", initialData.type_of_maintenance);
     }
   }, [initialData, reset, setValue]);
@@ -113,7 +115,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     } else {
       newSelectedTypes = [...selectedTypes, item];
     }
-    // Note: The useEffect will handle the update to the form value
+    // Update the form value based on checkboxes
     updateCombinedMaintenanceType(newSelectedTypes, isOtherSelected, otherText);
   };
 
