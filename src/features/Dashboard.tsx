@@ -12,7 +12,7 @@ const Dashboard = () => {
   const [value, setValue] = useState<number>(0); // Net Revenue (Filtered)
   const [status, setStatus] = useState<number>(0); // On Service (All-time)
   const [renter, setRenter] = useState<number>(0); // Total Renters (All-time)
-  const [booking, setBooking] = useState<number>(0); // Total Bookings (All-time)
+  const [booking, setBooking] = useState<number>(0); // Total Bookings (All-time    )
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
