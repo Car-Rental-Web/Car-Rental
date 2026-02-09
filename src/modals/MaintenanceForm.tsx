@@ -31,7 +31,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   mode,
   initialData,
 }) => {
-  const [vehicles, setVehicles] = useState<{ id: string; plate_number: string; status:string; }[]>([]);
+  const [vehicles, setVehicles] = useState<{ id: string; plate_number: string; status: string; }[]>([]);
   const { loading, setLoading } = useLoadingStore();
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [otherText, setOtherText] = useState("");
@@ -56,90 +56,119 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     },
   });
 
-  const selectedTypes = watch("type_of_maintenance")?.split(", ").filter(Boolean) || [];
+  const watchedType = watch("type_of_maintenance");
+  const selectedTypes = watchedType?.split(", ").filter(Boolean) || [];
 
+  // --- FIX: Logic to combine checkbox items + "Other" text ---
+  const updateCombinedMaintenanceType = useCallback((
+    types: string[],
+    otherSelected: boolean,
+    otherVal: string
+  ) => {
+    let finalValue = types.filter(t => MAINTENANCE_OPTIONS.includes(t)).join(", ");
+
+    if (otherSelected && otherVal.trim() !== "") {
+      finalValue = finalValue
+        ? `${finalValue}, ${otherVal.trim()}`
+        : otherVal.trim();
+    }
+
+    setValue("type_of_maintenance", finalValue, {
+      shouldValidate: true,
+      shouldDirty: true
+    });
+  }, [setValue]);
+
+  // Handle initialization and editing
   useEffect(() => {
     if (initialData) {
       reset(initialData);
       const types = initialData.type_of_maintenance?.split(", ").filter(Boolean) || [];
+      const standardTypes = types.filter(t => MAINTENANCE_OPTIONS.includes(t));
       const customValues = types.filter(t => !MAINTENANCE_OPTIONS.includes(t));
+      
       if (customValues.length > 0) {
         setIsOtherSelected(true);
         setOtherText(customValues.join(", "));
       }
+      
+      // Sync form state
+      setValue("type_of_maintenance", initialData.type_of_maintenance);
     }
-  }, [initialData, reset]);
+  }, [initialData, reset, setValue]);
+
+  // --- FIX: Sync state changes to form ---
+  useEffect(() => {
+    updateCombinedMaintenanceType(selectedTypes, isOtherSelected, otherText);
+  }, [isOtherSelected, otherText, updateCombinedMaintenanceType]);
 
   const isView = mode === "view";
   const isEdit = mode === "edit";
   const isCreate = mode === "create";
 
   const handleCheckboxChange = (item: string) => {
-    let newValues;
+    let newSelectedTypes;
     if (selectedTypes.includes(item)) {
-      newValues = selectedTypes.filter((t) => t !== item);
+      newSelectedTypes = selectedTypes.filter((t) => t !== item);
     } else {
-      newValues = [...selectedTypes, item];
+      newSelectedTypes = [...selectedTypes, item];
     }
-    setValue("type_of_maintenance", newValues.join(", "), { shouldValidate: true });
+    // Note: The useEffect will handle the update to the form value
+    updateCombinedMaintenanceType(newSelectedTypes, isOtherSelected, otherText);
   };
 
   const onSubmit = useCallback(
-  async (data: MaintenanceFormData) => {
-    setLoading(true);
-    try {
-      const finalType = data.type_of_maintenance;
-      // ... (your existing type_of_maintenance string logic)
+    async (data: MaintenanceFormData) => {
+      setLoading(true);
+      try {
+        const payload = { ...data };
 
-      const payload = { ...data, type_of_maintenance: finalType };
+        if (isCreate) {
+          // 1. Insert Maintenance Record
+          const { error: mError } = await supabase.from("maintenance").insert(payload);
+          if (mError) throw mError;
 
-      if (isCreate) {
-        // 1. Insert Maintenance Record
-        const { error: mError } = await supabase.from("maintenance").insert(payload);
-        if (mError) throw mError;
-
-        // 2. Set vehicle to Maintenance
-        const { error: vError } = await supabase
-          .from("vehicle")
-          .update({ status: "On Maintenance" })
-          .eq("plate_number", data.car);
-        if (vError) throw vError;
-
-        toast.success("Maintenance started; vehicle status updated.");
-      } 
-      
-      else if (isEdit && initialData?.id) {
-        // 1. Update Maintenance Record
-        const { error: mError } = await supabase
-          .from("maintenance")
-          .update(payload)
-          .eq("id", initialData.id);
-        if (mError) throw mError;
-
-        // 2. Logic to set vehicle back to Available
-        // Check if the status in the form is now "Done" or "Completed"
-        if (data.status === "Maintained") {
+          // 2. Set vehicle to Maintenance
           const { error: vError } = await supabase
             .from("vehicle")
-            .update({ status: "Available" })
+            .update({ status: "On Maintenance" })
             .eq("plate_number", data.car);
           if (vError) throw vError;
-          toast.success("Maintenance completed; vehicle is now Available.");
-        } else {
-          toast.success("Maintenance record updated.");
-        }
-      }
 
-      onClose();
-      reset();
-    } catch (error: any) {
-      toast.error(error.message ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  },
-  [isCreate, isEdit, initialData, onClose, reset, setLoading]
-);
+          toast.success("Maintenance started; vehicle status updated.");
+        }
+
+        else if (isEdit && initialData?.id) {
+          // 1. Update Maintenance Record
+          const { error: mError } = await supabase
+            .from("maintenance")
+            .update(payload)
+            .eq("id", initialData.id);
+          if (mError) throw mError;
+
+          // 2. Logic to set vehicle back to Available
+          if (data.status === "Maintained") {
+            const { error: vError } = await supabase
+              .from("vehicle")
+              .update({ status: "Available" })
+              .eq("plate_number", data.car);
+            if (vError) throw vError;
+            toast.success("Maintenance completed; vehicle is now Available.");
+          } else {
+            toast.success("Maintenance record updated.");
+          }
+        }
+
+        onClose();
+        reset();
+      } catch (error: any) {
+        toast.error(error.message ?? "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isCreate, isEdit, initialData, onClose, reset, setLoading]
+  );
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -196,7 +225,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
               </label>
             </div>
             {isOtherSelected && (
-              <input value={otherText} onChange={(e) => setOtherText(e.target.value)} disabled={isView} placeholder="Specify other maintenance..." className={`${inputClass()} mt-3 animate-in fade-in slide-in-from-top-1`} />
+              <input value={otherText} onChange={(e) => setOtherText(e.target.value)} disabled={isView} placeholder="Specify other maintenance..." className={`${inputClass(errors.type_of_maintenance)} mt-3 animate-in fade-in slide-in-from-top-1`} />
             )}
             {errorMsg(errors.type_of_maintenance?.message)}
           </div>
