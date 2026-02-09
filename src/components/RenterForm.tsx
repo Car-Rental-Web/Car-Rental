@@ -200,124 +200,134 @@ const RenterForm: React.FC<RenterFormProps> = ({
   }, [selectedData, reset]);
 
   const onSubmit = async (renterData: RenterFormValues) => {
-    if (mode === "view") {
-      onClose();
-      return;
+  if (mode === "view") {
+    onClose();
+    return;
+  }
+  try {
+    setLoading(true);
+
+    let finalProofArray: string[] = [...existingPaths.uploaded_proof];
+
+    // --- File Deletion Logic ---
+    if (mode === "edit" && selectedData?.uploaded_proof) {
+      const originalPaths: string[] = selectedData.uploaded_proof as any;
+      const pathsToDelete = originalPaths.filter(
+        (path) => !existingPaths.uploaded_proof.includes(path),
+      );
+
+      if (pathsToDelete.length > 0) {
+        const { error: deleteError } = await supabase.storage
+          .from("uploaded_proof")
+          .remove(pathsToDelete);
+        if (deleteError) console.error("Error deleting files:", deleteError);
+      }
     }
-    try {
-      setLoading(true);
 
-      let finalProofArray: string[] = [...existingPaths.uploaded_proof];
+    // --- File Upload Logic ---
+    if (
+      renterData.uploaded_proof instanceof FileList &&
+      renterData.uploaded_proof.length > 0
+    ) {
+      const validFiles = Array.from(renterData.uploaded_proof);
+      const uploadPromises = validFiles.map((file) =>
+        uploadFile(file as File, "uploaded_proof"),
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      const newPaths = uploadResults.map((res) => res.path);
+      finalProofArray = [...finalProofArray, ...newPaths];
+    }
 
-      if (mode === "edit" && selectedData?.uploaded_proof) {
-        const originalPaths: string[] = selectedData.uploaded_proof as any;
-        const pathsToDelete = originalPaths.filter(
-          (path) => !existingPaths.uploaded_proof.includes(path),
-        );
+    const cleanPayload: any = {
+      ...renterData,
+      uploaded_proof: finalProofArray,
+    };
 
-        if (pathsToDelete.length > 0) {
-          const { error: deleteError } = await supabase.storage
-            .from("uploaded_proof")
-            .remove(pathsToDelete);
-          if (deleteError) console.error("Error deleting files:", deleteError);
-        }
-      }
-
-      if (
-        renterData.uploaded_proof instanceof FileList &&
-        renterData.uploaded_proof.length > 0
-      ) {
-        const validFiles = Array.from(renterData.uploaded_proof);
-        const uploadPromises = validFiles.map((file) =>
-          uploadFile(file as File, "uploaded_proof"),
-        );
-        const uploadResults = await Promise.all(uploadPromises);
-        const newPaths = uploadResults.map((res) => res.path);
-        finalProofArray = [...finalProofArray, ...newPaths];
-      }
-
-      const cleanPayload: any = {
-        ...renterData,
-        uploaded_proof: finalProofArray,
-      };
-
-      if (renterData.e_signature instanceof FileList) {
-        if (renterData.e_signature.length > 0) {
-          delete cleanPayload.e_signature;
-        } else {
-          cleanPayload.e_signature = watchedSignature;
-        }
+    // --- Signature Handling ---
+    if (renterData.e_signature instanceof FileList) {
+      if (renterData.e_signature.length > 0) {
+        delete cleanPayload.e_signature;
       } else {
         cleanPayload.e_signature = watchedSignature;
       }
-
-      let vehicleStatus = "Available";
-      const plateNumber = cleanPayload.car_plate_number;
-
-      if (cleanPayload.status === "On Service") {
-        vehicleStatus = "On Service";
-      } else if (cleanPayload.status === "On Reservation") {
-        vehicleStatus = "On Reservation";
-      } else if (cleanPayload.status === "Completed") {
-        const { data: futureBookings } = await supabase
-          .from("renter_booking")
-          .select("id")
-          .eq("car_plate_number", plateNumber)
-          .eq("status", "On Reservation")
-          .neq("id", selectedData?.id || "");
-
-        vehicleStatus =
-          futureBookings && futureBookings.length > 0
-            ? "On Reservation"
-            : "Available";
-      }
-
-      if (mode === "edit") {
-        const { error } = await supabase
-          .from("renter_booking")
-          .update(cleanPayload)
-          .eq("id", selectedData?.id);
-        if (error) throw error;
-
-        if (plateNumber) {
-          await supabase
-            .from("vehicle")
-            .update({ status: vehicleStatus })
-            .eq("plate_number", plateNumber);
-        }
-
-        toast.success(
-          vehicleStatus === "On Reservation" &&
-            cleanPayload.status === "Completed"
-            ? "Record Completed. Car remains 'Reserved' for next customer."
-            : "Updated successfully",
-        );
-        reset();
-        if (onSuccess) onSuccess();
-      } else {
-        const { error } = await supabase
-          .from("renter_booking")
-          .insert([cleanPayload]);
-        if (error) throw error;
-
-        if (plateNumber) {
-          await supabase
-            .from("vehicle")
-            .update({ status: vehicleStatus })
-            .eq("plate_number", plateNumber);
-        }
-
-        toast.success("Added Rent Successfully");
-        reset();
-      }
-      setLoading(false)
-      onClose();
-    } catch (err: any) {
-      console.error("Error submitting form:", err);
-      toast.error(err.message);
-      setLoading(false);
+    } else {
+      cleanPayload.e_signature = watchedSignature;
     }
-  };
+
+    // --- NEW LOGIC: Calculate Correct Vehicle Status ---
+    let vehicleStatus = "Available";
+    const plateNumber = cleanPayload.car_plate_number;
+
+    if (cleanPayload.status === "On Service") {
+      vehicleStatus = "On Service";
+    } else if (cleanPayload.status === "On Reservation") {
+      vehicleStatus = "On Reservation";
+    } else if (cleanPayload.status === "Completed") {
+      // Check for any OTHER booking that is currently Active or Reserved
+      const { data: activeBookings } = await supabase
+        .from("renter_booking")
+        .select("id, status")
+        .eq("car_plate_number", plateNumber)
+        .in("status", ["On Reservation", "On Service"]) // Check both!
+        .neq("id", selectedData?.id || ""); // Exclude current record
+
+      if (activeBookings && activeBookings.length > 0) {
+        // If another booking is "On Service", the car is still out.
+        // Otherwise, if it's "On Reservation", it's reserved for the next customer.
+        const isStillRented = activeBookings.some((b) => b.status === "On Service");
+        vehicleStatus = isStillRented ? "On Service" : "On Reservation";
+      } else {
+        vehicleStatus = "Available";
+      }
+    }
+    // ----------------------------------------------------
+
+    // --- Database Update/Insert ---
+    if (mode === "edit") {
+      const { error } = await supabase
+        .from("renter_booking")
+        .update(cleanPayload)
+        .eq("id", selectedData?.id);
+      if (error) throw error;
+
+      if (plateNumber) {
+        await supabase
+          .from("vehicle")
+          .update({ status: vehicleStatus })
+          .eq("plate_number", plateNumber);
+      }
+
+      toast.success(
+        vehicleStatus !== "Available" && cleanPayload.status === "Completed"
+          ? `Record Completed. Car status updated to: ${vehicleStatus}`
+          : "Updated successfully",
+      );
+      reset();
+      if (onSuccess) onSuccess();
+    } else {
+      const { error } = await supabase
+        .from("renter_booking")
+        .insert([cleanPayload]);
+      if (error) throw error;
+
+      if (plateNumber) {
+        await supabase
+          .from("vehicle")
+          .update({ status: vehicleStatus })
+          .eq("plate_number", plateNumber);
+      }
+
+      toast.success("Added Rent Successfully");
+      reset();
+    }
+    setLoading(false);
+    onClose();
+  } catch (err: any) {
+    console.error("Error submitting form:", err);
+    toast.error(err.message);
+    setLoading(false);
+  }
+};
 
   const getInputClass = (fieldName: keyof RenterFormValues) => {
     const hasError = !!errors[fieldName];

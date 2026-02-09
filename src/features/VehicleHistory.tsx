@@ -274,6 +274,7 @@ const VehicleHistory = () => {
                                     <p className="text-gray-600"><span className="font-extrabold">End:</span> {formatDate(date.end_date)}</p>
                                     <p className="text-gray-600"><span className="font-extrabold">Duration</span> {date.duration} Day/s</p>
                                     <p className="text-gray-600"><span className="font-extrabold">Remarks:</span> {date.remarks} </p>
+                                    <p className="text-gray-600"><span className="font-extrabold">Status:</span> {date.status} </p>
                                   </div>
                                 ))}
                              </div>

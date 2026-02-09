@@ -36,7 +36,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 }) => {
   const [showSignature, setShowSignature] = useState(false);
   const [showAgreement, setShowAgreement] = useState(false);
-  const [selectToggle, setSelectToggle] = useState(false);
+  // const [selectToggle, setSelectToggle] = useState(false);
   const [bookedIntervals, setBookedIntervals] = useState<
     { start: Date; end: Date }[]
   >([]);
@@ -171,15 +171,16 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
 
   useEffect(() => {
     const fetchRenter = async () => {
+      if(!open) return
       const { data, error } = await supabase.from("renter").select("*").is("deleted_at", null);
       if (error) {
         console.log("Failed to Fetched Renters", error);
         return;
       }
-      setRenter(data);
+      setRenter(data || []);
     };
     fetchRenter();
-  }, []);
+  }, [open]);
 
   const selectedRenter = watch("full_name");
   const getGoogleDirectLink = (url: string) => {
@@ -349,7 +350,7 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1">
                 <label className={labelStyles}>Full Name</label>
-                <div
+                {/* <div
                   className="relative"
                   onClick={() => setSelectToggle(!selectToggle)}
                 >
@@ -367,7 +368,22 @@ const VehicleRenterForm: React.FC<RenterFormProps> = ({
                   <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
                     {selectToggle ? <icons.up /> : <icons.down />}
                   </div>
-                </div>
+                </div> */}
+
+                <div className="relative">
+  <input
+    type="text"
+    list="renter-list"
+    {...register("full_name")}
+    className={inputStyles}
+    placeholder="Type to search renter..."
+  />
+  <datalist id="renter-list">
+    {renter.map((row) => (
+      <option key={row.id} value={row.full_name} />
+    ))}
+  </datalist>
+</div>
               </div>
               <div className="md:col-span-2">
                 <label className={labelStyles}>Address</label>
