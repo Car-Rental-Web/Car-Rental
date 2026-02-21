@@ -51,9 +51,21 @@ const Header = () => {
   const [filterPage, setFilterPage] = useState<PageTypes[]>([]);
 
   const navigate = useNavigate();
-  const signOut = useAuthStore((state) => state.signOut);
+  // const signOut = useAuthStore((state) => state.signOut);
   const userEmail = useAuthStore((state) => state.getDisplayName());
   const { isSidebarOpen, toggleSidebar } = useSidebarStore();
+
+const handleLogout = async () => {
+  const { error } = await supabase.auth.signOut();
+  
+  if (error) {
+    console.error("Logout error:", error.message);
+    // If 403, the session is likely already gone or invalid
+    // Force clear local storage to reset the app state
+    localStorage.clear(); 
+    window.location.href = "/login";
+  }
+};
 
   const playSound = () => {
     new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3")
@@ -305,7 +317,7 @@ const Header = () => {
           </div>
           {openUserMenu && (
             <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl py-2 z-1001">
-              <button onClick={async () => { await signOut(); navigate("/login"); }} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3">
+              <button onClick={handleLogout} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3">
                 <icons.logOut size={18} /> Logout
               </button>
             </div>
