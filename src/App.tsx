@@ -6,8 +6,6 @@ const App = () => {
     <Router>
       <AppRoutes/>
     </Router>
-    
   )
 }
-
 export default App

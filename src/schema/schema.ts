@@ -157,7 +157,6 @@ export const RenterFormDataSchema = z.object({
   remaining_balance: z.number(),
   remarks: z.string().optional(),
   car_color: z.string(),
-
 });
 
 export type RenterFormValues = z.infer<typeof RenterFormDataSchema>;

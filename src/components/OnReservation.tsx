@@ -126,6 +126,7 @@ const OnReservation = () => {
         .eq("status", statusFilter)
         .order("id", { ascending: false })
         .is("deleted_at", null)
+        .order("start_date", {ascending:true})
       if (error) {
         console.log("Error fetching renter", error);
         return;
@@ -144,7 +145,10 @@ const OnReservation = () => {
           const eventType = payload.eventType;
           if (eventType === "INSERT") {
             const newData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) => [newData, ...prev]);
+           setFilterRenterData((prev) => {
+            const updatedList = [...prev,newData];
+            return updatedList.sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
+           })
           } else if (eventType === "UPDATE") {
             const updatedData = payload.new as DataRenterHistoryProps;
             setFilterRenterData((prev) =>

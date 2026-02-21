@@ -95,6 +95,7 @@ const OnService = () => {
       .neq("id", id) // Exclude the one we just deleted
       .in("status", ["On Service", "On Reservation"]);
 
+
     if (checkError) {
       console.error("Error checking other bookings", checkError);
     }
@@ -123,87 +124,73 @@ const OnService = () => {
 
  // Fetch data and setup subscription
   useEffect(() => {
-    const statusFilter = "On Service";
-    const fetchRenter = async () => {
-      const { data, error } = await supabase
-        .from("renter_booking")
-        .select("*")
-        .eq("status", statusFilter)
-        .order("id", { ascending: false })
-        .is("deleted_at", null);
+  const statusFilter = "On Service";
+  
+  const fetchRenter = async () => {
+    const { data, error } = await supabase
+      .from("renter_booking")
+      .select("*")
+      .eq("status", statusFilter)
+      .is("deleted_at", null)
+      .order("start_date", { ascending: true }); // Sequential by date
 
-      if (error) {
-        console.log("Error fetching renter", error);
-        return;
-      }
-      setRenterData(data);
-      setFilterRenterData(data);
-    };
+    if (error) {
+      console.log("Error fetching renter", error);
+      return;
+    }
+    setRenterData(data);
+    setFilterRenterData(data);
+  };
 
-    fetchRenter();
+  fetchRenter();
 
-    const subscription = supabase
-      .channel("onservice-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "renter_booking" },
-        (payload) => {
-          const eventType = payload.eventType;
-          const newData = payload.new as DataRenterHistoryProps;
+  const subscription = supabase
+    .channel("onservice-changes")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "renter_booking" },
+      (payload) => {
+        const eventType = payload.eventType;
+        const newData = payload.new as DataRenterHistoryProps;
 
-          if (eventType === "INSERT") {
-            // Only add if it belongs in this tab
+        setFilterRenterData((prev) => {
+          let updatedList = [...prev];
+
+          if (eventType === "INSERT" || eventType === "UPDATE") {
+            const isAlreadyInList = prev.some(item => item.id === newData.id);
+
+            // Add or Update logic
             if (newData.status === statusFilter && !newData.deleted_at) {
-              setFilterRenterData((prev) => [newData, ...prev]);
-              toast.success(`New Booking: ${newData.full_name}`);
-            }
-          } 
-          
-          else if (eventType === "UPDATE") {
-            // 1. GLOBAL NOTIFICATION LOGIC
-            // This works even if the item isn't in the current list yet
-            if (newData.status === "On Service" && !newData.deleted_at) {
-              toast.info(`Booking Started: ${newData.full_name} (${newData.car_plate_number})`);
-            }
-
-            // 2. STATE SYNC LOGIC
-            setFilterRenterData((prev) => {
-              const isAlreadyInList = prev.some(item => item.id === newData.id);
-
-              // If it just became 'On Service', add it to the list
-              if (newData.status === statusFilter && !isAlreadyInList && !newData.deleted_at) {
-                return [newData, ...prev];
+              if (isAlreadyInList) {
+                updatedList = prev.map(item => item.id === newData.id ? newData : item);
+              } else {
+                updatedList = [newData, ...prev];
               }
-
-              // If it's no longer 'On Service' or was deleted, remove it
-              if (newData.status !== statusFilter || newData.deleted_at) {
-                return prev.filter((item) => item.id !== newData.id);
-              }
-
-              // Otherwise, just update the existing entry
-              return prev.map((item) =>
-                item.id === newData.id ? newData : item
-              );
-            });
-
-            setSelectedData((current) => current?.id === newData.id ? newData : current);
-          } 
-          
-          else if (eventType === "DELETE") {
-            setFilterRenterData((prev) =>
-              prev.filter((item) => item.id !== payload.old.id),
-            );
+            } else {
+              // Remove if status changed or deleted
+              updatedList = prev.filter(item => item.id !== newData.id);
+            }
+          } else if (eventType === "DELETE") {
+            updatedList = prev.filter(item => item.id !== payload.old.id);
           }
-        },
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-    // Added statusFilter to dependencies for safety
-  }, []);
+          // Always return the list sorted by start_date
+          return updatedList.sort((a, b) => 
+            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+          );
+        });
 
+        if (eventType === "UPDATE") {
+           setSelectedData((current) => current?.id === newData.id ? newData : current);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(subscription);
+  };
+}, []);
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
     let filtered = [...filterRenterData];
