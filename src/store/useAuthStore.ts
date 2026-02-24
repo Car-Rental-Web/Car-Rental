@@ -58,16 +58,22 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   //signout
   signOut: async () => {
     set({ loading: true });
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      set({ loading: false });
-      return { error };
+    try {
+      // We call sign out, but we don't 'return' if it fails
+      const { error } = await supabase.auth.signOut();
+      if (error) console.warn("Supabase signout warning:", error.message);
+    } catch (err) {
+      console.error("Signout unexpected error:", err);
+    } finally {
+      // ALWAYS clear the local state no matter what
+      set({
+        isAuthenticated: false,
+        user: null,
+        loading: false,
+      });
+      // Clear storage to be 100% sure
+      localStorage.clear();
     }
-    set({
-      isAuthenticated: false,
-      user: null,
-      loading: false,
-    });
     return { error: null };
   },
   //signup

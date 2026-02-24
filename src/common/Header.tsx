@@ -51,22 +51,18 @@ const Header = () => {
   const [filterPage, setFilterPage] = useState<PageTypes[]>([]);
 
   const navigate = useNavigate();
-  // const signOut = useAuthStore((state) => state.signOut);
+  const signOut = useAuthStore((state) => state.signOut);
   const userEmail = useAuthStore((state) => state.getDisplayName());
   const { isSidebarOpen, toggleSidebar } = useSidebarStore();
 
 const handleLogout = async () => {
-  const { error } = await supabase.auth.signOut();
+  // 1. Execute the fixed store action
+  await signOut(); 
   
-  if (error) {
-    console.error("Logout error:", error.message);
-    // If 403, the session is likely already gone or invalid
-    // Force clear local storage to reset the app state
-    localStorage.clear(); 
-    window.location.href = "/login";
-  }
+  // 2. Force the browser to the login page 
+  // (using replace prevents them from clicking 'back' into the dashboard)
+  window.location.replace("/login");
 };
-
   const playSound = () => {
     new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3")
       .play()
@@ -179,7 +175,6 @@ const handleLogout = async () => {
     };
   }, []);
 
-  // ... (Keep existing markAsRead, handleClearAllMessages, handleClearReminders, and search logic) ...
 
   const markAsRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
@@ -317,7 +312,10 @@ const handleLogout = async () => {
           </div>
           {openUserMenu && (
             <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl py-2 z-1001">
-              <button onClick={handleLogout} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3">
+              <button  onClick={(e) => {
+                e.stopPropagation()
+                handleLogout()
+              }} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3 cursor-pointer">
                 <icons.logOut size={18} /> Logout
               </button>
             </div>

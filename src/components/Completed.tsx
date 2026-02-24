@@ -73,14 +73,16 @@ const Completed = () => {
 
       const { error: deleteError } = await supabase
         .from("renter_booking")
-        .update({deleted_at: new Date().toISOString()})
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
 
-        if(deleteError) {
-          toast.error("Failed to Move to Trash")
-        }
+      if (deleteError) {
+        toast.error("Failed to Move to Trash");
+      }
 
-      toast.success(`"Moved to Trash Successfully" ${booking.car_plate_number}`);
+      toast.success(
+        `"Moved to Trash Successfully" ${booking.car_plate_number}`,
+      );
       await supabase
         .from("vehicle")
         .update({ status: "Available" })
@@ -98,58 +100,63 @@ const Completed = () => {
 
   // Fetch data and setup subscription
   // Fetch data and setup subscription
-useEffect(() => {
-  const fetchRenter = async () => {
-    const statusFilter = "Completed";
-    const { data, error } = await supabase
-      .from("renter_booking")
-      .select("*")
-      .eq("status", statusFilter)
-      .order("id", { ascending: false })
-      .is("deleted_at", null);
-    if (error) {
-      console.log("Error fetching renter", error);
-      return;
-    }
-    setRenterData(data);
-    setFilterRenterData(data);
-  };
-  fetchRenter();
-
-  const subscription = supabase
-    .channel("schema-db-changes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "renter_booking" },
-      (payload) => {
-        // ... (subscription logic remains the same)
-        const eventType = payload.eventType;
-        if (eventType === "INSERT") {
-          const newData = payload.new as DataRenterHistoryProps;
-          setFilterRenterData((prev) => [newData, ...prev]);
-        } else if (eventType === "UPDATE") {
-          const updatedData = payload.new as DataRenterHistoryProps;
-          setFilterRenterData((prev) =>
-            prev.map((item) =>
-              item.id === updatedData.id ? updatedData : item
-            )
-          );
-          setSelectedData((current) =>
-            current?.id === updatedData.id ? updatedData : current
-          );
-        } else if (eventType === "DELETE") {
-          setFilterRenterData((prev) =>
-            prev.filter((item) => item.id !== payload.old.id)
-          );
-        }
+  useEffect(() => {
+    const fetchRenter = async () => {
+      const statusFilter = "Completed";
+      const { data, error } = await supabase
+        .from("renter_booking")
+        .select("*")
+        .eq("status", statusFilter)
+        .order("id", { ascending: false })
+        .is("deleted_at", null);
+      if (error) {
+        console.log("Error fetching renter", error);
+        return;
       }
-    )
-    .subscribe();
+      const total = data.reduce((sum, item) => {
+        const price = Number(item.total_price_rent) || 0;
+        return sum + price;
+      }, 0);
+      console.log("Total Price for Completed Status:", total);
+      setRenterData(data);
+      setFilterRenterData(data);
+    };
+    fetchRenter();
 
-  return () => {
-    supabase.removeChannel(subscription);
-  };
-}, []); // <--- CHANGE THIS TO AN EMPTY ARRAY
+    const subscription = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "renter_booking" },
+        (payload) => {
+          // ... (subscription logic remains the same)
+          const eventType = payload.eventType;
+          if (eventType === "INSERT") {
+            const newData = payload.new as DataRenterHistoryProps;
+            setFilterRenterData((prev) => [newData, ...prev]);
+          } else if (eventType === "UPDATE") {
+            const updatedData = payload.new as DataRenterHistoryProps;
+            setFilterRenterData((prev) =>
+              prev.map((item) =>
+                item.id === updatedData.id ? updatedData : item,
+              ),
+            );
+            setSelectedData((current) =>
+              current?.id === updatedData.id ? updatedData : current,
+            );
+          } else if (eventType === "DELETE") {
+            setFilterRenterData((prev) =>
+              prev.filter((item) => item.id !== payload.old.id),
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
@@ -240,7 +247,7 @@ useEffect(() => {
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Duration
                 </th>
-                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Rent Type
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
@@ -306,9 +313,10 @@ useEffect(() => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
-                         <div className="text-xs text-red-500 text-left text-ellipsis" >
-                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
-                      </div>
+                        <div className="text-xs text-red-500 text-left text-ellipsis">
+                          <strong className="text-black">Remarks:</strong>{" "}
+                          {row.remarks || ""}
+                        </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
