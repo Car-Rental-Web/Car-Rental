@@ -118,58 +118,61 @@ const OnReservation = () => {
 
   // Fetch data and setup subscription
   useEffect(() => {
-    const fetchRenter = async () => {
-       const statusFilter = "On Reservation";
-      const { data, error } = await supabase
-        .from("renter_booking")
-        .select("*")
-        .eq("status", statusFilter)
-        .order("id", { ascending: false })
-        .is("deleted_at", null)
-        .order("start_date", {ascending:true})
-      if (error) {
-        console.log("Error fetching renter", error);
-        return;
-      }
-      setRenterData(data);
-      setFilterRenterData(data);
-    };
-    fetchRenter();
+  const fetchRenter = async () => {
+    const statusFilter = "On Reservation";
+    const { data, error } = await supabase
+      .from("renter_booking")
+      .select("*")
+      .eq("status", statusFilter)
+      .is("deleted_at", null)
+      // Primary Sort: The date they start
+      .order("start_date", { ascending: true }) 
+      // Secondary Sort: If dates are same, sort by time
+      .order("start_time", { ascending: true }); 
 
-    const subscription = supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "renter_booking" },
-        (payload) => {
-          const eventType = payload.eventType;
-          if (eventType === "INSERT") {
-            const newData = payload.new as DataRenterHistoryProps;
-           setFilterRenterData((prev) => {
-            const updatedList = [...prev,newData];
-            return updatedList.sort((a,b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-           })
-          } else if (eventType === "UPDATE") {
-            const updatedData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) =>
-              prev.map((item) =>
-                item.id === updatedData.id ? updatedData : item,
-              ),
-            );
-            setSelectedData((current) => current?.id === updatedData.id ? updatedData : current);
-          } else if (eventType === "DELETE") {
-            setFilterRenterData((prev) =>
-              prev.filter((item) => item.id !== payload.old.id),
-            );
-          }
-        },
-      )
-      .subscribe();
+    if (error) {
+      console.log("Error fetching renter", error);
+      return;
+    }
+    setRenterData(data);
+    setFilterRenterData(data);
+  };
+  fetchRenter();
 
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, []);
+  const subscription = supabase
+    .channel("schema-db-changes")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "renter_booking" },
+      (payload) => {
+        if (payload.eventType === "INSERT") {
+          const newData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) => {
+            const updatedList = [...prev, newData];
+            // Manually re-sort the local state so the new item doesn't just jump to the bottom
+            return updatedList.sort((a, b) => 
+              new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+            );
+          });
+        } else if (payload.eventType === "UPDATE") {
+          const updatedData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) =>
+            prev.map((item) => (item.id === updatedData.id ? updatedData : item))
+                .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
+          );
+        } else if (payload.eventType === "DELETE") {
+          setFilterRenterData((prev) =>
+            prev.filter((item) => item.id !== payload.old.id)
+          );
+        }
+      },
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(subscription);
+  };
+}, []);
 
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
