@@ -100,6 +100,7 @@ const Completed = () => {
 
   // Fetch data and setup subscription
   // Fetch data and setup subscription
+ // Fetch data and setup subscription
   useEffect(() => {
     const fetchRenter = async () => {
       const statusFilter = "Completed";
@@ -107,17 +108,23 @@ const Completed = () => {
         .from("renter_booking")
         .select("*")
         .eq("status", statusFilter)
-        .order("id", { ascending: false })
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        // 1. Sort by Date first
+        .order("start_date", { ascending: true })
+        // 2. Sort by Time if dates are identical
+        .order("start_time", { ascending: true });
+
       if (error) {
         console.log("Error fetching renter", error);
         return;
       }
+      
       const total = data.reduce((sum, item) => {
         const price = Number(item.total_price_rent) || 0;
         return sum + price;
       }, 0);
       console.log("Total Price for Completed Status:", total);
+
       setRenterData(data);
       setFilterRenterData(data);
     };
@@ -129,17 +136,22 @@ const Completed = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "renter_booking" },
         (payload) => {
-          // ... (subscription logic remains the same)
           const eventType = payload.eventType;
+
           if (eventType === "INSERT") {
             const newData = payload.new as DataRenterHistoryProps;
-            setFilterRenterData((prev) => [newData, ...prev]);
+            setFilterRenterData((prev) => {
+                const updated = [...prev, newData];
+                // Sort locally so the new item finds its correct chronological spot
+                return updated.sort((a, b) => 
+                    new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+                );
+            });
           } else if (eventType === "UPDATE") {
             const updatedData = payload.new as DataRenterHistoryProps;
             setFilterRenterData((prev) =>
-              prev.map((item) =>
-                item.id === updatedData.id ? updatedData : item,
-              ),
+              prev.map((item) => (item.id === updatedData.id ? updatedData : item))
+                  .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
             );
             setSelectedData((current) =>
               current?.id === updatedData.id ? updatedData : current,
