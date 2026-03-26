@@ -9,7 +9,7 @@ import icons from "../constants/icon";
 import RenterForm from "../components/RenterForm";
 import { DeleteModal } from "../modals";
 import { toast } from "react-toastify";
-import { formatDate, to12Hour } from "../utils/timeFormatter";
+import { formatDate, formatDateandDay, to12Hour } from "../utils/timeFormatter";
 
 const Completed = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -260,7 +260,7 @@ const Completed = () => {
                     <td className="p-4 text-center"><span className="text-xs font-bold text-blue-600">{row.car_plate_number}</span></td>
                     <td className="p-4 text-center">
                       <div className="text-xs font-medium text-slate-700">
-                        {formatDate(row.start_date)} <span className="text-slate-300">|</span> {formatDate(row.end_date)}
+                        {formatDateandDay(row.start_date)} <span className="text-slate-300">|</span> {formatDateandDay(row.end_date)}
                         <div className="text-[10px] text-slate-400 mt-0.5">{to12Hour(row.start_time)} - {to12Hour(row.end_time)}</div>
                         <div className="text-xs text-red-500 text-left text-ellipsis"><strong className="text-black">Remarks:</strong> {row.remarks || ""}</div>
                       </div>

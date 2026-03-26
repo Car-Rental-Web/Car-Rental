@@ -15,4 +15,21 @@ export const formatDate = (dateString:string) => {
     day: "numeric",
     year: "numeric",
   });
+  
 }
+
+export const formatDateandDay = (dateString: string) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  };
+
+  const formattedDate = date.toLocaleDateString('en-US', options);
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+  return `${formattedDate} - ${dayName}`;
+};
