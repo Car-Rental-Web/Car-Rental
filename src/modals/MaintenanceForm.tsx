@@ -207,7 +207,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             <label className={labelClass}>Registered Vehicle</label>
             <select {...register("car")} disabled={isView} className={inputClass(errors.car)}>
               <option value="">Select Plate Number</option>
-              {vehicles.map((v) => <option disabled={v.status === "On Service"} key={v.id} value={v.plate_number}>{v.plate_number}{v.status === "On Service" ? " (On Service)" : ""}</option>)}
+              {vehicles.map((v) => <option disabled={v.status === "On Service"} key={v.id} value={v.plate_number}>{v.plate_number} <span className={`${v.status === "On Service"  ? "text-red-500" : ""}`}>{v.status === "On Service" ? " (On Service)" : ""}</span></option>)}
             </select>
             {errorMsg(errors.car?.message)}
           </div>
