@@ -131,12 +131,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           if (mError) throw mError;
 
           // 2. Set vehicle to Maintenance
-          const { error: vError } = await supabase
-            .from("vehicle")
-            .update({ status: "On Maintenance" })
-            .eq("plate_number", data.car);
-          if (vError) throw vError;
-
+       
           toast.success("Maintenance started; vehicle status updated.");
         }
 
@@ -149,16 +144,16 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
           if (mError) throw mError;
 
           // 2. Logic to set vehicle back to Available
-          if (data.status === "Maintained") {
-            const { error: vError } = await supabase
-              .from("vehicle")
-              .update({ status: "Available" })
-              .eq("plate_number", data.car);
-            if (vError) throw vError;
-            toast.success("Maintenance completed; vehicle is now Available.");
-          } else {
-            toast.success("Maintenance record updated.");
-          }
+          // if (data.status === "Maintained") {
+          //   const { error: vError } = await supabase
+          //     .from("vehicle")
+          //     .update({ status: "Available" })
+          //     .eq("plate_number", data.car);
+          //   if (vError) throw vError;
+          //   toast.success("Maintenance completed; vehicle is now Available.");
+          // } else {
+          //   toast.success("Maintenance record updated.");
+          // }
         }
 
         onClose();
@@ -207,7 +202,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             <label className={labelClass}>Registered Vehicle</label>
             <select {...register("car")} disabled={isView} className={inputClass(errors.car)}>
               <option value="">Select Plate Number</option>
-              {vehicles.map((v) => <option disabled={v.status === "On Service"} key={v.id} value={v.plate_number}>{v.plate_number} <span className={`${v.status === "On Service"  ? "text-red-500" : ""}`}>{v.status === "On Service" ? " (On Service)" : ""}</span></option>)}
+              {vehicles.map((v) => <option key={v.id} value={v.plate_number}>{v.plate_number} </option>)}
             </select>
             {errorMsg(errors.car?.message)}
           </div>
