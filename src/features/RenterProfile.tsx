@@ -243,6 +243,7 @@ const RenterProfile = () => {
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Selfie</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Valid ID</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Referral</th>
+                <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Rent</th>
                 <th className="p-4 text-[11px] font-bold text-slate-500 uppercase text-center">Actions</th>
               </tr>
             </thead>
@@ -293,6 +294,18 @@ const RenterProfile = () => {
                   </td>
                     <td className="p-4 text-center text-xs font-mono text-slate-500">
                     {row.referral|| "N/A"}
+                  </td>
+                  <td className="p-4 text-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedRenter(row);
+                        setShowBookingForm(true);
+                      }}
+                      className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-full cursor-pointer"
+                    >
+                      <icons.rent size={18} />
+                    </button>
                   </td>
                   <td
                     className="p-4 text-center"
