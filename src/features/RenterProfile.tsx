@@ -14,6 +14,18 @@ import Card from "../components/Card";
 import { formatDate } from "../utils/timeFormatter";
 import { filterData } from "../utils/FilterData";
 
+// Local inline fallback image — no network request, so it can never itself fail.
+// (via.placeholder.com is discontinued and was causing ERR_CONNECTION_CLOSED spam.)
+const FALLBACK_AVATAR =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+      <rect width="40" height="40" fill="#e2e8f0"/>
+      <circle cx="20" cy="15" r="7" fill="#94a3b8"/>
+      <path d="M6 36c0-8 6-13 14-13s14 5 14 13" fill="#94a3b8"/>
+    </svg>`,
+  );
+
 const RenterProfile = () => {
   const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
   const [filterRenterData, setFilterRenterData] = useState<
@@ -45,6 +57,8 @@ const RenterProfile = () => {
 
   const historyPagination = usePagination(renterHistory, 5);
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
+
+  
 
   // Fetch Logic
   const fetchRenter = useCallback(async () => {
@@ -99,12 +113,21 @@ const RenterProfile = () => {
   // History Logic
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!selectedName || !selectedLicense) return;
+      if (!selectedName) return;
+
+      // Build a wildcard pattern from the name words so spacing
+      // differences (single vs double space, etc.) don't break the match —
+      // same approach confirmed to work via raw SQL (%word%word%).
+      const namePattern = `%${selectedName
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .join("%")}%`;
+
       const { data, error } = await supabase
         .from("renter_booking")
         .select("*")
-        .eq("full_name", selectedName)
-        .eq("license_number", selectedLicense)
+        .ilike("full_name", namePattern)
         .order("created_at", { ascending: false });
         
       if (error) {
@@ -114,10 +137,11 @@ const RenterProfile = () => {
       
       setRenterHistory(data || []);
       historyPagination.setCurrentPage(1);
+
     };
     
     fetchHistory();
-  }, [selectedName, selectedLicense]);
+  }, [selectedName]);
 
   const handleDelete = async (id: number) => {
     if (!selectedRenter) return;
@@ -278,18 +302,25 @@ const RenterProfile = () => {
                   <td className="p-4 text-center">
                     <img
                       className="w-10 h-10 object-cover rounded-full mx-auto border-2 border-slate-200"
-                      src={row.renter_selfie}
+                      src={row.renter_selfie || FALLBACK_AVATAR}
                       alt="Selfie"
-                      onError={(e) =>
-                        (e.currentTarget.src = "https://via.placeholder.com/40")
-                      }
+                      onError={(e) => {
+                        if (e.currentTarget.src !== FALLBACK_AVATAR) {
+                          e.currentTarget.src = FALLBACK_AVATAR;
+                        }
+                      }}
                     />
                   </td>
                   <td className="p-4 text-center">
                     <img
                       className="w-10 h-10 object-cover rounded-lg mx-auto"
-                      src={row.valid_id}
+                      src={row.valid_id || FALLBACK_AVATAR}
                       alt="ID"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== FALLBACK_AVATAR) {
+                          e.currentTarget.src = FALLBACK_AVATAR;
+                        }
+                      }}
                     />
                   </td>
                     <td className="p-4 text-center text-xs font-mono text-slate-500">
@@ -395,7 +426,7 @@ const RenterProfile = () => {
       </div>
 
       {/* History Detail View */}
-      {selectedLicense && (
+      {selectedName && (
         <div className="mt-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-xl animate-in slide-in-from-bottom-5">
           <div className="flex justify-between items-center mb-6 border-b pb-4">
             <div>
@@ -447,6 +478,49 @@ const RenterProfile = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* History Pagination Bar */}
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500">
+              Showing{" "}
+              {renterHistory.length === 0
+                ? 0
+                : historyPagination.indexOfFirstItem + 1}
+              -
+              {Math.min(
+                historyPagination.indexOfLastItem,
+                renterHistory.length,
+              )}{" "}
+              of {renterHistory.length}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                disabled={historyPagination.currentPage === 1}
+                onClick={() =>
+                  historyPagination.setCurrentPage((prev) => prev - 1)
+                }
+                className="px-4 py-2 text-xs font-bold bg-white border rounded-xl disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-xl border border-blue-100">
+                {historyPagination.currentPage} /{" "}
+                {historyPagination.totalPages || 1}
+              </span>
+              <button
+                disabled={
+                  historyPagination.currentPage >=
+                  historyPagination.totalPages
+                }
+                onClick={() =>
+                  historyPagination.setCurrentPage((prev) => prev + 1)
+                }
+                className="px-4 py-2 text-xs font-bold bg-white border rounded-xl disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}
