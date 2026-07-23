@@ -57,6 +57,7 @@ const TrashTable = ({
             ))}
           </select>
           <SearchBar
+            onClear={() => setSearchTerm("")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={`Search ${title}...`}
