@@ -123,6 +123,8 @@ const Maintenance = () => {
         maintained_by: item.maintained_by,
         status: item.status,
       }));
+      // Sort by date descending (newest first)
+      rowsData.sort((a, b) => b.date.localeCompare(a.date));
       setRecords(rowsData);
       setFilterRecords(rowsData);
     };

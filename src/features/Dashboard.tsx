@@ -50,15 +50,27 @@ const Dashboard = () => {
     // Calculate date range for the selected month
     const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
     const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString();
+    const startOfMonth = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
+    const nextMonth = new Date(selectedYear, selectedMonth + 1, 1);
+    const startOfNextMonth = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}-01`;
 
-    const [resBookings, resMaintenance, resRenters] = await Promise.all([
-      // Monthly Bookings & Revenue
+    const [resBookings, resCompletedBookings, resMaintenance, resRenters] = await Promise.all([
+      // Monthly Bookings created in the selected month
       supabase
         .from("renter_booking")
         .select("status, total_price_rent")
         .is("deleted_at", null)
         .gte("created_at", startDate)
         .lte("created_at", endDate),
+
+      // Revenue from completed bookings that ended in the selected month
+      supabase
+        .from("renter_booking")
+        .select("total_price_rent")
+        .eq("status", "Completed")
+        .is("deleted_at", null)
+        .gte("end_date", startOfMonth)
+        .lt("end_date", startOfNextMonth),
 
       // Monthly Maintenance Expenses
       supabase
@@ -82,9 +94,9 @@ const Dashboard = () => {
       (acc, item) => acc + Number(item.cost_of_maintenance || 0), 0
     ) || 0;
 
-    // Calculate Gross Revenue (Only count Completed for revenue, or remove filter if you count all)
-    const totalGross = resBookings.data?.reduce((acc, item) => {
-      return item.status === "Completed" ? acc + Number(item.total_price_rent || 0) : acc;
+    // Calculate Gross Revenue using completed bookings ending in the selected month
+    const totalGross = resCompletedBookings.data?.reduce((acc, item) => {
+      return acc + Number(item.total_price_rent || 0);
     }, 0) || 0;
 
     setMonthlyBooking(resBookings.data?.length || 0);
