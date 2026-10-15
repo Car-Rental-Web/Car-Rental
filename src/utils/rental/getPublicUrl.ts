@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "../supabase";
 
 const getPublicUrl = (bucket: string, path: string | null | undefined) => {
   if (!path || typeof path !== "string") return "";

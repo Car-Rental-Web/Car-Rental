@@ -8,12 +8,12 @@ import type React from "react";
 import { ModalButton } from "../components/CustomButtons";
 import { supabase } from "../utils/supabase";
 import { toast } from "react-toastify";
-import { uploadFile } from "../utils/UploadFile";
-import getFilePreview from "../utils/getFilePreview";
 import { useEffect } from "react";
 import type { VehicleFormValues } from "../types/types";
 import { useLoadingStore } from "../store/useLoading";
 import icons from "../constants/icon";
+import getFilePreview from "../utils/rental/getFilePreview";
+import { uploadFile } from "../utils/rental/UploadFile";
 
 export interface ModalProps {
   open: boolean;

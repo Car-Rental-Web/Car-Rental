@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Suspense, useEffect, useState, useCallback } from "react";
-import icons from "../constants/icon";
-import { supabase } from "../utils/supabase";
+import icons from "../../constants/icon";
+import { supabase } from "../../utils/supabase";
 import React from "react";
-import Card from "../components/Card";
+import Card from "../../components/Card";
 
-const BookingVisual = React.lazy(() => import("../components/BookingVisual"));
-const RenterVisual = React.lazy(() => import("../components/RenterVisual"));
+const BookingVisual = React.lazy(() => import("../../components/BookingVisual"));
+const RenterVisual = React.lazy(() => import("../../components/RenterVisual"));
 
 const Dashboard = () => {
   // --- All-time Stats ---

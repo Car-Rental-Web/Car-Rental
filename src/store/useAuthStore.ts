@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { supabase } from "../utils/supabase";
+import { signInToAll, signOutAll } from "../auth/authall";
 
 interface SupabaseUser {
   id: string;
@@ -13,11 +14,11 @@ interface AuthStore {
   loading: boolean;
   signUp: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ data?: any; error?: any }>;
   signIn: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ data?: any; error?: any }>;
   signOut: () => Promise<{ error: any | null }>;
   finishLoading: () => void;
@@ -35,13 +36,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   finishLoading: () => set({ loading: false }),
   setRecoveringPassword: (value) => set({ isRecoveringPassword: value }),
 
-  //sign in
+  // sign in: rental is the main login, then laundry and water use the same credentials
   signIn: async (email: string, password: string) => {
     set({ loading: true });
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await signInToAll(email, password);
 
     if (error) {
       set({ loading: false });
@@ -55,13 +53,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     });
     return { data };
   },
-  //signout
+
+  // sign out of all three projects
   signOut: async () => {
     set({ loading: true });
     try {
-      // We call sign out, but we don't 'return' if it fails
-      const { error } = await supabase.auth.signOut();
-      if (error) console.warn("Supabase signout warning:", error.message);
+      await signOutAll();
     } catch (err) {
       console.error("Signout unexpected error:", err);
     } finally {
@@ -71,19 +68,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         user: null,
         loading: false,
       });
-      // Clear storage to be 100% sure
+      // Also clears the saved laundry and water sessions
       localStorage.clear();
     }
     return { error: null };
   },
-  //signup
+
+  // sign up (rental only)
   signUp: async (email: string, password: string) => {
     set({ loading: true });
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/overview`,
       },
     });
 

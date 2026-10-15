@@ -7,31 +7,136 @@ import icons from "../constants/icon";
 const SideBarData = [
   {
     label: "Overview",
-    path: "/dashboard",
+    path: "/overview", 
     icon: <icons.dashboard />,
   },
   {
-    label: "Availability",
-    path: "/availability",
-    icon: <icons.availability />,
-  },
-  { label: "Renter Profile", path: "/renterprofile", icon: <icons.person /> },
-  {
-    label: "Rent History",
-    path: "/bookings",
-    icon: <icons.history />,
+    label: "Car-rental",
+    path: "/car-rental/dashboard", // Parent doesn't need a direct route since it acts as a dropdown category
+    icon: <icons.car />,
     children: [
-      { label: "On Service", path: "/bookings/on-service" },
-      { label: "Reservation", path: "/bookings/on-reservation" },
-      { label: "Completed", path: "/bookings/on-completed" },
+      {
+        label: "Overview",
+        path: "/car-rental/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Availability",
+        path: "/car-rental/availability",
+        icon: <icons.availability />,
+      },
+      { 
+        label: "Renter Profile", 
+        path: "/car-rental/renterprofile", 
+        icon: <icons.person /> 
+      },
+      {
+        label: "Rent History",
+        path: "/car-rental/bookings",
+        icon: <icons.history />,
+        children: [
+          { label: "On Service", path: "/car-rental/bookings/on-service" },
+          { label: "Reservation", path: "/car-rental/bookings/on-reservation" },
+          { label: "Completed", path: "/car-rental/bookings/on-completed" },
+        ],
+      },
+      { 
+        label: "Vehicle", 
+        path: "/car-rental/vehiclehistory", 
+        icon: <icons.vehicle /> 
+      },
+      { 
+        label: "Maintenance", 
+        path: "/car-rental/maintenance", 
+        icon: <icons.onMaintenance /> 
+      },
+      { 
+        label: "Recycle Bin", 
+        path: "/car-rental/trashfile", 
+        icon: <icons.trash /> 
+      },
     ],
   },
-  { label: "Vehicle", path: "/vehiclehistory", icon: <icons.vehicle /> },
-  { label: "Maintenance", path: "/maintenance", icon: <icons.onMaintenance /> },
-  // { label: "Qr Codes", path: "/qrcode", icon: <icons.qr /> },
-  { label: "Recycle Bin", path: "/trashfile", icon: <icons.trash /> },
+  {
+    label: "Laundry Service",
+    path: "#",
+    icon: <icons.laundry />,
+    children: [
+      {
+        label: "Dashboard",
+        path: "/laundry/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Calendar",
+        path: "/laundry/calendar",
+        icon: <icons.availability />,
+      },
+      {
+        label: "Customers",
+        path: "/laundry/customers",
+        icon: <icons.person />,
+      },
+      {
+        label: "Services",
+        path: "/laundry/services",
+        icon: <icons.vehicle />,
+      },
+      {
+        label: "History",
+        path: "/laundry/bookings",
+        icon: <icons.history />,
+        children: [
+          { label: "On Reservation", path: "/laundry/bookings/on-reservation" },
+          { label: "On Service", path: "/laundry/bookings/on-service" },
+          { label: "Completed", path: "/laundry/bookings/on-completed" },
+        ],
+      },
+      {
+        label: "Maintenance",
+        path: "/laundry/maintenance",
+        icon: <icons.onMaintenance />,
+      },
+    ],
+  },
+  {
+    label: "Water Station",
+    path: "#",
+    icon: <icons.water />,
+    children: [
+      {
+        label: "Dashboard",
+        path: "/water/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Calendar",
+        path: "/water/calendar",
+        icon: <icons.availability />,
+      },
+      {
+        label: "Customers",
+        path: "/water/customers",
+        icon: <icons.person />,
+      },
+      {
+        label: "Services",
+        path: "/water/services",
+        icon: <icons.vehicle />,
+      },
+      {
+        label: "History",
+        path: "/water/history",
+        icon: <icons.history />,
+      },
+      {
+        label: "Maintenance",
+        path: "/water/maintenance",
+        icon: <icons.onMaintenance />,
+      },
+    ],
+  },
 ];
-
 const Sidebar = () => {
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -193,17 +298,75 @@ const Sidebar = () => {
                   {hasChildren && isOpen && isSidebarOpen && (
                     <div className="flex flex-col ml-10 mt-1 border-l-2 border-slate-100 gap-1 overflow-hidden animate-in slide-in-from-top-2 duration-300">
                       {item.children?.map((sub) => {
-                        const subActive = location.pathname === sub.path;
+                        const nested = sub.children;
+                        const subHasChildren = !!nested && nested.length > 0;
+                        const subOpen = openMenus.includes(sub.label);
+                        const subActive = subHasChildren
+                          ? location.pathname.startsWith(sub.path)
+                          : location.pathname === sub.path;
+
+                        // Sub-item that has its own dropdown (e.g. Rent History)
+                        if (subHasChildren) {
+                          return (
+                            <div key={sub.path} className="flex flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSubMenu(sub.label)}
+                                className={`
+                                  flex items-center justify-between py-2 px-4 text-xs font-bold rounded-lg transition-colors cursor-pointer
+                                  ${
+                                    subActive
+                                      ? "text-blue-600 bg-blue-50/50"
+                                      : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                  }
+                                `}
+                              >
+                                <span>{sub.label}</span>
+                                <icons.chevronDown
+                                  className={`text-xs opacity-50 transition-transform duration-300 ${subOpen ? "rotate-180" : ""}`}
+                                />
+                              </button>
+
+                              {subOpen && (
+                                <div className="flex flex-col ml-4 border-l-2 border-slate-100 gap-1">
+                                  {nested.map((child) => {
+                                    const childActive = location.pathname === child.path;
+                                    return (
+                                      <Link
+                                        key={child.path}
+                                        to={child.path}
+                                        onClick={() => {
+                                          if (window.innerWidth <= 768) setSidebarOpen(false);
+                                        }}
+                                        className={`
+                                          py-2 px-4 text-xs font-bold rounded-lg transition-colors
+                                          ${
+                                            childActive
+                                              ? "text-blue-600 bg-blue-50/50"
+                                              : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                          }
+                                        `}
+                                      >
+                                        {child.label}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        // Normal sub-item
                         return (
                           <Link
                             key={sub.path}
                             to={sub.path}
                             onClick={() => {
-                              if (window.innerWidth <= 768)
-                                setSidebarOpen(false);
+                              if (window.innerWidth <= 768) setSidebarOpen(false);
                             }}
                             className={`
-                              py-2 px-4 text-xs font-bold rounded-lg transition-colors
+                              py-2 px-4 flex items-center gap-3 text-xs font-bold rounded-lg transition-colors  
                               ${
                                 subActive
                                   ? "text-blue-600 bg-blue-50/50"
@@ -211,6 +374,7 @@ const Sidebar = () => {
                               }
                             `}
                           >
+                            {sub.icon}
                             {sub.label}
                           </Link>
                         );
