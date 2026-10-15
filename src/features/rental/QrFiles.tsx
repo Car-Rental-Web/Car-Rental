@@ -1,4 +1,4 @@
-import QrCode from "../components/QrCode"
+import QrCode from "../../components/QrCode";
 
 const QrFiles = () => {
   return (

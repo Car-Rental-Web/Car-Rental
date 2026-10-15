@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from "react-toastify";
-import TrashTable from "../components/TrashTable";
-import { supabase } from "../utils/supabase";
 import { useEffect, useState, useCallback } from "react";
-import { formatDate } from "../utils/timeFormatter";
+import { supabase } from "../../utils/supabase";
+import TrashTable from "../../components/TrashTable";
+import { formatDate } from "../../utils/timeFormatter";
 
 const TrashFiles = () => {
   const [data, setData] = useState({ 

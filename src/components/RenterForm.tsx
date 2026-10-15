@@ -7,8 +7,6 @@ import type { DataRenterHistoryProps } from "../types/types";
 import { useEffect, useState } from "react";
 import { ModalButton } from "./CustomButtons";
 import icons from "../constants/icon";
-import { uploadFile } from "../utils/UploadFile";
-import getPublicUrl from "../utils/getPublicUrl";
 import { toast } from "react-toastify";
 import RenterAgreement from "./RenterAgreement";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -19,6 +17,8 @@ import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { differenceInDays, parseISO, format } from "date-fns";
+import { uploadFile } from "../utils/rental/UploadFile";
+import getPublicUrl from "../utils/rental/getPublicUrl";
 
 interface RenterFormProps {
   open: boolean;

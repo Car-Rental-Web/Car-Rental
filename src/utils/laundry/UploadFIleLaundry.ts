@@ -1,6 +1,6 @@
-import { supabase } from "./supabase";
+import { supabaseLaundry } from "../supabase";
 
-export const uploadFile = async (
+export const uploadFileLaundry = async (
   file: File,
   bucket: string,
   folder?: string
@@ -13,7 +13,7 @@ export const uploadFile = async (
   const fileName = `${crypto.randomUUID()}.${fileExt}`;
   const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-  const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+  const { error } = await supabaseLaundry.storage.from(bucket).upload(filePath, file, {
     cacheControl: "3600",
     upsert: false,
   });

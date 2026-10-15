@@ -2,13 +2,13 @@
 import { useForm } from "react-hook-form";
 import { RenterFormDataSchema, type RenterFormValues } from "../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { uploadFile } from "../utils/UploadFile";
+import { uploadFile } from "../utils/rental/UploadFile";
 import { supabase } from "../utils/supabase";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import type { DataVehicleTypes } from "../types/types";
 import icons from "../constants/icon";
-import getPublicUrl from "../utils/getPublicUrl";
+import getPublicUrl from "../utils/rental/getPublicUrl";
 import { ModalButton } from "./CustomButtons";
 import { RenterAgreementPDF } from "./RenterAgreementPDF";
 import { PDFDownloadLink } from "@react-pdf/renderer";

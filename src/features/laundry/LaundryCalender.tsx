@@ -7,80 +7,104 @@ import {
   parseISO,
   isWithinInterval,
   startOfDay,
-  differenceInDays,
   eachMonthOfInterval,
-  startOfMonth, // 1. Added missing import
-  endOfMonth, // 1. Added missing import
+  startOfMonth,
+  endOfMonth,
 } from "date-fns";
-import { supabase } from "../utils/supabase";
-import { to12Hour } from "../utils/timeFormatter";
+import { toast } from "react-toastify";
+import { supabaseLaundry as supabase } from "../../utils/supabase";
+import { to12Hour } from "../../utils/timeFormatter";
+import type { LaundryBookingData } from "./components/ServiceBookingForm";
 
-const VerticalCalendar: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear(),
-  );
-  const [bookings, setBookings] = useState<any[]>([]);
+// Only bookings that are still ahead or in progress show on the calendar
+const ACTIVE_STATUSES = ["On Service", "On Reservation"];
+
+const getStatusStyles = (status: string | null) => {
+  switch (status) {
+    case "On Service":
+      return { bg: "#ecfdf5", text: "#065f46", border: "#10b981" };
+    case "On Reservation":
+      return { bg: "#eff6ff", text: "#1e40af", border: "#3b82f6" };
+    default:
+      return { bg: "#f9fafb", text: "#374151", border: "#d1d5db" };
+  }
+};
+
+const LaundryCalendar: React.FC = () => {
+  const currentYear = new Date().getFullYear();
+
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [bookings, setBookings] = useState<LaundryBookingData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [durationFilter, setDurationFilter] = useState<string>("all");
+  const [serviceFilter, setServiceFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case "On Service":
-        return { bg: "#ecfdf5", text: "#065f46", border: "#10b981" };
-      case "On Reservation":
-        return { bg: "#eff6ff", text: "#1e40af", border: "#3b82f6" };
-      default:
-        return { bg: "#f9fafb", text: "#374151", border: "#d1d5db" };
-    }
-  };
+  // Last year up to 4 years ahead, so the list never goes out of date
+  const yearOptions = useMemo(
+    () => Array.from({ length: 6 }, (_, i) => currentYear - 1 + i),
+    [currentYear],
+  );
 
   useEffect(() => {
     const fetchBookings = async () => {
-      try {
-        const statuses = ["On Service", "On Reservation"];
-        const { data, error } = await supabase
-          .from("renter_booking")
-          .select("*")
-          .in("status", statuses)
-          .is("deleted_at", null);
-        if (error) throw error;
-        setBookings(data || []);
-      } catch (error) {
-        console.error("Error:", error);
+      const { data, error } = await supabase
+        .from("laundry_booking")
+        .select("*")
+        .in("status", ACTIVE_STATUSES)
+        .order("start_date", { ascending: true });
+
+      if (error) {
+        console.error("laundry_booking error:", error);
+        toast.error(`Error fetching bookings: ${error.message}`);
+        return;
       }
+      setBookings(data || []);
     };
     fetchBookings();
   }, []);
 
+  // Services that actually have bookings, for the filter dropdown
+  const serviceOptions = useMemo(() => {
+    const names = bookings
+      .map((b) => b.laundry_service)
+      .filter((n): n is string => Boolean(n));
+    return Array.from(new Set(names)).sort();
+  }, [bookings]);
+
   const filteredData = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+
     return bookings.filter((b) => {
-      // Parse dates consistently
-      const start = b.start_date ? parseISO(b.start_date) : new Date();
-      const end = b.end_date ? parseISO(b.end_date) : new Date();
-      const duration = differenceInDays(end, start);
+      // Skip rows that can't be placed on a calendar
+      if (!b.start_date || !b.end_date) return false;
 
-      const searchLower = searchTerm.toLowerCase();
+      const start = parseISO(b.start_date);
+      const end = parseISO(b.end_date);
+      if (end < start) return false;
+
       const matchesSearch =
-        !searchTerm ||
-        b.full_name?.toLowerCase().includes(searchLower) ||
-        b.car_model?.toLowerCase().includes(searchLower) ||
-        b.car_type?.toLowerCase().includes(searchLower) ||
-        b.car_plate_number?.toLowerCase().includes(searchLower) ||
-        b.car_color?.toLowerCase().includes(searchLower);
+        !q ||
+        [
+          b.full_name,
+          b.laundry_service,
+          b.type_of_service,
+          b.phone_number,
+          b.address,
+        ].some((v) => v?.toLowerCase().includes(q));
 
-      const matchesDuration =
-        durationFilter === "all" || duration.toString() === durationFilter;
+      const matchesService =
+        serviceFilter === "all" || b.laundry_service === serviceFilter;
       const matchesStatus = statusFilter === "all" || b.status === statusFilter;
 
-      // 2. Fixed Year Filter using UTC to ensure consistency
-      const matchesYear = start.getUTCFullYear() === selectedYear;
+      // Shows in the year if any part of the booking falls inside it
+      const matchesYear =
+        start.getFullYear() <= selectedYear && end.getFullYear() >= selectedYear;
 
-      return matchesSearch && matchesDuration && matchesStatus && matchesYear;
+      return matchesSearch && matchesService && matchesStatus && matchesYear;
     });
-  }, [bookings, searchTerm, durationFilter, statusFilter, selectedYear]);
+  }, [bookings, searchTerm, serviceFilter, statusFilter, selectedYear]);
 
-  // Generate all months for the selected year
+  // All months of the selected year
   const months = eachMonthOfInterval({
     start: startOfYear(new Date(selectedYear, 0, 1)),
     end: endOfYear(new Date(selectedYear, 0, 1)),
@@ -88,14 +112,22 @@ const VerticalCalendar: React.FC = () => {
 
   const hasResults = filteredData.length > 0;
   const isFiltered =
-    searchTerm !== "" || durationFilter !== "all" || statusFilter !== "all";
+    searchTerm !== "" || serviceFilter !== "all" || statusFilter !== "all";
+
+  const bookingsOnDay = (day: Date) =>
+    filteredData.filter((b) =>
+      isWithinInterval(startOfDay(day), {
+        start: startOfDay(parseISO(b.start_date as string)),
+        end: startOfDay(parseISO(b.end_date as string)),
+      }),
+    );
 
   return (
     <div style={styles.appContainer}>
       <div style={styles.filterContainer}>
         <input
           type="text"
-          placeholder="Search name, model, plate..."
+          placeholder="Search name, service, phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={styles.searchInput}
@@ -106,7 +138,7 @@ const VerticalCalendar: React.FC = () => {
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             style={styles.selectInput}
           >
-            {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
+            {yearOptions.map((year) => (
               <option key={year} value={year}>
                 {year}
               </option>
@@ -114,14 +146,14 @@ const VerticalCalendar: React.FC = () => {
           </select>
 
           <select
-            value={durationFilter}
-            onChange={(e) => setDurationFilter(e.target.value)}
+            value={serviceFilter}
+            onChange={(e) => setServiceFilter(e.target.value)}
             style={styles.selectInput}
           >
-            <option value="all">Duration</option>
-            {[1, 2, 3, 4, 5, 6, 7].map((num) => (
-              <option key={num} value={num.toString()}>
-                {num} Day{num > 1 ? "s" : ""}
+            <option value="all">All Services</option>
+            {serviceOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
               </option>
             ))}
           </select>
@@ -139,7 +171,9 @@ const VerticalCalendar: React.FC = () => {
       </div>
 
       <header style={styles.navHeader}>
-        <h2 style={styles.monthLabel}>{selectedYear} Bookings</h2>
+        <h2 style={styles.monthLabel}>
+          {selectedYear} Bookings ({filteredData.length})
+        </h2>
       </header>
 
       <div style={styles.timelineList}>
@@ -147,12 +181,12 @@ const VerticalCalendar: React.FC = () => {
           <div style={styles.fallbackContainer}>
             <div style={{ fontSize: "3rem", marginBottom: "10px" }}>🔍</div>
             <p style={styles.fallbackText}>
-              No rentals found matching your filters.
+              No bookings found matching your filters.
             </p>
             <button
               onClick={() => {
                 setSearchTerm("");
-                setDurationFilter("all");
+                setServiceFilter("all");
                 setStatusFilter("all");
               }}
               style={styles.resetBtn}
@@ -167,18 +201,8 @@ const VerticalCalendar: React.FC = () => {
               end: endOfMonth(month),
             });
 
-            // Only render months that have filtered events to save space
-            if (
-              isFiltered &&
-              !daysInMonth.some((day) =>
-                filteredData.some((b) =>
-                  isWithinInterval(startOfDay(day), {
-                    start: startOfDay(parseISO(b.start_date)),
-                    end: startOfDay(parseISO(b.end_date)),
-                  }),
-                ),
-              )
-            )
+            // When filtering, only render months that have bookings
+            if (isFiltered && !daysInMonth.some((day) => bookingsOnDay(day).length > 0))
               return null;
 
             return (
@@ -186,11 +210,7 @@ const VerticalCalendar: React.FC = () => {
                 <div style={styles.monthTitle}>{format(month, "MMMM")}</div>
 
                 {daysInMonth.map((day) => {
-                  const dayEvents = filteredData.filter((b) => {
-                    const start = startOfDay(parseISO(b.start_date));
-                    const end = startOfDay(parseISO(b.end_date));
-                    return isWithinInterval(startOfDay(day), { start, end });
-                  });
+                  const dayEvents = bookingsOnDay(day);
 
                   if (isFiltered && dayEvents.length === 0) return null;
 
@@ -212,10 +232,6 @@ const VerticalCalendar: React.FC = () => {
                         <div style={styles.eventStack}>
                           {dayEvents.map((event) => {
                             const style = getStatusStyles(event.status);
-                            const duration = differenceInDays(
-                              parseISO(event.end_date),
-                              parseISO(event.start_date),
-                            );
 
                             return (
                               <div
@@ -226,6 +242,7 @@ const VerticalCalendar: React.FC = () => {
                                   borderLeft: `6px solid ${style.border}`,
                                 }}
                               >
+                                {/* Customer + date range */}
                                 <div
                                   style={{
                                     display: "flex",
@@ -250,17 +267,18 @@ const VerticalCalendar: React.FC = () => {
                                     }}
                                   >
                                     {format(
-                                      parseISO(event.start_date),
+                                      parseISO(event.start_date as string),
                                       "MMM d",
                                     )}{" "}
                                     -{" "}
                                     {format(
-                                      parseISO(event.end_date),
+                                      parseISO(event.end_date as string),
                                       "MMM d, yyyy",
                                     )}
                                   </span>
                                 </div>
 
+                                {/* Service details */}
                                 <div
                                   style={{
                                     fontSize: "1rem",
@@ -269,58 +287,37 @@ const VerticalCalendar: React.FC = () => {
                                   }}
                                 >
                                   <p>
-                                    <strong>{event.car_type}</strong>
+                                    <strong>{event.type_of_service}</strong>
                                   </p>
                                   <p>
-                                    🚗 <strong>{event.car_model}</strong> -{" "}
-                                    <strong>{event.car_plate_number}</strong>
+                                    🧺 <strong>{event.laundry_service}</strong>
                                   </p>
-                                  <p>
-                                    <strong>{event.car_color}</strong>
-                                  </p>
+                                  {event.phone_number && (
+                                    <p>📞 {event.phone_number}</p>
+                                  )}
+                                  {event.address && <p>📍 {event.address}</p>}
                                 </div>
-                                <div
-                                  className="text-red-500"
-                                  style={{
-                                    fontSize: "0.85rem",
-                                    fontWeight: "700",
-                                  }}
-                                >
-                                  {" "}
-                                  REMARKS: {event.remarks}
-                                </div>
+
+                                {/* Status + times */}
                                 <div
                                   style={{
                                     display: "flex",
                                     justifyContent: "space-between",
                                     alignItems: "center",
+                                    marginTop: "10px",
                                   }}
                                 >
-                                  <div className="flex flex-col gap-1">
-                                    <div
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        padding: "4px 8px",
-                                        borderRadius: "6px",
-                                        backgroundColor: style.border,
-                                        color: "#fff",
-                                        fontWeight: "bold",
-                                      }}
-                                    >
-                                      {event.status}
-                                    </div>
-                                    <div
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        padding: "4px 8px",
-                                        borderRadius: "6px",
-                                        backgroundColor: style.border,
-                                        color: "#fff",
-                                        fontWeight: "bold",
-                                      }}
-                                    >
-                                      Total Price: ₱{event.total_price_rent}
-                                    </div>
+                                  <div
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      padding: "4px 8px",
+                                      borderRadius: "6px",
+                                      backgroundColor: style.border,
+                                      color: "#fff",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {event.status}
                                   </div>
 
                                   <div>
@@ -331,8 +328,10 @@ const VerticalCalendar: React.FC = () => {
                                         fontWeight: "700",
                                       }}
                                     >
-                                      {" "}
-                                      Dispatch: {to12Hour(event.start_time)}
+                                      Start:{" "}
+                                      {event.start_time
+                                        ? to12Hour(event.start_time)
+                                        : "--"}
                                     </div>
                                     <div
                                       style={{
@@ -341,8 +340,10 @@ const VerticalCalendar: React.FC = () => {
                                         fontWeight: "700",
                                       }}
                                     >
-                                      {" "}
-                                      Drop Off: {to12Hour(event.end_time)}
+                                      End:{" "}
+                                      {event.end_time
+                                        ? to12Hour(event.end_time)
+                                        : "--"}
                                     </div>
                                     <div
                                       style={{
@@ -351,7 +352,7 @@ const VerticalCalendar: React.FC = () => {
                                         fontWeight: "700",
                                       }}
                                     >
-                                      {duration} Day/s
+                                      {event.duration || "—"}
                                     </div>
                                   </div>
                                 </div>
@@ -429,7 +430,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     width: "30px",
     pointerEvents: "none",
-  }, // 3. Added pointerEvents
+  },
   dot: {
     width: "10px",
     height: "10px",
@@ -467,4 +468,4 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export default VerticalCalendar;
+export default LaundryCalendar;

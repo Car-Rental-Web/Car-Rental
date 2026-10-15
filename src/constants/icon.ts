@@ -50,8 +50,8 @@ import { BsQrCode } from "react-icons/bs";
 import { MdOutlineKeyboardDoubleArrowLeft } from "react-icons/md";
 import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 import { FaChevronDown } from "react-icons/fa";
-
-
+import { MdLocalLaundryService } from "react-icons/md";
+import { IoWaterSharp } from "react-icons/io5";
 
 const icons = {
     dashboard: MdOutlineDashboard,
@@ -106,6 +106,8 @@ const icons = {
     leftPagination:MdOutlineKeyboardDoubleArrowLeft,
     rightPagination:MdOutlineKeyboardDoubleArrowRight,
     chevronDown:FaChevronDown,
+    laundry:MdLocalLaundryService,
+    water:IoWaterSharp,
 }
 
 export default icons

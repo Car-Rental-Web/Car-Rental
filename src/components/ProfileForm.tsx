@@ -3,12 +3,12 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "../utils/supabase";
-import { uploadFile } from "../utils/UploadFile";
 import { toast } from "react-toastify";
 import icons from "../constants/icon";
 import { RenterProfileSchema, type RenterValues } from "../schema/schema";
-import getPublicUrl from "../utils/getPublicUrl";
-import getFilePreview from "../utils/getFilePreview";
+import getFilePreview from "../utils/rental/getFilePreview";
+import { uploadFile } from "../utils/rental/UploadFile";
+import getPublicUrl from "../utils/rental/getPublicUrl";
 
 interface Props {
   open: boolean;

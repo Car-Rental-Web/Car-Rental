@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import SearchBar from "../components/SearchBar";
 import { useAuthStore } from "../store/useAuthStore.ts";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../utils/supabase.ts";
 import icons from "../constants/icon.ts";
 import useSidebarStore from "../store/useSidebarStore.ts";
 import { formatDate } from "../utils/timeFormatter.ts";
@@ -31,7 +31,7 @@ interface BookingReminder {
 }
 
 const navigation_pages = [
-  { name: "Dashboard", path: "/dashboard" },
+  { name: "Dashboard", path: "/overview" },
   { name: "Maintenance", path: "/maintenance" },
   { name: "Vehicles", path: "/vehiclehistory" },
   { name: "Renter", path: "/renterprofile" },
@@ -233,7 +233,7 @@ const handleLogout = async () => {
         <button onClick={(e) => { e.stopPropagation(); toggleSidebar(); }} className="p-2 mr-1 text-slate-600 hover:bg-slate-50 rounded-lg md:hidden z-1200">
           {isSidebarOpen ? <icons.closeModal size={24} className="text-blue-600" /> : <icons.menu size={24} />}
         </button>
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/dashboard")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/overview")}>
           <img src="/logo.jpg" alt="logo" className="h-10 w-auto" />
           <p className="text-2xl font-black text-slate-800 hidden sm:block">Mboss</p>
         </div>

@@ -4,17 +4,17 @@ import type {
   DataBookingRow,
   DataVehicleTypes,
   VehicleFormValues,
-} from "../types/types";
-import { supabase } from "../utils/supabase";
-import icons from "../constants/icon";
-import { CustomButtons } from "../components/CustomButtons";
-import { useModalStore } from "../store/useModalStore";
-import VehicleHistoryForm from "../modals/VehicleHistoryForm";
+} from "../../types/types";
+import { supabase } from "../../utils/supabase";
+import icons from "../../constants/icon";
+import { CustomButtons } from "../../components/CustomButtons";
+import { useModalStore } from "../../store/useModalStore";
+import VehicleHistoryForm from "../../modals/VehicleHistoryForm";
 import { toast } from "react-toastify";
-import { DeleteModal } from "../modals";
-import { VehicleRenterForm } from "../components";
-import { usePagination } from "../utils/Pagination";
-import { formatDate } from "../utils/timeFormatter";
+import { DeleteModal } from "../../modals";
+import { VehicleRenterForm } from "../../components";
+import { usePagination } from "../../utils/Pagination";
+import { formatDate } from "../../utils/timeFormatter";
 
 const getRegistrationStatus = (lastDate: string | null) => {
   if (!lastDate) return { text: "Unregistered", color: "bg-gray-400", valid: false };
