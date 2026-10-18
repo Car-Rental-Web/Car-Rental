@@ -87,6 +87,7 @@ const LaundryCalendar: React.FC = () => {
         [
           b.full_name,
           b.laundry_service,
+          b.machine_name,
           b.type_of_service,
           b.phone_number,
           b.address,
@@ -291,6 +292,9 @@ const LaundryCalendar: React.FC = () => {
                                   </p>
                                   <p>
                                     🧺 <strong>{event.laundry_service}</strong>
+                                  </p>
+                                  <p>
+                                    ⚙️ <strong>{event.machine_name || "No Machine"}</strong>
                                   </p>
                                   {event.phone_number && (
                                     <p>📞 {event.phone_number}</p>

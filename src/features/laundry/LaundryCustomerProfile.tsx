@@ -35,6 +35,7 @@ interface LaundryBookingData {
   address: string | null;
   phone_number: string | null;
   laundry_service: string | null;
+  customer_id: string | null;
   start_date: string | null;
   end_date: string | null;
   start_time: string | null;
@@ -72,6 +73,9 @@ const CustomerProfile = () => {
   );
   const [selectedName, setSelectedName] = useState("");
   const [selectedPhone, setSelectedPhone] = useState("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null,
+  );
 
   const {
     currentPage,
@@ -138,23 +142,16 @@ const CustomerProfile = () => {
     setCurrentPage(1);
   }, [debounceSearchTerm, allCustomers, setCurrentPage]);
 
-  // History Logic
+  // History Logic: matched by the customer's id, so two customers
+  // with the same name never share a history
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!selectedName) return;
-
-      // Wildcard pattern from the name words so spacing differences
-      // (single vs double space, etc.) don't break the match.
-      const namePattern = `%${selectedName
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .join("%")}%`;
+      if (!selectedCustomerId) return;
 
       const { data, error } = await supabase
         .from("laundry_booking")
         .select("*")
-        .ilike("full_name", namePattern)
+        .eq("customer_id", selectedCustomerId)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -169,7 +166,7 @@ const CustomerProfile = () => {
 
     fetchHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedName]);
+  }, [selectedCustomerId]);
 
   const handleDelete = async (id: string) => {
     if (!selectedCustomer) return;
@@ -315,6 +312,7 @@ const CustomerProfile = () => {
                 <tr
                   key={row.id}
                   onClick={() => {
+                    setSelectedCustomerId(row.id);
                     setSelectedName(row.full_name || "");
                     setSelectedPhone(row.phone_number || "");
                   }}
@@ -455,7 +453,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* History Detail View */}
-      {selectedName && (
+      {selectedCustomerId && (
         <div className="mt-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-xl animate-in slide-in-from-bottom-5">
           <div className="flex justify-between items-center mb-6 border-b pb-4">
             <div>
@@ -469,6 +467,7 @@ const CustomerProfile = () => {
             </div>
             <button
               onClick={() => {
+                setSelectedCustomerId(null);
                 setSelectedName("");
                 setSelectedPhone("");
                 setBookingHistory([]);
@@ -484,7 +483,7 @@ const CustomerProfile = () => {
             <table className="w-full text-center table-fixed">
               <thead className="bg-slate-800 text-white">
                 <tr>
-                  <th className="p-4 text-[10px] uppercase">Service Created</th>
+                  <th className="p-4 text-[10px] uppercase">Booking Created</th>
                   <th className="p-4 text-[10px] uppercase">Laundry Service</th>
                   <th className="p-4 text-[10px] uppercase">Type</th>
                   <th className="p-4 text-[10px] uppercase">Schedule</th>

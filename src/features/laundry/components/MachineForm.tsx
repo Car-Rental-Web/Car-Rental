@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
-import { supabaseLaundry } from "../../../utils/supabase";
+import { supabaseLaundry as supabase } from "../../../utils/supabase";
+import { syncMachineStatus } from "../../../utils/laundry/syncMachineStatus";
 import icons from "../../../constants/icon";
 
 // Matches the columns of the `laundry_machines` table
@@ -12,6 +13,7 @@ export interface LaundryMachineData {
   id: string;
   created_at: string;
   machine_name: string | null;
+  status: string | null; // Available / On Reservation / On Service / On Maintenance
 }
 
 const MachineSchema = z.object({
@@ -71,24 +73,32 @@ const MachineForm: React.FC<Props> = ({
       if (mode === "edit" && selectedData) {
         const oldName = selectedData.machine_name;
 
-        const { error } = await supabaseLaundry
+        const { error } = await supabase
           .from("laundry_machines")
           .update({ machine_name: name })
           .eq("id", selectedData.id);
         if (error) throw error;
 
-        // Services store the machine NAME, so keep them in sync on rename
+        // Bookings and maintenance store the machine NAME too, so keep them in sync
         if (oldName && oldName !== name) {
-          const { error: syncError } = await supabaseLaundry
-            .from("laundry_service")
+          const { error: bookingSync } = await supabase
+            .from("laundry_booking")
+            .update({ machine_name: name })
+            .eq("machine_id", selectedData.id);
+          if (bookingSync) throw bookingSync;
+
+          const { error: maintenanceSync } = await supabase
+            .from("laundry_maintenance")
             .update({ machine_name: name })
             .eq("machine_name", oldName);
-          if (syncError) throw syncError;
+          if (maintenanceSync) throw maintenanceSync;
+
+          await syncMachineStatus(selectedData.id);
         }
 
         toast.success("Machine updated!");
       } else {
-        const { error } = await supabaseLaundry
+        const { error } = await supabase
           .from("laundry_machines")
           .insert([{ machine_name: name }]);
         if (error) throw error;
@@ -145,7 +155,7 @@ const MachineForm: React.FC<Props> = ({
           )}
           {mode === "edit" && (
             <p className="text-[11px] text-gray-400 mt-2">
-              Renaming also updates every service that uses this machine.
+              Renaming also updates its bookings and maintenance records.
             </p>
           )}
         </div>

@@ -5,7 +5,7 @@ import icons from "../../constants/icon";
 import { useDebouncedValue } from "../../utils/useDebounce";
 import { filterData } from "../../utils/FilterData";
 import { supabaseLaundry as supabase } from "../../utils/supabase";
-import { syncMachineMaintenance } from "../../utils/laundry/syncServiceStatus";
+import { syncMachineStatusByName } from "../../utils/laundry/syncMachineStatus";
 import { DeleteModal, UpdateStatus } from "../../modals";
 import LaundryMaintenanceForm, {
   type LaundryMaintenanceData,
@@ -89,7 +89,7 @@ const LaundryMaintenance = () => {
         .eq("id", selected.id);
       if (error) throw error;
 
-      await syncMachineMaintenance(selected.machine_name);
+      await syncMachineStatusByName(selected.machine_name);
 
       toast.success("Maintenance completed");
       setOpenStatus(false);
@@ -116,7 +116,7 @@ const LaundryMaintenance = () => {
 
       // Deleting an ongoing record frees the machine's services
       if (selected.status === "On Maintenance") {
-        await syncMachineMaintenance(selected.machine_name);
+        await syncMachineStatusByName(selected.machine_name);
       }
 
       toast.success("Moved to Trash Successfully");

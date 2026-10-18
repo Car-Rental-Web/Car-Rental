@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { supabaseLaundry as supabase } from "../../../utils/supabase";
-import { syncMachineMaintenance } from "../../../utils/laundry/syncServiceStatus";
+import { syncMachineStatusByName } from "../../../utils/laundry/syncMachineStatus";
 import icons from "../../../constants/icon";
 
 // Edit this list to match the work you do on your machines
@@ -183,9 +183,9 @@ const LaundryMaintenanceForm: React.FC<Props> = ({
           initialData.machine_name &&
           initialData.machine_name !== data.machine_name
         ) {
-          await syncMachineMaintenance(initialData.machine_name);
+          await syncMachineStatusByName(initialData.machine_name);
         }
-        await syncMachineMaintenance(data.machine_name);
+        await syncMachineStatusByName(data.machine_name);
 
         toast.success("Maintenance updated!");
       } else {
@@ -194,10 +194,10 @@ const LaundryMaintenanceForm: React.FC<Props> = ({
           .insert([{ ...data, status: "On Maintenance" }]);
         if (error) throw error;
 
-        // Services on this machine become "On Maintenance"
-        await syncMachineMaintenance(data.machine_name);
+        // The machine becomes "On Maintenance"
+        await syncMachineStatusByName(data.machine_name);
 
-        toast.success("Maintenance started; services on this machine are now On Maintenance.");
+        toast.success("Maintenance started; the machine is now On Maintenance.");
       }
 
       onSuccess?.();

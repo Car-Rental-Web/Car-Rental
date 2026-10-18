@@ -1,39 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { supabaseLaundry as supabase } from "../../../utils/supabase";
-import { syncServiceStatus } from "../../../utils/laundry/syncServiceStatus";
-import type { LaundryMachineData } from "./MachineForm";
 import icons from "../../../constants/icon";
 
 const BUCKET = "service_image"; // must be a PUBLIC bucket in the laundry project
 
-// "On Reservation" and "On Service" are set automatically by bookings.
-// Only "On Maintenance" is meant to be set by hand.
-export const SERVICE_STATUSES = [
-  "Available",
-  "On Reservation",
-  "On Service",
-  "On Maintenance",
-];
-
-// Matches the columns of the `laundry_service` table
+// Matches the columns of the `laundry_service` table.
+// Services are now just a catalog; the machine holds the status.
 export interface LaundryServiceData {
   id: string;
   created_at: string;
-  machine_name: string | null;
   service_name: string | null;
-  status: string | null;
   service_image: string | null;
+  price: number | null;
 }
 
 const ServiceSchema = z.object({
-  machine_name: z.string().min(1, "Select a machine"),
   service_name: z.string().trim().min(1, "Service name is required"),
-  status: z.string().min(1, "Select a status"),
+  price: z
+    .string()
+    .trim()
+    .min(1, "Price is required")
+    .refine((v) => !isNaN(Number(v)) && Number(v) >= 0, "Enter a valid price"),
   service_image: z.any().optional(),
 });
 type ServiceValues = z.infer<typeof ServiceSchema>;
@@ -43,7 +35,6 @@ interface Props {
   onClose: () => void;
   mode: "create" | "edit" | "view";
   selectedData?: LaundryServiceData | null;
-  machines: LaundryMachineData[];
   onSuccess: () => void;
 }
 
@@ -56,7 +47,6 @@ const ServiceForm: React.FC<Props> = ({
   onClose,
   mode,
   selectedData,
-  machines,
   onSuccess,
 }) => {
   const {
@@ -71,18 +61,6 @@ const ServiceForm: React.FC<Props> = ({
 
   const isView = mode === "view";
   const isEdit = mode === "edit";
-
-  // Machines for the dropdown. If the service points to a machine that no
-  // longer exists, keep it in the list so the value isn't silently blanked.
-  const machineOptions = useMemo(() => {
-    const names = machines
-      .map((m) => m.machine_name)
-      .filter((n): n is string => Boolean(n));
-    if (selectedData?.machine_name && !names.includes(selectedData.machine_name)) {
-      names.unshift(selectedData.machine_name);
-    }
-    return names;
-  }, [machines, selectedData]);
 
   // Image preview: newly picked file first, otherwise the saved URL
   const watchedImage = watch("service_image");
@@ -104,21 +82,11 @@ const ServiceForm: React.FC<Props> = ({
 
   useEffect(() => {
     if (!open) return;
-    if (selectedData) {
-      reset({
-        machine_name: selectedData.machine_name ?? "",
-        service_name: selectedData.service_name ?? "",
-        status: selectedData.status ?? "Available",
-        service_image: undefined,
-      });
-    } else {
-      reset({
-        machine_name: "",
-        service_name: "",
-        status: "Available",
-        service_image: undefined,
-      });
-    }
+    reset({
+      service_name: selectedData?.service_name ?? "",
+      price: selectedData?.price != null ? String(selectedData.price) : "",
+      service_image: undefined,
+    });
   }, [open, selectedData, reset]);
 
   const getPathFromUrl = (url: string) => url.split(`${BUCKET}/`)[1];
@@ -148,9 +116,8 @@ const ServiceForm: React.FC<Props> = ({
       }
 
       const payload = {
-        machine_name: data.machine_name,
         service_name: data.service_name.trim(),
-        status: data.status,
+        price: Number(data.price),
         service_image: imageUrl,
       };
 
@@ -161,8 +128,13 @@ const ServiceForm: React.FC<Props> = ({
           .eq("id", selectedData.id);
         if (error) throw error;
 
-        // If it was taken off maintenance, show its real status again
-        await syncServiceStatus(selectedData.id);
+        // Bookings keep a copy of the service name, so keep it in sync
+        if (selectedData.service_name !== payload.service_name) {
+          await supabase
+            .from("laundry_booking")
+            .update({ laundry_service: payload.service_name })
+            .eq("service_id", selectedData.id);
+        }
         toast.success("Service updated!");
       } else {
         const { error } = await supabase
@@ -186,7 +158,7 @@ const ServiceForm: React.FC<Props> = ({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-1300 flex justify-center items-center p-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white w-full max-w-3xl max-h-full overflow-auto rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="bg-white w-full max-w-2xl max-h-full overflow-auto rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-200"
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
@@ -207,8 +179,8 @@ const ServiceForm: React.FC<Props> = ({
         </div>
 
         <div className="p-6 flex flex-col md:flex-row gap-8">
-          {/* Left: image */}
-          <div className="w-full md:w-1/3 flex flex-col items-center">
+          {/* Image */}
+          <div className="w-full md:w-2/5 flex flex-col items-center">
             <label className={labelStyles}>Service Image</label>
             <div className="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50 flex flex-col items-center justify-center">
               {previewUrl ? (
@@ -235,73 +207,42 @@ const ServiceForm: React.FC<Props> = ({
             )}
           </div>
 
-          {/* Right: fields */}
-          <div className="flex-1 grid grid-cols-1 gap-4 content-start">
-            <div>
-              <label className={labelStyles}>Service Name</label>
-              <input
-                disabled={isView}
-                {...register("service_name")}
-                type="text"
-                placeholder="e.g. Wash & Fold"
-                className={inputStyles}
-              />
-              {errors.service_name && (
-                <p className="text-red-500 text-[10px] mt-1 font-bold">
-                  {errors.service_name.message}
-                </p>
-              )}
-            </div>
+          {/* Name */}
+          <div className="flex-1 content-start">
+            <label className={labelStyles}>Service Name</label>
+            <input
+              disabled={isView}
+              {...register("service_name")}
+              type="text"
+              placeholder="e.g. Wash & Fold"
+              className={inputStyles}
+            />
+            {errors.service_name && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold">
+                {errors.service_name.message}
+              </p>
+            )}
 
-            <div>
-              <label className={labelStyles}>Machine</label>
-              <select
-                disabled={isView || machineOptions.length === 0}
-                {...register("machine_name")}
-                className={inputStyles}
-              >
-                <option value="">
-                  {machineOptions.length === 0
-                    ? "No machines yet"
-                    : "Select a machine"}
-                </option>
-                {machineOptions.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              {machineOptions.length === 0 && (
-                <p className="text-[11px] text-amber-600 mt-1">
-                  Add a machine first (Add Machine button), then pick it here.
-                </p>
-              )}
-              {errors.machine_name && (
-                <p className="text-red-500 text-[10px] mt-1 font-bold">
-                  {errors.machine_name.message}
-                </p>
-              )}
-            </div>
+            <label className={`${labelStyles} mt-4`}>Price (₱)</label>
+            <input
+              disabled={isView}
+              {...register("price")}
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g. 150"
+              className={inputStyles}
+            />
+            {errors.price && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold">
+                {errors.price.message}
+              </p>
+            )}
 
-            <div>
-              <label className={labelStyles}>Status</label>
-              <select
-                disabled={isView}
-                {...register("status")}
-                className={inputStyles}
-              >
-                {SERVICE_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              {errors.status && (
-                <p className="text-red-500 text-[10px] mt-1 font-bold">
-                  {errors.status.message}
-                </p>
-              )}
-            </div>
+            <p className="text-[11px] text-gray-400 mt-3">
+              Services are a catalog. You pick the machine when you book, and
+              the price is saved on each booking.
+            </p>
           </div>
         </div>
 

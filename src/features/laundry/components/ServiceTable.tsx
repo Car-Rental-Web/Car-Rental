@@ -5,15 +5,15 @@ import { supabaseLaundry as supabase } from "../../../utils/supabase";
 import { filterData } from "../../../utils/FilterData";
 import { useDebouncedValue } from "../../../utils/useDebounce";
 import { usePagination } from "../../../utils/Pagination";
-import { syncServiceStatus } from "../../../utils/laundry/syncServiceStatus";
+import { syncMachineStatus } from "../../../utils/laundry/syncMachineStatus";
 import { formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
 import ServiceBookingForm, {
   BOOKING_STATUSES,
   type LaundryBookingData,
-} from "./ServiceBookingForm";
-import DeleteModal from "../../../modals/DeleteModal";
-import SearchBar from "../../../components/SearchBar";
+} from "../components/ServiceBookingForm";
 import icons from "../../../constants/icon";
+import SearchBar from "../../../components/SearchBar";
+import DeleteModal from "../../../modals/DeleteModal";
 
 interface ServiceTableProps {
   /** Heading shown at the top, e.g. "On Reservation" */
@@ -119,6 +119,7 @@ const ServiceTable = ({
         "address",
         "phone_number",
         "laundry_service",
+        "machine_name",
         "type_of_service",
         "start_date",
         "end_date",
@@ -146,8 +147,8 @@ const ServiceTable = ({
         .eq("id", selected.id);
       if (error) throw error;
 
-      // The service may be free again now
-      await syncServiceStatus(selected.service_id);
+      // The machine may be free again now
+      await syncMachineStatus(selected.machine_id);
 
       // Remove the proof image from storage
       if (selected.uploaded_proof) {
@@ -155,12 +156,16 @@ const ServiceTable = ({
         if (path) await supabase.storage.from("uploaded_proof").remove([path]);
       }
 
-      // Keep the customer's service count honest (only if exactly one match)
+      // Keep the customer's service count honest
       try {
-        if (selected.full_name) {
+        let customerId = selected.customer_id;
+
+        // Older bookings have no customer_id: fall back to an exact
+        // name + phone match, but only when it is unambiguous
+        if (!customerId && selected.full_name) {
           let q = supabase
             .from("customer_profile")
-            .select("id, times_service")
+            .select("id")
             .eq("full_name", selected.full_name)
             .is("deleted_at", null);
           q = selected.phone_number
@@ -168,14 +173,22 @@ const ServiceTable = ({
             : q.is("phone_number", null);
 
           const { data: matches } = await q;
-          if (matches?.length === 1) {
-            await supabase
-              .from("customer_profile")
-              .update({
-                times_service: Math.max((matches[0].times_service ?? 0) - 1, 0),
-              })
-              .eq("id", matches[0].id);
-          }
+          if (matches?.length === 1) customerId = matches[0].id;
+        }
+
+        if (customerId) {
+          const { data: customer } = await supabase
+            .from("customer_profile")
+            .select("times_service")
+            .eq("id", customerId)
+            .single();
+
+          await supabase
+            .from("customer_profile")
+            .update({
+              times_service: Math.max((customer?.times_service ?? 0) - 1, 0),
+            })
+            .eq("id", customerId);
         }
       } catch (statsError) {
         console.error("customer stats error:", statsError);
@@ -239,13 +252,15 @@ const ServiceTable = ({
       {/* Table Area */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full table-auto text-left min-w-[1000px]">
+          <table className="w-full table-auto text-left min-w-[1100px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className={headerCell}>No</th>
                 <th className={headerCell}>Customer Information</th>
                 <th className={headerCell}>Contact</th>
+                <th className={headerCell}>Machine</th>
                 <th className={headerCell}>Service</th>
+                <th className={headerCell}>Price</th>
                 <th className={headerCell}>Type</th>
                 <th className={headerCell}>Schedule</th>
                 <th className={headerCell}>Duration</th>
@@ -276,10 +291,16 @@ const ServiceTable = ({
                     <td className="p-4 text-center text-xs font-mono text-slate-700">
                       {row.phone_number || "N/A"}
                     </td>
+                    <td className="p-4 text-center text-xs font-bold text-slate-800">
+                      {row.machine_name || "N/A"}
+                    </td>
                     <td className="p-4 text-center">
                       <span className="text-xs font-bold text-blue-600">
                         {row.laundry_service}
                       </span>
+                    </td>
+                    <td className="p-4 text-center text-xs font-black text-emerald-600">
+                      ₱{(Number(row.price) || 0).toLocaleString()}
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
                       {row.type_of_service}
@@ -345,7 +366,7 @@ const ServiceTable = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="p-20 text-center">
+                  <td colSpan={11} className="p-20 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="p-3 bg-slate-100 rounded-full text-slate-400">
                         <icons.filter size={24} />

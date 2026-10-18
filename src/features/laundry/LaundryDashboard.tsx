@@ -14,6 +14,23 @@ const MONTHS = [
 const toDateString = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 
+// Supabase returns at most 1000 rows per request, so read all-time
+// totals page by page to be sure nothing is cut off.
+const fetchAllRows = async (makeQuery: () => any): Promise<any[]> => {
+  const size = 1000;
+  let from = 0;
+  const rows: any[] = [];
+
+  while (true) {
+    const { data, error } = await makeQuery().range(from, from + size - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < size) break;
+    from += size;
+  }
+  return rows;
+};
+
 /* ---------------- Small dependency-free charts ---------------- */
 
 interface BarItem {
@@ -122,6 +139,13 @@ const LaundryDashboard = () => {
     bookings: 0,
     completed: 0,
     maintenance: 0,
+    gross: 0,
+  });
+  // All-time revenue (completed bookings) and maintenance costs
+  const [revenue, setRevenue] = useState({
+    gross: 0,
+    maintenance: 0,
+    unpriced: 0, // completed bookings that have no price yet
   });
   const [dailyBookings, setDailyBookings] = useState<number[]>([]);
 
@@ -168,6 +192,44 @@ const LaundryDashboard = () => {
     fetchGlobalStats();
   }, []);
 
+  // 1b. All-time revenue and maintenance (once)
+  useEffect(() => {
+    const fetchRevenue = async () => {
+      try {
+        const [completed, maintenance] = await Promise.all([
+          fetchAllRows(() =>
+            supabase
+              .from("laundry_booking")
+              .select("price")
+              .eq("status", "Completed")
+              .order("id"),
+          ),
+          fetchAllRows(() =>
+            supabase
+              .from("laundry_maintenance")
+              .select("cost_of_maintenance")
+              .is("deleted_at", null)
+              .order("id"),
+          ),
+        ]);
+
+        setRevenue({
+          gross: completed.reduce((acc, r) => acc + (Number(r.price) || 0), 0),
+          maintenance: maintenance.reduce(
+            (acc, r) => acc + (Number(r.cost_of_maintenance) || 0),
+            0,
+          ),
+          unpriced: completed.filter((r) => r.price == null).length,
+        });
+      } catch (error: any) {
+        console.error("dashboard revenue error:", error);
+        toast.error(`Error loading revenue: ${error.message}`);
+      }
+    };
+
+    fetchRevenue();
+  }, []);
+
   // 2. Monthly stats (when month/year changes)
   const fetchMonthlyData = useCallback(async () => {
     // Local month boundaries
@@ -190,7 +252,7 @@ const LaundryDashboard = () => {
         // Completed bookings that ended in the selected month
         supabase
           .from("laundry_booking")
-          .select("id", { count: "exact", head: true })
+          .select("price")
           .eq("status", "Completed")
           .gte("end_date", startDate)
           .lt("end_date", nextDate),
@@ -227,6 +289,13 @@ const LaundryDashboard = () => {
         0,
       ) || 0;
 
+    // Revenue from completed bookings that ended in the month
+    const completedRows = resCompleted.data || [];
+    const grossTotal = completedRows.reduce(
+      (acc: number, r: any) => acc + (Number(r.price) || 0),
+      0,
+    );
+
     // Bookings per day of the month
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
     const perDay = new Array(daysInMonth).fill(0) as number[];
@@ -238,14 +307,18 @@ const LaundryDashboard = () => {
     setMonthly({
       customers: resCustomers.count || 0,
       bookings: resBookings.data?.length || 0,
-      completed: resCompleted.count || 0,
+      completed: completedRows.length,
       maintenance: maintenanceTotal,
+      gross: grossTotal,
     });
   }, [selectedMonth, selectedYear]);
 
   useEffect(() => {
     fetchMonthlyData();
   }, [fetchMonthlyData]);
+
+  const monthlyNet = monthly.gross - monthly.maintenance;
+  const lifetimeNet = revenue.gross - revenue.maintenance;
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-10 pt-8 px-4 lg:px-10">
@@ -311,7 +384,7 @@ const LaundryDashboard = () => {
             className="bg-white border-none shadow-sm hover:shadow-md transition-shadow rounded-2xl p-2"
             title={<span className="text-slate-800">Total Bookings</span>}
             linkText="View All"
-            url="/laundry/history"
+            url="/laundry/bookings/on-service"
             amount={
               <span className="text-5xl font-black text-slate-800">
                 {lifetime.bookings}
@@ -332,6 +405,50 @@ const LaundryDashboard = () => {
                 { label: "Completed", value: lifetime.completed, color: "bg-slate-500" },
               ]}
             />
+          </div>
+        </div>
+
+        {/* All-time revenue */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-6 rounded-2xl shadow-sm border border-slate-100 bg-emerald-50/30">
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter mb-1">
+              Total Revenue
+            </p>
+            <p className="text-3xl font-black text-emerald-700">
+              ₱{revenue.gross.toLocaleString()}
+            </p>
+            <p className="text-[10px] text-emerald-600/70 mt-2">
+              From {lifetime.completed} completed bookings
+            </p>
+            {revenue.unpriced > 0 && (
+              <p className="text-[10px] font-bold text-amber-600 mt-1">
+                {revenue.unpriced} completed booking(s) have no price
+              </p>
+            )}
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">
+              Total Maintenance
+            </p>
+            <p className="text-3xl font-black text-red-500">
+              ₱{revenue.maintenance.toLocaleString()}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-2">
+              All repair expenses
+            </p>
+          </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">
+              Net Revenue
+            </p>
+            <p
+              className={`text-3xl font-black ${lifetimeNet < 0 ? "text-red-500" : "text-slate-800"}`}
+            >
+              ₱{lifetimeNet.toLocaleString()}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-2">
+              All-time, after maintenance
+            </p>
           </div>
         </div>
 
@@ -372,13 +489,13 @@ const LaundryDashboard = () => {
           </div>
           <div className="p-6 rounded-2xl shadow-sm border border-slate-100 bg-emerald-50/30">
             <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter mb-1">
-              Completed
+              Gross Revenue
             </p>
             <p className="text-3xl font-black text-emerald-700">
-              {monthly.completed}
+              ₱{monthly.gross.toLocaleString()}
             </p>
             <p className="text-[10px] text-emerald-600/70 mt-2">
-              Finished in {monthName}
+              From {monthly.completed} completed in {monthName}
             </p>
           </div>
         </div>
@@ -405,15 +522,17 @@ const LaundryDashboard = () => {
 
             <Card
               className="bg-white border-none shadow-sm h-full rounded-2xl"
-              title="Upcoming"
-              url="/laundry/bookings/on-reservation"
+              title="Net Revenue"
+              url={""}
               amount={
-                <span className="text-5xl font-black text-slate-800">
-                  {lifetime.reservation}
+                <span
+                  className={`text-5xl font-black ${monthlyNet < 0 ? "text-red-500" : "text-slate-800"}`}
+                >
+                  ₱{monthlyNet.toLocaleString()}
                 </span>
               }
-              description={"Bookings on reservation"}
-              linkIcon={<icons.calendar className="text-emerald-500" size={24} />}
+              description={`Earnings after maintenance for ${monthName}`}
+              linkIcon={<icons.money className="text-emerald-500" size={24} />}
             />
           </div>
         </div>
