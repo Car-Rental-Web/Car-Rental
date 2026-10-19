@@ -42,7 +42,7 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitted }, // <-- Added isSubmitted here
   } = useForm<MaintenanceFormValues>({
     resolver: zodResolver(MaintenanceFormSchema),
     defaultValues: {
@@ -59,13 +59,12 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
   const watchedType = watch("type_of_maintenance");
   const selectedTypes = watchedType?.split(", ").filter(Boolean) || [];
 
-  // --- FIX: Logic to combine checkbox items + "Other" text ---
+  // --- Logic to combine checkbox items + "Other" text ---
   const updateCombinedMaintenanceType = useCallback((
     types: string[],
     otherSelected: boolean,
     otherVal: string
   ) => {
-    // Only include standard options in the filter
     let finalValue = types.filter(t => MAINTENANCE_OPTIONS.includes(t)).join(", ");
 
     if (otherSelected && otherVal.trim() !== "") {
@@ -86,7 +85,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
       reset(initialData);
       const types = initialData.type_of_maintenance?.split(", ").filter(Boolean) || [];
       
-      // Determine if "Other" should be checked based on saved data
       const customValues = types.filter(t => !MAINTENANCE_OPTIONS.includes(t));
       
       if (customValues.length > 0) {
@@ -94,12 +92,10 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         setOtherText(customValues.join(", "));
       }
       
-      // Sync form state immediately
       setValue("type_of_maintenance", initialData.type_of_maintenance);
     }
   }, [initialData, reset, setValue]);
 
-  // --- FIX: Sync state changes to form ---
   useEffect(() => {
     updateCombinedMaintenanceType(selectedTypes, isOtherSelected, otherText);
   }, [isOtherSelected, otherText, updateCombinedMaintenanceType]);
@@ -115,7 +111,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     } else {
       newSelectedTypes = [...selectedTypes, item];
     }
-    // Update the form value based on checkboxes
     updateCombinedMaintenanceType(newSelectedTypes, isOtherSelected, otherText);
   };
 
@@ -126,34 +121,15 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         const payload = { ...data };
 
         if (isCreate) {
-          // 1. Insert Maintenance Record
           const { error: mError } = await supabase.from("maintenance").insert(payload);
           if (mError) throw mError;
-
-          // 2. Set vehicle to Maintenance
-       
           toast.success("Maintenance started; vehicle status updated.");
-        }
-
-        else if (isEdit && initialData?.id) {
-          // 1. Update Maintenance Record
+        } else if (isEdit && initialData?.id) {
           const { error: mError } = await supabase
             .from("maintenance")
             .update(payload)
             .eq("id", initialData.id);
           if (mError) throw mError;
-
-          // 2. Logic to set vehicle back to Available
-          // if (data.status === "Maintained") {
-          //   const { error: vError } = await supabase
-          //     .from("vehicle")
-          //     .update({ status: "Available" })
-          //     .eq("plate_number", data.car);
-          //   if (vError) throw vError;
-          //   toast.success("Maintenance completed; vehicle is now Available.");
-          // } else {
-          //   toast.success("Maintenance record updated.");
-          // }
         }
 
         onClose();
@@ -194,55 +170,95 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
         <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="flex flex-col">
             <label className={labelClass}>Maintenance Date</label>
-            <input {...register("date")} disabled={isView} className={inputClass(errors.date)} type="date" />
-            {errorMsg(errors.date?.message)}
+            <input {...register("date")} disabled={isView} className={inputClass(isSubmitted && errors.date)} type="date" />
+            {isSubmitted && errorMsg(errors.date?.message)}
           </div>
 
           <div className="flex flex-col">
             <label className={labelClass}>Registered Vehicle</label>
-            <select {...register("car")} disabled={isView} className={inputClass(errors.car)}>
+            <select {...register("car")} disabled={isView} className={inputClass(isSubmitted && errors.car)}>
               <option value="">Select Plate Number</option>
               {vehicles.map((v) => <option key={v.id} value={v.plate_number}>{v.plate_number} </option>)}
             </select>
-            {errorMsg(errors.car?.message)}
+            {isSubmitted && errorMsg(errors.car?.message)}
           </div>
 
           <div className="flex flex-col md:col-span-2">
-            <label className={`${labelClass} mb-3`}>Type of Maintenance (Select multiple)</label>
-            <div className={`grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl border ${errors.type_of_maintenance ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}>
+            <label className={`${labelClass} mb-3`}>
+              Type of Maintenance (Select multiple)
+            </label>
+            
+            <div
+              className={`grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl border ${
+                isSubmitted && errors.type_of_maintenance
+                  ? "bg-red-50 border-red-200"
+                  : "bg-gray-50 border-gray-100"
+              }`}
+            >
               {MAINTENANCE_OPTIONS.map((item) => (
                 <label key={item} className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" disabled={isView} checked={selectedTypes.includes(item)} onChange={() => handleCheckboxChange(item)} className="w-4 h-4 rounded border-gray-300 text-blue-600" />
+                  <input
+                    type="checkbox"
+                    disabled={isView}
+                    checked={selectedTypes.includes(item)}
+                    onChange={() => handleCheckboxChange(item)}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
                   <span className="text-sm text-gray-600">{item}</span>
                 </label>
               ))}
+
               <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="checkbox" disabled={isView} checked={isOtherSelected} onChange={(e) => setIsOtherSelected(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-blue-600" />
+                <input
+                  type="checkbox"
+                  disabled={isView}
+                  checked={isOtherSelected}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsOtherSelected(checked);
+                    if (!checked) setOtherText("");
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
                 <span className="text-sm font-bold text-gray-600">Others</span>
               </label>
             </div>
+
             {isOtherSelected && (
-              <input value={otherText} onChange={(e) => setOtherText(e.target.value)} disabled={isView} placeholder="Specify other maintenance..." className={`${inputClass(errors.type_of_maintenance)} mt-3 animate-in fade-in slide-in-from-top-1`} />
+              <input
+                type="text"
+                value={otherText}
+                onChange={(e) => setOtherText(e.target.value)}
+                disabled={isView}
+                placeholder="Specify other maintenance..."
+                className={`${inputClass(
+                  isSubmitted && errors.type_of_maintenance && isOtherSelected && !otherText.trim()
+                    ? errors.type_of_maintenance
+                    : undefined
+                )} mt-3 animate-in fade-in slide-in-from-top-1`}
+              />
             )}
-            {errorMsg(errors.type_of_maintenance?.message)}
+
+            {/* Only display error message after form submission attempt */}
+            {isSubmitted && errorMsg(errors.type_of_maintenance?.message)}
           </div>
 
           <div className="flex flex-col">
             <label className={labelClass}>Maintenance Cost (₱)</label>
-            <input {...register("cost_of_maintenance")} disabled={isView} className={inputClass(errors.cost_of_maintenance)} placeholder="e.g. 5000" />
-            {errorMsg(errors.cost_of_maintenance?.message)}
+            <input {...register("cost_of_maintenance")} disabled={isView} className={inputClass(isSubmitted && errors.cost_of_maintenance)} placeholder="e.g. 5000" />
+            {isSubmitted && errorMsg(errors.cost_of_maintenance?.message)}
           </div>
 
           <div className="flex flex-col">
             <label className={labelClass}>Service Location</label>
-            <input {...register("location")} disabled={isView} className={inputClass(errors.location)} placeholder="Workshop name" />
-            {errorMsg(errors.location?.message)}
+            <input {...register("location")} disabled={isView} className={inputClass(isSubmitted && errors.location)} placeholder="Workshop name" />
+            {isSubmitted && errorMsg(errors.location?.message)}
           </div>
 
           <div className="flex flex-col md:col-span-2">
             <label className={labelClass}>Technician / Mechanic</label>
-            <input {...register("maintained_by")} disabled={isView} className={inputClass(errors.maintained_by)} placeholder="Full Name" />
-            {errorMsg(errors.maintained_by?.message)}
+            <input {...register("maintained_by")} disabled={isView} className={inputClass(isSubmitted && errors.maintained_by)} placeholder="Full Name" />
+            {isSubmitted && errorMsg(errors.maintained_by?.message)}
           </div>
         </div>
 

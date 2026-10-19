@@ -34,16 +34,18 @@ import {
 
 import {
   WaterDashboard, 
-  WaterCalender,
+  WaterCalendar,
   WaterCustomerProfile,
   WaterHistory,
   WaterMaintenance,
-  WaterServices
+  WaterProduct
 }from "../features/waterstation/index";
 import Overview from "../features/Overview";
 import LaundryOnService from "../features/laundry/components/LaundryOnService";
 import LaundryOnCompleted from "../features/laundry/components/LaundryOnCompleted";
 import LaundryOnReservation from "../features/laundry/components/LaundryOnReservation";
+import WaterOnDelivery from "../features/waterstation/components/WaterOnDelivery";
+import POS from "../features/pos/Pos";
 
 const AppRoutes = () => {
   useRestoreSession();
@@ -63,6 +65,7 @@ const AppRoutes = () => {
         <Route element={<PrivateRoutes />}>
         <Route path="/" element={<RootLayout />}>
           <Route path="overview" element={<Overview/>} />
+          <Route path="pos" element={<POS/>} />
           <Route index element={<Navigate to="/overview" replace />} />
             <Route path="car-rental/">
               <Route path="dashboard" element={<Dashboard />}></Route>
@@ -90,10 +93,11 @@ const AppRoutes = () => {
             
             <Route path="water/">
               <Route path="dashboard" element={<WaterDashboard />} />
-              <Route path="calendar" element={<WaterCalender />} />
+              <Route path="calendar" element={<WaterCalendar />} />
               <Route path="customers" element={<WaterCustomerProfile />} />
-              <Route path="history" element={<WaterHistory />} />
-              <Route path="services" element={<WaterServices />} />
+              <Route path="bookings/on-completed" element={<WaterHistory />} />
+               <Route path="bookings/on-reservation" element={<WaterOnDelivery />} />
+              <Route path="products" element={<WaterProduct />} />
               <Route path="maintenance" element={<WaterMaintenance />} />
             </Route>
           </Route>

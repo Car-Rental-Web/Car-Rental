@@ -9,8 +9,8 @@ import {
   ACTIVE_BOOKING_STATUSES,
   syncMachineStatus,
 } from "../../../utils/laundry/syncMachineStatus";
-import type { LaundryMachineData } from "./MachineForm";
 import icons from "../../../constants/icon";
+import type { LaundryMachineData } from "./MachineForm";
 
 const PROOF_BUCKET = "uploaded_proof"; // must be a PUBLIC bucket in the laundry project
 
@@ -90,6 +90,7 @@ interface Props {
   onClose: () => void;
   mode?: "create" | "edit" | "view";
   machine?: LaundryMachineData | null; // create mode: the machine being booked
+  presetServiceId?: string | null; // create mode: start with this service picked
   booking?: LaundryBookingData | null; // edit / view mode: the booking
   onSuccess?: () => void;
 }
@@ -149,6 +150,7 @@ const ServiceBookingForm: React.FC<Props> = ({
   onClose,
   mode = "create",
   machine,
+  presetServiceId,
   booking,
   onSuccess,
 }) => {
@@ -310,7 +312,7 @@ const ServiceBookingForm: React.FC<Props> = ({
       const end = addMinutes(start.date, start.time, 60);
       reset({
         customer_id: "",
-        service_id: "",
+        service_id: presetServiceId ?? "",
         type_of_service: SERVICE_TYPES[0],
         start_date: start.date,
         start_time: start.time,
@@ -366,7 +368,7 @@ const ServiceBookingForm: React.FC<Props> = ({
     fetchServices();
     fetchTaken().then(setTaken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isCreate, booking, machineId, reset]);
+  }, [open, isCreate, booking, machineId, presetServiceId, reset]);
 
   const getPathFromUrl = (url: string) => url.split(`${PROOF_BUCKET}/`)[1];
 

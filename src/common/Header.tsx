@@ -311,11 +311,11 @@ const handleLogout = async () => {
             {userEmail?.charAt(0).toUpperCase()}
           </div>
           {openUserMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl py-2 z-1001">
+            <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl z-1001">
               <button  onClick={(e) => {
                 e.stopPropagation()
                 handleLogout()
-              }} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3 cursor-pointer">
+              }} className="w-full text-left py-3 px-4 text-red-500 rounded-2xl hover:bg-red-50 font-bold text-sm flex items-center gap-3 cursor-pointer">
                 <icons.logOut size={18} /> Logout
               </button>
             </div>

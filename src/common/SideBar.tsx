@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { Children, useEffect, useRef, useState } from "react";
 import useSidebarStore from "../store/useSidebarStore";
 import icons from "../constants/icon";
 
@@ -8,6 +8,11 @@ const SideBarData = [
   {
     label: "Overview",
     path: "/overview", 
+    icon: <icons.dashboard />,
+  },
+    {
+    label: "POS",
+    path: "/pos", 
     icon: <icons.dashboard />,
   },
   {
@@ -80,10 +85,10 @@ const SideBarData = [
       {
         label: "Services",
         path: "/laundry/services",
-        icon: <icons.vehicle />,
+        icon: <icons.booking />,
       },
       {
-        label: "History",
+        label: "Laundry-History",
         path: "/laundry/bookings",
         icon: <icons.history />,
         children: [
@@ -120,14 +125,18 @@ const SideBarData = [
         icon: <icons.person />,
       },
       {
-        label: "Services",
-        path: "/water/services",
-        icon: <icons.vehicle />,
+        label: "Products",
+        path: "/water/products",
+        icon: <icons.booking/>,
       },
       {
-        label: "History",
-        path: "/water/history",
+        label: "Water-History",
+        path: "/water/services",
         icon: <icons.history />,
+        children: [
+          { label: "On Delivery", path: "/water/bookings/on-reservation" },
+          { label: "Completed", path: "/water/bookings/on-completed" },
+        ],
       },
       {
         label: "Maintenance",

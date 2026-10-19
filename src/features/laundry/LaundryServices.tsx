@@ -182,7 +182,7 @@ const LaundryServices = () => {
 
   /* ---------------- UI ---------------- */
   return (
-    <div className="overflow-y-auto h-full bg-gray-50/50 p-4 md:p-8">
+    <div className="overflow-y-auto h-full bg-gray-50/50 p-4 md:p-8 h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
