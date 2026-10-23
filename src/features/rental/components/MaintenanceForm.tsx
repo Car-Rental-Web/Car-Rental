@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
-import icons from "../constants/icon";
-import { MaintenanceFormSchema, type MaintenanceFormData } from "../schema/schema";
+import icons from "../../../constants/icon";
+import { MaintenanceFormSchema, type MaintenanceFormData } from "../../../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../../../utils/supabase";
 import React from "react";
-import { useLoadingStore } from "../store/useLoading";
-import type { MaintenanceFormValues } from "../types/types";
+import { useLoadingStore } from "../../../store/useLoading";
+import type { MaintenanceFormValues } from "../../../types/types";
 
 interface MaintenanceFormProps {
   open: boolean;

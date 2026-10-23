@@ -1,24 +1,65 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { RenterFormDataSchema, type RenterFormValues } from "../schema/schema";
-import { supabase } from "../utils/supabase";
-import type { DataRenterHistoryProps } from "../types/types";
+import { RenterFormDataSchema, type RenterFormValues } from "../../../schema/schema";
+import { supabase } from "../../../utils/supabase";
+import type { DataRenterHistoryProps } from "../../../types/types";
 import { useEffect, useState } from "react";
-import { ModalButton } from "./CustomButtons";
-import icons from "../constants/icon";
-import { toast } from "react-toastify";
+import {
+  Field,
+  FormModal,
+  inputStyles,
+  useFilePreview,
+} from "../../../components/FormParts";
 import RenterAgreement from "./RenterAgreement";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import { RenterAgreementPDF } from "./RenterAgreementPDF";
+import icons from "../../../constants/icon";
+import { toast } from "react-toastify";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import React from "react";
 
 // ADDED FOR DATEPICKER
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { differenceInDays, parseISO, format } from "date-fns";
-import { uploadFile } from "../utils/rental/UploadFile";
-import getPublicUrl from "../utils/rental/getPublicUrl";
+import { uploadFile } from "../../../utils/rental/UploadFile";
+import getPublicUrl from "../../../utils/rental/getPublicUrl";
+
+const errorInputStyles =
+  "w-full border border-red-500 rounded-lg px-4 py-2.5 text-gray-700 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400";
+
+const fileInputStyles =
+  "text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer w-full";
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-gray-100 pb-2 mb-4">
+    {children}
+  </p>
+);
+
+// A newly picked proof photo (the preview is released when it is removed)
+const NewProofThumb = ({
+  file,
+  onRemove,
+}: {
+  file: File;
+  onRemove: () => void;
+}) => {
+  const url = useFilePreview(file);
+
+  return (
+    <div className="relative group w-16 h-16 border-2 border-blue-400 rounded-lg bg-white overflow-hidden">
+      {url && <img src={url} className="w-full h-full object-cover" />}
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+      >
+        <icons.trash size={10} />
+      </button>
+    </div>
+  );
+};
 
 interface RenterFormProps {
   open: boolean;
@@ -464,204 +505,164 @@ const onSubmit = async (renterData: RenterFormValues) => {
     }
   };
 
-  const getInputClass = (fieldName: keyof RenterFormValues) => {
-    const hasError = !!errors[fieldName];
-    return `w-full border rounded-lg py-3 px-4 outline-none transition-all focus:ring-2 bg-white disabled:bg-gray-50 disabled:text-gray-500 ${
-      hasError
-        ? "border-red-500 focus:ring-red-100 focus:border-red-500"
-        : "border-gray-300 focus:ring-blue-100 focus:border-blue-500 text-gray-700"
-    }`;
-  };
-
-  const ErrorMessage = ({ field }: { field: keyof RenterFormValues }) =>
-    errors[field] ? (
-      <span className="flex items-center gap-1 text-red-500 text-[10px] font-bold mt-1 animate-pulse">
-        <icons.info size={10} /> {errors[field]?.message as string}
-      </span>
-    ) : null;
-
-  const labelBase =
-    "text-xs font-bold text-gray-600 uppercase tracking-wide mb-1 ml-1";
-  const sectionTitle =
-    "text-sm font-black text-blue-600 uppercase tracking-widest mb-4 border-b pb-2 flex items-center gap-2";
+  const err = (field: keyof RenterFormValues) =>
+    errors[field]?.message as string | undefined;
+  const cls = (field: keyof RenterFormValues) =>
+    errors[field] ? errorInputStyles : inputStyles;
+  const isEdit = mode === "edit";
 
   return (
-    <div
-      onClick={onClose}
-      className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-999 flex justify-center items-center p-4 transition-opacity duration-300 ${
-        open ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
+    <FormModal
+      open={open}
+      title={
+        isReadOnly
+          ? "Booking Summary"
+          : isEdit
+            ? "Modify Booking"
+            : "New Rental Registration"
+      }
+      onClose={onClose}
+      onSubmit={handleSubmit(onSubmit)}
+      isView={isReadOnly}
+      isSubmitting={loading}
+      cancelLabel={isReadOnly ? "Close Portal" : "Cancel"}
+      submitLabel={isEdit ? "Save Changes" : "Confirm Booking"}
+      submittingLabel="Saving..."
+      maxWidth="max-w-4xl"
     >
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit(onSubmit)}
-        className="relative h-full max-h-[95vh] overflow-y-auto bg-white w-full max-w-4xl p-8 rounded-2xl shadow-2xl scrollbar-hide"
-      >
-        <div className="absolute top-6 right-6">
-          <ModalButton type="button" onclick={onClose} />
-        </div>
-
-        <header className="mb-8">
-          <h2 className="text-2xl font-black text-gray-800 tracking-tight">
-            {mode === "view"
-              ? "Booking Summary"
-              : mode === "edit"
-                ? "Modify Booking"
-                : "New Rental Registration"}
-          </h2>
-          <p className="text-gray-500 text-sm">
+      <div className="space-y-8">
+        {!isReadOnly && (
+          <p className="text-sm text-gray-500 -mt-2">
             Fill in all required fields to proceed.
           </p>
-        </header>
+        )}
 
-        <h3 className={sectionTitle}>1. Identity Information</h3>
-        <div className=" flex flex-col gap-5 mb-10">
-          <div className="md:flex w-full gap-4">
-            <div className="flex flex-col lg:col-span-2 w-full md:w-4/8">
-              <label className={labelBase}>Full Name</label>
+        {/* 1. Identity */}
+        <div>
+          <SectionLabel>1. Identity Information</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Full Name" error={err("full_name")}>
               <input
                 readOnly
                 {...register("full_name")}
                 type="text"
-                className={getInputClass("full_name")}
+                className={`${cls("full_name")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="full_name" />
-            </div>
+            </Field>
 
-            <div className="flex flex-col md:col-span-2 lg:col-span-3 w-full">
-              <label className={labelBase}>Current Address</label>
+            <Field label="Current Address" error={err("address")}>
               <input
                 readOnly
                 {...register("address")}
                 type="text"
-                className={getInputClass("address")}
+                className={`${cls("address")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="address" />
-            </div>
+            </Field>
           </div>
-          <div className="md:flex gap-4">
-            <div className="flex flex-col">
-              <label className={labelBase}>License Number</label>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+            <Field label="License Number" error={err("license_number")}>
               <input
-                // readOnly
                 {...register("license_number")}
                 type="text"
-                className={getInputClass("license_number")}
+                className={cls("license_number")}
               />
-              <ErrorMessage field="license_number" />
-            </div>
-            <div className="flex flex-col">
-              <label className={labelBase}>PhilHealth No.</label>
+            </Field>
+            <Field label="PhilHealth No." error={err("philhealth_number")}>
               <input
                 readOnly
                 {...register("philhealth_number")}
                 type="text"
-                className={getInputClass("philhealth_number")}
+                className={`${cls("philhealth_number")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="philhealth_number" />
-            </div>
-            <div className="flex flex-col">
-              <label className={labelBase}>TIN No.</label>
+            </Field>
+            <Field label="TIN No." error={err("tin_number")}>
               <input
                 readOnly
                 {...register("tin_number")}
                 type="text"
-                className={getInputClass("tin_number")}
+                className={`${cls("tin_number")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="tin_number" />
-            </div>
-            <div className="flex flex-col">
-              <label className={labelBase}>SSS No.</label>
+            </Field>
+            <Field label="SSS No." error={err("sss_number")}>
               <input
                 readOnly
                 {...register("sss_number")}
                 type="text"
-                className={getInputClass("sss_number")}
+                className={`${cls("sss_number")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="sss_number" />
-            </div>
-            <div className="flex flex-col">
-              <label className={labelBase}>Pag-IBIG No.</label>
+            </Field>
+            <Field label="Pag-IBIG No." error={err("pagibig_number")}>
               <input
                 readOnly
                 {...register("pagibig_number")}
                 type="text"
-                className={getInputClass("pagibig_number")}
+                className={`${cls("pagibig_number")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="pagibig_number" />
-            </div>
+            </Field>
           </div>
         </div>
 
-        <h3 className={sectionTitle}>2. Vehicle Selection</h3>
-        <div className="md:flex w-full gap-4 mb-5 bg-gray-50 rounded-xl border border-gray-100 p-6">
-          <div className="flex flex-col relative w-full">
-            <label className={labelBase}>Plate Number</label>
-            <select
-              disabled={isReadOnly}
-              {...register("car_plate_number", { required: true })}
-              className={`${getInputClass("car_plate_number")} appearance-none`}
-              onClick={() => setSelectToggle(!selectToggle)}
-            >
-              <option value="">Select Vehicle</option>
-              {vehicles.map((v) => (
-                <option
-                  // disabled={
-                  //   v.status === "On Service" || v.status === "On Maintenance"
-                  // }
-                  key={v.id}
-                  value={v.plate_number}
-                  className={`${v.status === "On Service" ? "text-red-500" : v.status === "On Reservation" ? "text-blue-500" : v.status === "On Maintenance" ? "text-red-500" : ""}`}
-                >
-                  {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""}{" "}
-                  {v.status === "On Reservation" ? "(Reserved)" : ""}{" "}
-                  {v.status === "On Maintenance" ? "(Maintenance)" : ""}
-                </option>
-              ))}
-            </select>
-            <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
-            <ErrorMessage field="car_plate_number" />
-          </div>
+        {/* 2. Vehicle */}
+        <div>
+          <SectionLabel>2. Vehicle Selection</SectionLabel>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Field label="Plate Number" error={err("car_plate_number")}>
+              <select
+                disabled={isReadOnly}
+                {...register("car_plate_number", { required: true })}
+                className={cls("car_plate_number")}
+                onClick={() => setSelectToggle(!selectToggle)}
+              >
+                <option value="">Select Vehicle</option>
+                {vehicles.map((v) => (
+                  <option
+                    key={v.id}
+                    value={v.plate_number}
+                    className={`${v.status === "On Service" ? "text-red-500" : v.status === "On Reservation" ? "text-blue-500" : v.status === "On Maintenance" ? "text-red-500" : ""}`}
+                  >
+                    {v.plate_number} {v.status === "On Service" ? "(Rented)" : ""}{" "}
+                    {v.status === "On Reservation" ? "(Reserved)" : ""}{" "}
+                    {v.status === "On Maintenance" ? "(Maintenance)" : ""}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Model</label>
-            <input
-              readOnly
-              {...register("car_model")}
-              type="text"
-              className={getInputClass("car_model")}
-            />
-            <ErrorMessage field="car_model" />
-          </div>
+            <Field label="Model" error={err("car_model")}>
+              <input
+                readOnly
+                {...register("car_model")}
+                type="text"
+                className={`${cls("car_model")} read-only:bg-gray-50`}
+              />
+            </Field>
 
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Body Type</label>
-            <input
-              readOnly
-              {...register("car_type")}
-              type="text"
-              className={getInputClass("car_type")}
-            />
-            <ErrorMessage field="car_type" />
-          </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Color</label>
-            <input
-              readOnly
-              {...register("car_color")}
-              type="text"
-              className={getInputClass("car_color")}
-            />
-            <ErrorMessage field="car_color" />
+            <Field label="Body Type" error={err("car_type")}>
+              <input
+                readOnly
+                {...register("car_type")}
+                type="text"
+                className={`${cls("car_type")} read-only:bg-gray-50`}
+              />
+            </Field>
+
+            <Field label="Color" error={err("car_color")}>
+              <input
+                readOnly
+                {...register("car_color")}
+                type="text"
+                className={`${cls("car_color")} read-only:bg-gray-50`}
+              />
+            </Field>
           </div>
         </div>
 
-        <h3 className={sectionTitle}>3. Rental Schedule</h3>
-        <div className="w-full gap-5 mb-10 p-6 bg-gray-50 rounded-xl border border-gray-100">
-          <div className="md:flex w-full gap-4">
-            {/* START DATE DATEPICKER */}
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Start Date</label>
+        {/* 3. Schedule */}
+        <div>
+          <SectionLabel>3. Rental Schedule</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Field label="Start Date" error={err("start_date")}>
               <DatePicker
                 disabled={isReadOnly || !selectedPlate}
                 selected={watchedStartDate ? new Date(watchedStartDate) : null}
@@ -671,14 +672,12 @@ const onSubmit = async (renterData: RenterFormValues) => {
                 excludeDateIntervals={bookedIntervals}
                 minDate={new Date()}
                 placeholderText="Select start date"
-                className={getInputClass("start_date")}
+                wrapperClassName="w-full"
+                className={cls("start_date")}
               />
-              <ErrorMessage field="start_date" />
-            </div>
+            </Field>
 
-            {/* END DATE DATEPICKER */}
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>End Date</label>
+            <Field label="End Date" error={err("end_date")}>
               <DatePicker
                 disabled={isReadOnly || !watchedStartDate}
                 selected={watchedEndDate ? new Date(watchedEndDate) : null}
@@ -686,247 +685,237 @@ const onSubmit = async (renterData: RenterFormValues) => {
                   setValue("end_date", date ? format(date, "yyyy-MM-dd") : "")
                 }
                 excludeDateIntervals={bookedIntervals}
-                minDate={
-                  watchedStartDate ? new Date(watchedStartDate) : new Date()
-                }
+                minDate={watchedStartDate ? new Date(watchedStartDate) : new Date()}
                 placeholderText="Select end date"
-                className={getInputClass("end_date")}
+                wrapperClassName="w-full"
+                className={cls("end_date")}
               />
-              <ErrorMessage field="end_date" />
-            </div>
+            </Field>
 
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Duration (Days)</label>
+            <Field label="Duration (Days)" error={err("duration")}>
               <input
                 placeholder="0"
                 readOnly
                 disabled={isReadOnly}
                 {...register("duration")}
                 type="text"
-                className={getInputClass("duration")}
+                className={`${cls("duration")} read-only:bg-gray-50`}
               />
-              <ErrorMessage field="duration" />
-            </div>
+            </Field>
           </div>
-          <div className="md:flex w-full gap-4">
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Pick Up Time</label>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <Field label="Pick Up Time" error={err("start_time")}>
               <input
                 disabled={isReadOnly}
                 {...register("start_time")}
                 type="time"
-                className={getInputClass("start_time")}
+                className={cls("start_time")}
               />
-              <ErrorMessage field="start_time" />
-            </div>
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Drop Off Time</label>
+            </Field>
+
+            <Field label="Drop Off Time" error={err("end_time")}>
               <input
                 disabled={isReadOnly}
                 {...register("end_time")}
                 type="time"
-                className={getInputClass("end_time")}
+                className={cls("end_time")}
               />
-              <ErrorMessage field="end_time" />
-            </div>
-            <div className="flex flex-col w-full">
-              <label className={labelBase}>Destination/Location</label>
+            </Field>
+
+            <Field label="Destination/Location" error={err("location")}>
               <input
                 disabled={isReadOnly}
                 {...register("location")}
                 type="text"
-                className={getInputClass("location")}
+                className={cls("location")}
                 placeholder="Baguio City"
               />
-              <ErrorMessage field="location" />
-            </div>
+            </Field>
           </div>
-          <div className="flex w-full gap-4 pt-4">
-            <div className="flex flex-col relative w-full">
-              <label className={labelBase}>Rental Type</label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Field label="Rental Type" error={err("type_of_rent")}>
               <select
                 disabled={isReadOnly}
                 {...register("type_of_rent")}
-                className={`${getInputClass("type_of_rent")} appearance-none font-bold`}
+                className={cls("type_of_rent")}
               >
                 <option value="">Choose Type</option>
                 <option value="Self Drive">Self Drive</option>
                 <option value="With Driver">With Driver</option>
               </select>
-              <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
-              <ErrorMessage field="type_of_rent" />
-            </div>
+            </Field>
 
-            <div className="flex flex-col relative w-full">
-              <label className={labelBase}>Booking Status</label>
+            <Field label="Booking Status" error={err("status")}>
               <select
                 disabled={isReadOnly}
                 {...register("status")}
-                className={`${getInputClass("status")} appearance-none font-bold text-blue-600`}
+                className={cls("status")}
               >
                 <option value="">Set Status</option>
                 <option value="On Service">On Service</option>
                 <option value="On Reservation">On Reservation</option>
                 <option value="Completed">Completed</option>
               </select>
-              <icons.down className="absolute right-4 bottom-4 text-gray-400 pointer-events-none" />
-              <ErrorMessage field="status" />
-            </div>
+            </Field>
           </div>
         </div>
-        <h3 className={sectionTitle}>4. Payment</h3>
-        <div className="flex gap-4 p-6 bg-gray-50 rounded-xl border border-gray-100">
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Total Price Rent</label>
-            <input
-              placeholder="ex: 3000"
-              disabled={isReadOnly}
-              {...register("total_price_rent")}
-              type="text"
-              className={getInputClass("total_price_rent")}
-            />
-            <ErrorMessage field="total_price_rent" />
-          </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Downpayment</label>
-            <input
-              placeholder="ex: 1000"
-              disabled={isReadOnly}
-              {...register("downpayment")}
-              type="number"
-              className={getInputClass("downpayment")}
-            />
-            <ErrorMessage field="downpayment" />
-          </div>
-          <div className="flex flex-col w-full">
-            <label className={labelBase}>Remaining Balance</label>
-            <input
-              placeholder="ex: 1000"
-              readOnly
-              disabled={isReadOnly}
-              {...register("remaining_balance")}
-              type="number"
-              className={getInputClass("remaining_balance")}
-            />
-            <ErrorMessage field="remaining_balance" />
+
+        {/* 4. Payment */}
+        <div>
+          <SectionLabel>4. Payment</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Field label="Total Price Rent" error={err("total_price_rent")}>
+              <input
+                placeholder="ex: 3000"
+                disabled={isReadOnly}
+                {...register("total_price_rent")}
+                type="text"
+                className={cls("total_price_rent")}
+              />
+            </Field>
+            <Field label="Downpayment" error={err("downpayment")}>
+              <input
+                placeholder="ex: 1000"
+                disabled={isReadOnly}
+                {...register("downpayment")}
+                type="number"
+                className={cls("downpayment")}
+              />
+            </Field>
+            <Field label="Remaining Balance" error={err("remaining_balance")}>
+              <input
+                placeholder="ex: 1000"
+                readOnly
+                disabled={isReadOnly}
+                {...register("remaining_balance")}
+                type="number"
+                className={`${cls("remaining_balance")} read-only:bg-gray-50`}
+              />
+            </Field>
           </div>
         </div>
-        <h3 className={sectionTitle}>
-          <icons.upload size={16} /> Verification & Documents
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={labelBase}>E-Signature</label>
-              <button
-                type="button"
-                onClick={() => setShowSignature(!showSignature)}
-                className="text-[10px] font-bold text-blue-500 hover:text-blue-700 underline uppercase tracking-tighter"
-              >
-                {showSignature ? "Close Preview" : "View Current Signature"}
-              </button>
-            </div>
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 bg-gray-50 flex flex-col items-center justify-center min-h-40">
+
+        {/* Verification & documents */}
+        <div>
+          <SectionLabel>Verification & Documents</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Signature */}
+            <div className="p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-semibold text-gray-700">
+                  E-Signature
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowSignature(!showSignature)}
+                  className="text-xs font-bold text-blue-600"
+                >
+                  {showSignature ? "Close Preview" : "View Current Signature"}
+                </button>
+              </div>
+
               {showSignature && selectedData?.e_signature ? (
-                <div className="text-center">
-                  <img
-                    src={selectedData.e_signature}
-                    className="h-20 object-contain mix-blend-multiply mb-4"
-                  />
+                <div className="space-y-3 text-center">
+                  <div className="bg-white border border-gray-200 rounded-lg p-2 flex justify-center">
+                    <img
+                      src={selectedData.e_signature}
+                      alt="Signature"
+                      className="h-20 object-contain"
+                    />
+                  </div>
                   {!isReadOnly && (
                     <input
                       {...register("e_signature")}
                       type="file"
-                      className="text-xs"
+                      className={fileInputStyles}
                       accept="image/*"
                     />
                   )}
                 </div>
               ) : (
-                <div className="text-center text-gray-400">
-                  <icons.person size={32} className="mx-auto mb-2 opacity-20" />
-                  <p className="text-xs italic">Signature preview is hidden</p>
-                </div>
+                <p className="text-xs italic text-gray-400 text-center py-6">
+                  Signature preview is hidden
+                </p>
+              )}
+              {err("e_signature") && (
+                <p className="text-red-500 text-[10px] mt-1 font-bold">
+                  {err("e_signature")}
+                </p>
               )}
             </div>
-            <ErrorMessage field="e_signature" />
-          </div>
 
-          <div className="p-4 bg-slate-50 border rounded-xl">
-            <label className="text-sm font-bold text-slate-700 block mb-3">
-              Transaction Proofs
-            </label>
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {existingPaths.uploaded_proof.map((path, index) => (
-                  <div
-                    key={index}
-                    className="relative group w-16 h-16 border rounded bg-white overflow-hidden"
-                  >
-                    <img
-                      src={getPublicUrl("uploaded_proof", path)}
-                      className="w-full h-full object-cover"
-                    />
-                    {!isReadOnly && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExistingPaths((prev) => ({
-                            ...prev,
-                            uploaded_proof: prev.uploaded_proof.filter(
-                              (_, i) => i !== index,
-                            ),
-                          }))
-                        }
-                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
-                      >
-                        <icons.trash size={10} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {watchedProof instanceof FileList &&
-                  Array.from(watchedProof).map((file, index) => (
+            {/* Transaction proofs */}
+            <div className="p-4 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+              <label className="text-sm font-semibold text-gray-700 block mb-3">
+                Transaction Proofs
+              </label>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {existingPaths.uploaded_proof.map((path, index) => (
                     <div
                       key={index}
-                      className="relative group w-16 h-16 border-blue-500 border rounded bg-white overflow-hidden"
+                      className="relative group w-16 h-16 border border-gray-200 rounded-lg bg-white overflow-hidden"
                     >
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={getPublicUrl("uploaded_proof", path)}
                         className="w-full h-full object-cover"
                       />
-                      <button
-                        type="button"
-                        onClick={() => resetField("uploaded_proof")}
-                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
-                      >
-                        <icons.trash size={10} />
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExistingPaths((prev) => ({
+                              ...prev,
+                              uploaded_proof: prev.uploaded_proof.filter(
+                                (_, i) => i !== index,
+                              ),
+                            }))
+                          }
+                          className="absolute top-0 right-0 bg-red-500 text-white p-0.5 opacity-0 group-hover:opacity-100"
+                        >
+                          <icons.trash size={10} />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {watchedProof instanceof FileList &&
+                    Array.from(watchedProof).map((file, index) => (
+                      <NewProofThumb
+                        key={index}
+                        file={file as File}
+                        onRemove={() => resetField("uploaded_proof")}
+                      />
+                    ))}
+                  {existingPaths.uploaded_proof.length === 0 &&
+                    !(watchedProof instanceof FileList && watchedProof.length > 0) && (
+                      <p className="text-xs text-gray-400 italic">No proofs yet</p>
+                    )}
+                </div>
+                {!isReadOnly && (
+                  <input
+                    type="file"
+                    {...register("uploaded_proof")}
+                    multiple
+                    accept="image/*"
+                    className={fileInputStyles}
+                  />
+                )}
               </div>
-              {!isReadOnly && (
-                <input
-                  type="file"
-                  {...register("uploaded_proof")}
-                  multiple
-                  accept="image/*"
-                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:bg-blue-500 file:text-blue-700 hover:file:bg-blue-300"
-                />
-              )}
             </div>
           </div>
         </div>
 
-        {mode === "view" && (
-          <div className="mb-10 bg-slate-800 rounded-2xl p-6 text-white shadow-xl">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {/* Signed agreement (view only) */}
+        {isReadOnly && (
+          <div className="space-y-4 border-t border-gray-100 pt-6">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={() => setShowAgreement(!showAgreement)}
-                className="flex-1 px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all"
               >
-                <icons.openEye size={18} />{" "}
                 {showAgreement ? "Hide Agreement" : "View Signed Document"}
               </button>
 
@@ -940,21 +929,13 @@ const onSubmit = async (renterData: RenterFormValues) => {
                   />
                 }
                 fileName={`Agreement_${watchedName}.pdf`}
-                className="flex-1 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 rounded-xl font-bold text-sm text-slate-900 transition-all flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center transition-all"
               >
-                {({ loading }) =>
-                  loading ? (
-                    "Preparing..."
-                  ) : (
-                    <>
-                      <icons.download size={18} /> Download Official PDF
-                    </>
-                  )
-                }
+                {({ loading }) => (loading ? "Preparing..." : "Download Official PDF")}
               </PDFDownloadLink>
             </div>
             {showAgreement && (
-              <div className="bg-white text-gray-800 p-8 rounded-xl max-h-96 overflow-y-auto shadow-inner">
+              <div className="p-6 border border-gray-200 rounded-xl bg-white shadow-inner max-h-96 overflow-y-auto">
                 <RenterAgreement
                   full_name={watchedName}
                   signatureUrl={watchedSignature}
@@ -963,42 +944,19 @@ const onSubmit = async (renterData: RenterFormValues) => {
             )}
           </div>
         )}
-        <div className="flex flex-col w-full">
-            <label className={labelBase}>Remarks / Notes</label>
-            <input
-            disabled={isReadOnly}
-              placeholder="Notes"
-              {...register("remarks")}
-              type="text"
-              className={getInputClass("remarks")}
-            />
-            <ErrorMessage field="remarks" />
-          </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-6 border-t mt-4">
-          {(mode === "create" || mode === "edit") && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="cursor-pointer flex-1 px-8 py-4 border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all"
-            >
-              Cancel
-            </button>
-          )}
-          <button
-            disabled={loading}
-            type="submit"
-            className={`cursor-pointer flex-2 px-8 py-4 rounded-xl font-black text-white shadow-lg transition-all  ${mode === "view" ? "bg-slate-800 hover:bg-slate-700" : "bg-blue-600 hover:bg-blue-700 hover:shadow-blue-200"}`}
-          >
-            {mode === "view"
-              ? "Close Portal"
-              : mode === "edit"
-                ? "Save Changes"
-                : "Confirm Booking"}
-          </button>
-        </div>
-      </form>
-    </div>
+        {/* Remarks */}
+        <Field label="Remarks / Notes" error={err("remarks")}>
+          <input
+            disabled={isReadOnly}
+            placeholder="Notes"
+            {...register("remarks")}
+            type="text"
+            className={cls("remarks")}
+          />
+        </Field>
+      </div>
+    </FormModal>
   );
 };
 

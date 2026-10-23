@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { supabaseWater as supabase } from "../../../utils/supabase";
+import { Field, FormModal, inputStyles, labelStyles } from "../../../components/FormParts";
 import icons from "../../../constants/icon";
 
 // Matches the columns of the `water_customer` table
@@ -34,11 +35,6 @@ interface Props {
   onSuccess: () => void;
 }
 
-const labelClass =
-  "text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1";
-const inputClass =
-  "w-full p-3 border rounded-xl focus:border-blue-500 outline-none disabled:bg-slate-50";
-
 const WaterCustomerForm: React.FC<Props> = ({
   open,
   onClose,
@@ -53,10 +49,21 @@ const WaterCustomerForm: React.FC<Props> = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CustomerValues>({
     resolver: zodResolver(CustomerSchema),
   });
+
+  // Live initials for the left panel
+  const fullName = watch("full_name") || "";
+  const initials = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
 
   useEffect(() => {
     if (!open) return;
@@ -111,105 +118,90 @@ const WaterCustomerForm: React.FC<Props> = ({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-1000 flex justify-center items-center p-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-      >
-        {/* Header */}
-        <div className="p-6 border-b flex justify-between items-center bg-slate-50">
-          <h2 className="text-xl font-black text-slate-800 uppercase">
-            {isView
-              ? "Customer Details"
-              : isEdit
-                ? "Edit Customer"
-                : "Register New Customer"}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
-          >
-            <icons.closeModal size={24} />
-          </button>
-        </div>
-
-        <div className="p-8 overflow-y-auto grid grid-cols-1 gap-5">
-          <div>
-            <label className={labelClass}>Full Name</label>
-            <input
-              placeholder="ex: Juan Dela Cruz"
-              {...register("full_name")}
-              disabled={isView}
-              className={`${inputClass} ${errors.full_name ? "border-red-500" : ""}`}
-            />
-            {errors.full_name && (
-              <p className="text-red-500 text-[10px] mt-1 font-bold">
-                {errors.full_name.message}
-              </p>
+    <FormModal
+      open={open}
+      title={
+        isView
+          ? "Customer Profile"
+          : isEdit
+            ? "Edit Customer Info"
+            : "Register New Customer"
+      }
+      onClose={onClose}
+      onSubmit={handleSubmit(onSubmit)}
+      isView={isView}
+      isSubmitting={isSubmitting}
+      submitLabel={isEdit ? "Update Customer" : "Register Customer"}
+      submittingLabel={isEdit ? "Updating..." : "Processing..."}
+    >
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Left: no photo for water customers, so show who this is */}
+        <div className="w-full md:w-1/3 flex flex-col items-center">
+          <label className={labelStyles}>Customer</label>
+          <div className="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center gap-3 p-4">
+            {initials ? (
+              <>
+                <div className="w-24 h-24 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-3xl font-black">
+                  {initials}
+                </div>
+                <p className="text-sm font-bold text-gray-700 text-center max-w-full truncate">
+                  {fullName}
+                </p>
+              </>
+            ) : (
+              <div className="text-center">
+                <icons.person className="text-3xl text-gray-400 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Type a name to preview</p>
+              </div>
             )}
           </div>
+        </div>
 
-          <div>
-            <label className={labelClass}>Delivery Address</label>
+        {/* Right: details */}
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
+          <Field label="Full Name" className="sm:col-span-2" error={errors.full_name?.message}>
             <input
-              placeholder="ex: Blk 5 Lot 3, Mabalacat"
+              disabled={isView}
+              {...register("full_name")}
+              type="text"
+              placeholder="e.g. Juan Dela Cruz"
+              className={inputStyles}
+            />
+          </Field>
+
+          <Field label="Delivery Address" className="sm:col-span-2">
+            <input
+              disabled={isView}
               {...register("address")}
-              disabled={isView}
-              className={inputClass}
+              type="text"
+              placeholder="e.g. Blk 5 Lot 3, Mabalacat"
+              className={inputStyles}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className={labelClass}>Phone Number</label>
+          <Field label="Phone Number" className="sm:col-span-2">
             <input
-              placeholder="ex: 09212400232"
-              {...register("phone_number")}
               disabled={isView}
-              className={inputClass}
+              {...register("phone_number")}
+              type="text"
+              placeholder="e.g. 09212400232"
+              className={inputStyles}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className={labelClass}>Notes</label>
+          <Field label="Notes" className="sm:col-span-2">
             <textarea
               rows={3}
-              placeholder="ex: Landmark, preferred delivery time"
-              {...register("notes")}
               disabled={isView}
-              className={inputClass}
+              {...register("notes")}
+              placeholder="e.g. Landmark, preferred delivery time"
+              className={inputStyles}
             />
-          </div>
+          </Field>
         </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t bg-slate-50 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-all"
-          >
-            Close
-          </button>
-          {!isView && (
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-2 py-3 bg-blue-600 text-white font-black rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all disabled:opacity-50"
-            >
-              {isSubmitting
-                ? "Saving..."
-                : isEdit
-                  ? "Update Customer"
-                  : "Register Customer"}
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
+      </div>
+    </FormModal>
   );
 };
 

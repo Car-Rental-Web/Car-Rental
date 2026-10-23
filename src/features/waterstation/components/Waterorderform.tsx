@@ -6,6 +6,7 @@ import { z } from "zod";
 import { toast } from "react-toastify";
 import { supabaseWater as supabase } from "../../../utils/supabase";
 import icons from "../../../constants/icon";
+import { readCache, writeCache } from "../../../utils/lookupCache";
 
 export const ORDER_STATUSES = ["Scheduled", "On Delivery", "Completed", "Cancelled"];
 export const PAYMENT_STATUSES = ["Unpaid", "Paid"];
@@ -111,8 +112,13 @@ const WaterOrderForm: React.FC<Props> = ({
   const isEdit = mode === "edit";
   const isView = mode === "view";
 
-  const [customers, setCustomers] = useState<CustomerOption[]>([]);
-  const [products, setProducts] = useState<ProductOption[]>([]);
+  // Start from the cache so the dropdowns are filled the moment the form opens
+  const [customers, setCustomers] = useState<CustomerOption[]>(
+    () => readCache<CustomerOption[]>("water:customers") ?? [],
+  );
+  const [products, setProducts] = useState<ProductOption[]>(
+    () => readCache<ProductOption[]>("water:products") ?? [],
+  );
   const [standing, setStanding] = useState<{ jugs: number; unpaid: number } | null>(
     null,
   );
@@ -164,6 +170,12 @@ const WaterOrderForm: React.FC<Props> = ({
         payment_status: "Unpaid",
       });
 
+      // Show what we already know straight away; refresh in the background
+      const cachedCustomers = readCache<CustomerOption[]>("water:customers");
+      const cachedProducts = readCache<ProductOption[]>("water:products");
+      if (cachedCustomers) setCustomers(cachedCustomers);
+      if (cachedProducts) setProducts(cachedProducts);
+
       const load = async () => {
         const [cust, prod] = await Promise.all([
           supabase
@@ -186,6 +198,8 @@ const WaterOrderForm: React.FC<Props> = ({
         }
         setCustomers(cust.data || []);
         setProducts(prod.data || []);
+        writeCache("water:customers", cust.data || []);
+        writeCache("water:products", prod.data || []);
       };
       load();
     } else if (order) {
@@ -330,7 +344,11 @@ const WaterOrderForm: React.FC<Props> = ({
             <label className={labelStyles}>Customer</label>
             {isCreate ? (
               <>
-                <select {...register("customer_id")} className={inputStyles}>
+                <select
+                  {...register("customer_id")}
+                  value={customerId ?? ""}
+                  className={inputStyles}
+                >
                   <option value="">
                     {customers.length === 0 ? "No customers found" : "Select a customer"}
                   </option>
@@ -390,7 +408,11 @@ const WaterOrderForm: React.FC<Props> = ({
             <label className={labelStyles}>Product</label>
             {isCreate ? (
               <>
-                <select {...register("product_id")} className={inputStyles}>
+                <select
+                  {...register("product_id")}
+                  value={productId ?? ""}
+                  className={inputStyles}
+                >
                   <option value="">
                     {products.length === 0 ? "No products yet" : "Select a product"}
                   </option>

@@ -6,7 +6,7 @@ import type {
 import { useEffect, useState } from "react";
 import { useDebouncedValue } from "../../utils/useDebounce";
 import { filterData } from "../../utils/FilterData";
-import { DeleteModal, MaintenanceForm, UpdateStatus } from "../../modals";
+import { DeleteModal, UpdateStatus } from "../../modals";
 import { CustomButtons } from "../../components/CustomButtons";
 import { supabase } from "../../utils/supabase";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ import React from "react";
 import { useLoadingStore } from "../../store/useLoading";
 import Card from "../../components/Card";
 import TableData from "../../components/TableData";
+import MaintenanceForm from "./components/MaintenanceForm";
 
 const Maintenance = () => {
   const [records, setRecords] = useState<DataMaintenanceProps[]>([]);

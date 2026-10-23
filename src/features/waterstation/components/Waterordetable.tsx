@@ -177,7 +177,7 @@ const WaterOrderTable = ({
         </div>
 
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-          <button
+          {/* <button
             onClick={() => {
               setFormMode("create");
               setSelected(null);
@@ -186,7 +186,7 @@ const WaterOrderTable = ({
             className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-md cursor-pointer"
           >
             <icons.add size={16} /> New Order
-          </button>
+          </button> */}
 
           {showStatusFilter && (
             <div className="relative min-w-[180px]">

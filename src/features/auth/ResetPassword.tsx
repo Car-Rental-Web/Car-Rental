@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../../utils/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import SeePassword from "../components/SeePassword";
-import { useAuthStore } from "../store/useAuthStore";
+import SeePassword from "../../components/SeePassword";
+import { useAuthStore } from "../../store/useAuthStore";
 
 
 const ResetPassword = () => {

@@ -6,7 +6,7 @@ import React from "react";
 import Card from "../../components/Card";
 
 const BookingVisual = React.lazy(() => import("../../components/BookingVisual"));
-const RenterVisual = React.lazy(() => import("../../components/RenterVisual"));
+const RenterVisual = React.lazy(() => import("./components/RenterVisual"));
 
 const Dashboard = () => {
   // --- All-time Stats ---

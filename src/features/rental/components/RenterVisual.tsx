@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import ReactChartLine from "./ReactChartLine";
-import { supabase } from "../utils/supabase";
+import ReactChartLine from "../../../components/ReactChartLine";
+import { supabase } from "../../../utils/supabase";
 import React from "react";
 
 const years = [2025, 2026, 2027, 2028, 2029, 2030];

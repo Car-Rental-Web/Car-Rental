@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
 import { supabase } from "../utils/supabase";
-import { signInToAll, signOutAll } from "../auth/authall";
+import { clearLookupCache } from "../utils/lookupCache";
+import { signInToAll, signOutAll } from "../features/auth/authall";
 
 interface SupabaseUser {
   id: string;
@@ -70,6 +71,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       });
       // Also clears the saved laundry and water sessions
       localStorage.clear();
+      clearLookupCache();
     }
     return { error: null };
   },
@@ -81,7 +83,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/overview`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 

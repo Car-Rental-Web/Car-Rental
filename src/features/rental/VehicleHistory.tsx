@@ -9,7 +9,7 @@ import { supabase } from "../../utils/supabase";
 import icons from "../../constants/icon";
 import { CustomButtons } from "../../components/CustomButtons";
 import { useModalStore } from "../../store/useModalStore";
-import VehicleHistoryForm from "../../modals/VehicleHistoryForm";
+import VehicleHistoryForm from "./components/VehicleHistoryForm";
 import { toast } from "react-toastify";
 import { DeleteModal } from "../../modals";
 import { VehicleRenterForm } from "../../components";

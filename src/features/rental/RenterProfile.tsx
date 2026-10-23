@@ -10,8 +10,8 @@ import Card from "../../components/Card";
 import icons from "../../constants/icon";
 import { SearchBar } from "../../components";
 import { formatDate } from "../../utils/timeFormatter";
-import ProfileForm from "../../components/ProfileForm";
-import RenterForm from "../../components/RenterForm";
+import ProfileForm from "./components/ProfileForm";
+import RenterForm from "./components/RenterForm";
 import { DeleteModal } from "../../modals";
 
 // Local inline fallback image — no network request, so it can never itself fail.

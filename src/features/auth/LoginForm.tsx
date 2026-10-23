@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import SeePassword from "../components/SeePassword";
+import SeePassword from "../../components/SeePassword";
 import { useForm } from "react-hook-form";
-import { LoginFormSchema, type LoginFormData } from "../schema/schema";
+import { LoginFormSchema, type LoginFormData } from "../../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuthStore } from "../store/useAuthStore.ts";
+import { useAuthStore } from "../../store/useAuthStore.ts";
 import { toast } from "react-toastify";
 
 const LoginForm = () => {

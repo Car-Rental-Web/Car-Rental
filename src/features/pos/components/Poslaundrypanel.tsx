@@ -1,66 +1,73 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { supabaseLaundry as supabase } from "../../../utils/supabase";
+import icons from "../../../constants/icon";
 import {
+  AddBadge,
   EmptyState,
-  RecentList,
+  FilterChips,
+  PosLayout,
+  ReceiptPanel,
   SectionTitle,
   StatusPill,
+  Tile,
+  TileGrid,
   peso,
   type Accent,
   type RecentItem,
 } from "./Posshared";
-import type { LaundryServiceData } from "../../laundry/components/ServiceForm";
 import type { LaundryMachineData } from "../../laundry/components/MachineForm";
-import { supabaseLaundry as supabase } from "../../../utils/supabase";
-import icons from "../../../constants/icon";
+import type { LaundryServiceData } from "../../laundry/components/ServiceForm";
 import ServiceBookingForm from "../../laundry/components/ServiceBookingForm";
 import CustomerForm from "../../laundry/components/CustomerForm";
+import { prefetchLaundryLookups } from "../../../utils/lookupCache";
+
+const MACHINE_STATUSES = ["Available", "On Reservation", "On Service", "On Maintenance"];
 
 interface Props {
   search: string;
   accent: Accent;
   onBooked: () => void;
+  today: { count: number; sales: number };
+  allSales: number;
 }
 
-const PosLaundryPanel = ({ search, accent, onBooked }: Props) => {
-  const [services, setServices] = useState<LaundryServiceData[]>([]);
+const PosLaundryPanel = ({ search, accent, onBooked, today, allSales }: Props) => {
   const [machines, setMachines] = useState<LaundryMachineData[]>([]);
+  const [services, setServices] = useState<LaundryServiceData[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState("All");
 
-  // Add flow: pick a service, then a machine, then the booking form
-  const [pickService, setPickService] = useState<LaundryServiceData | null>(null);
-  const [bookingService, setBookingService] = useState<LaundryServiceData | null>(null);
   const [bookingMachine, setBookingMachine] = useState<LaundryMachineData | null>(null);
   const [showBooking, setShowBooking] = useState(false);
-
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const fetchAll = useCallback(async () => {
-    const [svc, mach, rec] = await Promise.all([
-      supabase
-        .from("laundry_service")
-        .select("id, created_at, service_name, service_image, price")
-        .order("service_name", { ascending: true }),
+    const [mach, svc, rec] = await Promise.all([
       supabase
         .from("laundry_machines")
         .select("*")
         .order("machine_name", { ascending: true }),
       supabase
+        .from("laundry_service")
+        .select("id, created_at, service_name, service_image, price")
+        .order("service_name", { ascending: true }),
+      supabase
         .from("laundry_booking")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(8),
+        .limit(12),
     ]);
 
-    const failed = [svc, mach, rec].find((r) => r.error);
+    const failed = [mach, svc, rec].find((r) => r.error);
     if (failed?.error) {
       console.error("POS laundry error:", failed.error);
       toast.error(`Error loading laundry: ${failed.error.message}`);
       return;
     }
-    setServices(svc.data || []);
     setMachines(mach.data || []);
+    setServices(svc.data || []);
     setRecent(rec.data || []);
   }, []);
 
@@ -68,12 +75,24 @@ const PosLaundryPanel = ({ search, accent, onBooked }: Props) => {
     fetchAll();
   }, [fetchAll]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return services.filter((s) => (s.service_name || "").toLowerCase().includes(q));
-  }, [services, search]);
+  const q = search.toLowerCase();
 
-  const availableMachines = machines.filter((m) => m.status === "Available").length;
+  const filteredMachines = useMemo(
+    () =>
+      machines.filter(
+        (m) =>
+          (m.machine_name || "").toLowerCase().includes(q) &&
+          (statusFilter === "All" || (m.status || "Available") === statusFilter),
+      ),
+    [machines, q, statusFilter],
+  );
+
+  const filteredServices = useMemo(
+    () => services.filter((s) => (s.service_name || "").toLowerCase().includes(q)),
+    [services, q],
+  );
+
+  const availableCount = machines.filter((m) => (m.status || "Available") === "Available").length;
 
   const recentItems: RecentItem[] = recent.map((b) => ({
     id: b.id,
@@ -84,146 +103,109 @@ const PosLaundryPanel = ({ search, accent, onBooked }: Props) => {
     when: b.created_at,
   }));
 
-  const chooseMachine = (machine: LaundryMachineData) => {
-    setBookingService(pickService);
-    setBookingMachine(machine);
-    setPickService(null);
-    setShowBooking(true);
-  };
-
   return (
-    <div className="flex flex-col gap-8">
-      {/* Catalog */}
-      <section>
-        <SectionTitle
-          title="Services"
-          subtitle={`${availableMachines} of ${machines.length} machines available right now`}
-          right={
-            <button
-              onClick={() => setShowCustomerForm(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer ${accent.button}`}
-            >
-              <icons.add size={14} /> New Customer
-            </button>
-          }
-        />
-
-        {filtered.length === 0 ? (
-          <EmptyState
-            text={services.length === 0 ? "No services yet" : "No services match your search"}
-          />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {filtered.map((service) => (
-              <div
-                key={service.id}
-                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-              >
-                <div className="h-36 bg-slate-50 flex items-center justify-center">
-                  {service.service_image ? (
-                    <img
-                      src={service.service_image}
-                      alt={service.service_name || "service"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <icons.laundry className="text-5xl text-slate-300" />
-                  )}
-                </div>
-
-                <div className="p-4">
-                  <h3 className="font-bold text-slate-900 leading-tight truncate">
-                    {service.service_name}
-                  </h3>
-                  <p className={`text-xl font-black mt-1 ${accent.text}`}>
-                    {peso(Number(service.price) || 0)}
-                  </p>
-
-                  <button
-                    onClick={() => setPickService(service)}
-                    className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${accent.button}`}
-                  >
-                    <icons.add size={14} /> Add
-                  </button>
-                </div>
+    <>
+      <PosLayout
+        left={
+          <div className="flex flex-col gap-8">
+            {/* Machines: tap one to book it */}
+            <section>
+              <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+                <SectionTitle
+                  title="Machines"
+                  subtitle={`${availableCount} of ${machines.length} free right now · tap a machine to book it`}
+                />
+                <FilterChips
+                  options={MACHINE_STATUSES}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  accent={accent}
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </section>
 
-      {/* Recent */}
-      <section>
-        <SectionTitle title="Recent Bookings" subtitle="Latest laundry bookings" />
-        <RecentList items={recentItems} accent={accent} emptyText="No bookings yet" />
-      </section>
-
-      {/* Machine picker */}
-      {pickService && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-1300 flex justify-center items-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800">Choose a machine</h3>
-                <p className="text-xs text-slate-400">
-                  For {pickService.service_name} · {peso(Number(pickService.price) || 0)}
-                </p>
-              </div>
-              <button
-                onClick={() => setPickService(null)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <icons.closeModal size={22} />
-              </button>
-            </div>
-
-            <div className="p-4 max-h-[60vh] overflow-y-auto flex flex-col gap-2">
-              {machines.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-6">
-                  Add a machine first on the Machines & Services page.
-                </p>
+              {filteredMachines.length === 0 ? (
+                <EmptyState
+                  text={machines.length === 0 ? "No machines yet" : "No machines match"}
+                />
               ) : (
-                machines.map((machine) => {
-                  const down = machine.status === "On Maintenance";
-                  return (
-                    <button
-                      key={machine.id}
-                      disabled={down}
-                      onClick={() => chooseMachine(machine)}
-                      className={`flex items-center justify-between gap-3 p-4 rounded-xl border text-left transition-all ${
-                        down
-                          ? "bg-slate-50 border-slate-100 opacity-60 cursor-not-allowed"
-                          : "bg-white border-slate-200 hover:border-slate-400 hover:shadow-md cursor-pointer"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className={`p-2.5 rounded-lg ${accent.soft}`}>
-                          <icons.laundry className="text-lg" />
-                        </span>
-                        <span className="font-bold text-slate-800 text-sm">
-                          {machine.machine_name}
-                        </span>
-                      </span>
-                      <StatusPill status={machine.status || "Available"} />
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                <TileGrid>
+                  {filteredMachines.map((machine) => {
+                    const down = machine.status === "On Maintenance";
 
-      {/* Booking form: machine and service are already picked */}
+                    return (
+                      <Tile
+                        key={machine.id}
+                        disabled={down}
+                        onClick={() => {
+                          setBookingMachine(machine);
+                          setShowBooking(true);
+                        }}
+                      >
+                        <div className="h-28 bg-slate-50 flex items-center justify-center">
+                          <icons.laundry className={`text-5xl ${accent.text} opacity-60`} />
+                        </div>
+                        <div className="p-3.5">
+                          <p className="font-black text-slate-900 leading-tight truncate">
+                            {machine.machine_name}
+                          </p>
+                          <div className="mt-2">
+                            <StatusPill status={machine.status || "Available"} />
+                          </div>
+                        </div>
+                        {!down && <AddBadge accent={accent} />}
+                      </Tile>
+                    );
+                  })}
+                </TileGrid>
+              )}
+            </section>
+
+            {/* Price list for reference */}
+            <section>
+              <SectionTitle
+                title="Price list"
+                subtitle="Pick the service inside the booking"
+              />
+              {filteredServices.length === 0 ? (
+                <p className="text-sm text-slate-400">No services found.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {filteredServices.map((s) => (
+                    <span
+                      key={s.id}
+                      className="flex items-center gap-2 bg-white border-2 border-slate-100 rounded-xl px-4 py-2 text-xs font-bold text-slate-700"
+                    >
+                      {s.service_name}
+                      <span className={accent.text}>{peso(Number(s.price) || 0)}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        }
+        right={
+          <ReceiptPanel
+            title="Laundry"
+            accent={accent}
+            items={recentItems}
+            emptyText="No bookings yet"
+            businessToday={today}
+            allSales={allSales}
+            actionLabel="New Customer"
+            onAction={() => setShowCustomerForm(true)}
+          />
+        }
+      />
+
+      {/* Booking form: the machine is already picked, choose the service inside */}
       <ServiceBookingForm
         open={showBooking}
         mode="create"
         machine={bookingMachine}
-        presetServiceId={bookingService?.id ?? null}
         onClose={() => {
           setShowBooking(false);
           setBookingMachine(null);
-          setBookingService(null);
         }}
         onSuccess={() => {
           fetchAll();
@@ -236,9 +218,12 @@ const PosLaundryPanel = ({ search, accent, onBooked }: Props) => {
         mode="create"
         selectedData={null}
         onClose={() => setShowCustomerForm(false)}
-        onSuccess={() => toast.success("Customer registered")}
+        onSuccess={() => {
+          toast.success("Customer registered");
+          prefetchLaundryLookups();
+        }}
       />
-    </div>
+    </>
   );
 };
 

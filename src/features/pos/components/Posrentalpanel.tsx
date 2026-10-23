@@ -3,36 +3,32 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import type { DataVehicleTypes } from "../../../types/types";
 import { supabase } from "../../../utils/supabase";
-import icons from "../../../constants/icon";
-import { VehicleRenterForm } from "../../../components";
-import ProfileForm from "../../../components/ProfileForm";
 import {
+  AddBadge,
   EmptyState,
   FilterChips,
-  RecentList,
+  PosLayout,
+  ReceiptPanel,
   SectionTitle,
   StatusPill,
+  Tile,
+  TileGrid,
   type Accent,
   type RecentItem,
 } from "./Posshared";
-
-// Same rule as the vehicle page: registration is valid for one year
-const registrationOk = (lastDate: string | null) => {
-  if (!lastDate) return { valid: false, text: "Unregistered" };
-  const expiry = new Date(lastDate);
-  expiry.setFullYear(expiry.getFullYear() + 1);
-  return new Date() > expiry
-    ? { valid: false, text: "Expired" }
-    : { valid: true, text: "Registered" };
-};
+import icons from "../../../constants/icon";
+import VehicleRenterForm from "../../rental/components/VehicleRenterForm";
+import ProfileForm from "../../rental/components/ProfileForm";
 
 interface Props {
   search: string;
   accent: Accent;
   onBooked: () => void;
+  today: { count: number; sales: number };
+  allSales: number;
 }
 
-const PosRentalPanel = ({ search, accent, onBooked }: Props) => {
+const PosRentalPanel = ({ search, accent, onBooked, today, allSales }: Props) => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [typeFilter, setTypeFilter] = useState("All");
@@ -54,7 +50,7 @@ const PosRentalPanel = ({ search, accent, onBooked }: Props) => {
         .select("*")
         .is("deleted_at", null)
         .order("created_at", { ascending: false })
-        .limit(8),
+        .limit(12),
     ]);
 
     if (veh.error || rec.error) {
@@ -103,115 +99,101 @@ const PosRentalPanel = ({ search, accent, onBooked }: Props) => {
   }));
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Catalog */}
-      <section>
-        <SectionTitle
-          title="Vehicles"
-          subtitle={`${availableCount} of ${vehicles.length} available to rent`}
-          right={
-            <button
-              onClick={() => setShowCustomerForm(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer ${accent.button}`}
-            >
-              <icons.add size={14} /> New Customer
-            </button>
-          }
-        />
-
-        <div className="flex flex-wrap items-center gap-3 mb-5">
-          <FilterChips
-            options={typeOptions}
-            value={typeFilter}
-            onChange={setTypeFilter}
-            accent={accent}
-          />
-          <button
-            onClick={() => setAvailableOnly((v) => !v)}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${
-              availableOnly
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
-            }`}
-          >
-            Available only
-          </button>
-        </div>
-
-        {filtered.length === 0 ? (
-          <EmptyState
-            text={vehicles.length === 0 ? "No vehicles registered yet" : "No vehicles match your search"}
-          />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {filtered.map((vehicle) => {
-              const reg = registrationOk(vehicle.last_registration_date);
-              const blocked = vehicle.status === "On Maintenance" || !reg.valid;
-
-              return (
-                <div
-                  key={vehicle.id}
-                  className="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+    <>
+      <PosLayout
+        left={
+          <section>
+            <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+              <SectionTitle
+                title="Vehicles"
+                subtitle={`${availableCount} of ${vehicles.length} available · tap a vehicle to rent it`}
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <FilterChips
+                  options={typeOptions}
+                  value={typeFilter}
+                  onChange={setTypeFilter}
+                  accent={accent}
+                />
+                <button
+                  onClick={() => setAvailableOnly((v) => !v)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${
+                    availableOnly
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                  }`}
                 >
-                  <div className="relative h-36 bg-slate-50 flex items-center justify-center">
-                    {vehicle.car_image ? (
-                      <img
-                        src={vehicle.car_image}
-                        alt={`${vehicle.brand} ${vehicle.model}`}
-                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <icons.car className="text-5xl text-slate-300" />
-                    )}
-                    <div className="absolute top-3 left-3">
-                      <StatusPill status={reg.valid ? vehicle.status : "Expired"} />
-                    </div>
-                  </div>
+                  Available only
+                </button>
+              </div>
+            </div>
 
-                  <div className="p-4">
-                    <h3 className="font-bold text-slate-900 leading-tight truncate">
-                      {vehicle.brand} {vehicle.model}
-                    </h3>
-                    <p className="text-slate-400 text-[11px] mt-1 uppercase tracking-wider">
-                      {vehicle.type} • {vehicle.color}
-                    </p>
-                    <span className="inline-block mt-2 px-2 py-1 bg-slate-900 text-white text-[10px] font-mono font-bold rounded">
-                      {vehicle.plate_number}
-                    </span>
-                    {!reg.valid && (
-                      <p className="text-[10px] font-bold text-red-600 mt-2">
-                        Registration {reg.text.toLowerCase()}
-                      </p>
-                    )}
+            {filtered.length === 0 ? (
+              <EmptyState
+                text={vehicles.length === 0 ? "No vehicles registered yet" : "No vehicles match"}
+              />
+            ) : (
+              <TileGrid>
+                {filtered.map((vehicle) => {
+                  const blocked = vehicle.status === "On Maintenance";
 
-                    <button
+                  return (
+                    <Tile
+                      key={vehicle.id}
                       disabled={blocked}
                       onClick={() => {
                         setSelectedVehicle(vehicle);
                         setShowBooking(true);
                       }}
-                      className={`mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                        blocked
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                          : `${accent.button} cursor-pointer`
-                      }`}
                     >
-                      <icons.add size={14} />
-                      {blocked ? "Unavailable" : "Add"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                      <div className="relative h-28 bg-slate-50 flex items-center justify-center">
+                        {vehicle.car_image ? (
+                          <img
+                            src={vehicle.car_image}
+                            alt={`${vehicle.brand} ${vehicle.model}`}
+                            className="w-full h-full object-contain p-2"
+                          />
+                        ) : (
+                          <icons.car className="text-5xl text-slate-300" />
+                        )}
+                        <div className="absolute bottom-2 left-2">
+                          <StatusPill status={vehicle.status} />
+                        </div>
+                      </div>
 
-      {/* Recent */}
-      <section>
-        <SectionTitle title="Recent Bookings" subtitle="Latest car rentals" />
-        <RecentList items={recentItems} accent={accent} emptyText="No bookings yet" />
-      </section>
+                      <div className="p-3.5">
+                        <p className="font-black text-slate-900 text-sm leading-tight truncate">
+                          {vehicle.brand} {vehicle.model}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wider truncate">
+                          {vehicle.type} • {vehicle.color}
+                        </p>
+                        <span className="inline-block mt-2 px-2 py-1 bg-slate-900 text-white text-[10px] font-mono font-bold rounded">
+                          {vehicle.plate_number}
+                        </span>
+                      </div>
+
+                      {!blocked && <AddBadge accent={accent} />}
+                    </Tile>
+                  );
+                })}
+              </TileGrid>
+            )}
+          </section>
+        }
+        right={
+          <ReceiptPanel
+            title="Car Rental"
+            accent={accent}
+            items={recentItems}
+            emptyText="No bookings yet"
+            businessToday={today}
+            allSales={allSales}
+            actionLabel="New Customer"
+            onAction={() => setShowCustomerForm(true)}
+          />
+        }
+      />
 
       {/* Modals */}
       {showBooking && (
@@ -234,7 +216,7 @@ const PosRentalPanel = ({ search, accent, onBooked }: Props) => {
         onClose={() => setShowCustomerForm(false)}
         onSuccess={() => toast.success("Customer registered")}
       />
-    </div>
+    </>
   );
 };
 

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { supabase } from "../utils/supabase";
-import type { DataRenterHistoryProps } from "../types/types";
-import { filterData } from "../utils/FilterData";
-import { useDebouncedValue } from "../utils/useDebounce";
-import { SearchBar } from "../components";
-import icons from "../constants/icon";
-import RenterForm from "../components/RenterForm";
-import { DeleteModal } from "../modals";
+import { supabase } from "../../../utils/supabase";
+import type { DataRenterHistoryProps } from "../../../types/types";
+import { filterData } from "../../../utils/FilterData";
+import { useDebouncedValue } from "../../../utils/useDebounce";
+import { SearchBar } from "../../../components";
+import icons from "../../../constants/icon";
+import RenterForm from "./RenterForm";
+import { DeleteModal } from "../../../modals";
 import { toast } from "react-toastify";
-import { formatDate, formatDateandDay, to12Hour } from "../utils/timeFormatter";
+import { formatDate, formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
 
 const Completed = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -25,7 +25,7 @@ const Completed = () => {
     DataRenterHistoryProps[]
   >([]);
 
-  const [selectedStatus, setSelectedStatus] = useState("All");
+//   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
@@ -159,27 +159,27 @@ const Completed = () => {
     };
   }, []);
 
-  useEffect(() => {
-    let filtered = [...filterRenterData];
+//   useEffect(() => {
+//     let filtered = [...filterRenterData];
 
-    if (selectedStatus !== "All") {
-      filtered = filtered.filter((item) => item.status === selectedStatus);
-    }
+//     if (selectedStatus !== "All") {
+//       filtered = filtered.filter((item) => item.status === selectedStatus);
+//     }
 
-    if (debounceSearchTerm) {
-      filtered = filterData(debounceSearchTerm, filtered, [
-        "full_name",
-        "address",
-        "license_number",
-        "car_plate_number",
-        "start_date",
-        "end_date",
-      ]);
-    }
+//     if (debounceSearchTerm) {
+//       filtered = filterData(debounceSearchTerm, filtered, [
+//         "full_name",
+//         "address",
+//         "license_number",
+//         "car_plate_number",
+//         "start_date",
+//         "end_date",
+//       ]);
+//     }
 
-    setRenterData(filtered);
-    setCurrentPage(1);
-  }, [debounceSearchTerm, filterRenterData, selectedStatus]);
+//     setRenterData(filtered);
+//     setCurrentPage(1);
+//   }, [debounceSearchTerm, filterRenterData, selectedStatus]);
 
   return (
     <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
@@ -192,7 +192,7 @@ const Completed = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-          <div className="relative min-w-[180px]">
+{/*           <div className="relative min-w-[180px]">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -206,7 +206,7 @@ const Completed = () => {
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
               <icons.filter size={14} />
             </div>
-          </div>
+          </div> */}
 
           <div className="w-full md:w-80">
             <SearchBar

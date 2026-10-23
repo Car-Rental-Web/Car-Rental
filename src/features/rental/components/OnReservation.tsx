@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { supabase } from "../utils/supabase";
-import type { DataRenterHistoryProps } from "../types/types";
-import { filterData } from "../utils/FilterData";
-import { useDebouncedValue } from "../utils/useDebounce";
-import { SearchBar } from "../components";
-import icons from "../constants/icon";
-import RenterForm from "../components/RenterForm";
-import { DeleteModal } from "../modals";
+import { supabase } from "../../../utils/supabase";
+import type { DataRenterHistoryProps } from "../../../types/types";
+import { filterData } from "../../../utils/FilterData";
+import { useDebouncedValue } from "../../../utils/useDebounce";
+import { SearchBar } from "../../../components";
+import icons from "../../../constants/icon";
+import RenterForm from "./RenterForm";
+import { DeleteModal } from "../../../modals";
 import { toast } from "react-toastify";
-import { formatDate, formatDateandDay, to12Hour } from "../utils/timeFormatter";
+import { formatDate, formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
 
-const OnService = () => {
+const OnReservation = () => {
   const [openForm, setOpenForm] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
@@ -50,7 +50,7 @@ const OnService = () => {
     // 1. Fetch the booking to get details needed for cleanup
     const { data: booking, error: fetchError } = await supabase
       .from("renter_booking")
-      .select("uploaded_proof, car_plate_number, start_date")
+      .select("uploaded_proof, car_plate_number")
       .eq("id", id)
       .maybeSingle();
 
@@ -80,37 +80,31 @@ const OnService = () => {
 
     if (deleteError) {
       toast.error("Failed to Move to Trash");
-      return;
+      return; // Stop execution if this fails
     }
 
     toast.success(`Moved to Trash Successfully: ${booking.car_plate_number}`);
 
-    // 4. Update Vehicle Status intelligently
-    // Check if there are OTHER active bookings for this vehicle
+    // 4. --- FIX: Check for OTHER active bookings for this vehicle ---
     const { data: otherActiveBookings, error: checkError } = await supabase
       .from("renter_booking")
-      .select("status")
+      .select("id")
       .eq("car_plate_number", booking.car_plate_number)
       .is("deleted_at", null)
       .neq("id", id) // Exclude the one we just deleted
-      .in("status", ["On Service", "On Reservation"]);
-
+      .in("status", ["On Service", "On Reservation"]); // Active statuses
 
     if (checkError) {
       console.error("Error checking other bookings", checkError);
     }
 
-    // Determine new status: If no other active bookings, make it Available
-    const newVehicleStatus =
-      otherActiveBookings && otherActiveBookings.length > 0
-        ? "On Service" // Or keep as is, but this ensures it stays occupied
-        : "Available";
-
-    // Update vehicle status
-    await supabase
-      .from("vehicle")
-      .update({ status: newVehicleStatus })
-      .eq("plate_number", booking.car_plate_number);
+    // Only set to Available if NO other active bookings exist
+    if (otherActiveBookings && otherActiveBookings.length === 0) {
+      await supabase
+        .from("vehicle")
+        .update({ status: "Available" })
+        .eq("plate_number", booking.car_plate_number);
+    }
 
     // 5. Update Local State to reflect change without refreshing
     setOpenDelete(false);
@@ -122,17 +116,19 @@ const OnService = () => {
   }
 };
 
- // Fetch data and setup subscription
+  // Fetch data and setup subscription
   useEffect(() => {
-  const statusFilter = "On Service";
-  
   const fetchRenter = async () => {
+    const statusFilter = "On Reservation";
     const { data, error } = await supabase
       .from("renter_booking")
       .select("*")
       .eq("status", statusFilter)
       .is("deleted_at", null)
-      .order("start_date", { ascending: true }); // Sequential by date
+      // Primary Sort: The date they start
+      .order("start_date", { ascending: true }) 
+      // Secondary Sort: If dates are same, sort by time
+      .order("start_time", { ascending: true }); 
 
     if (error) {
       console.log("Error fetching renter", error);
@@ -141,49 +137,35 @@ const OnService = () => {
     setRenterData(data);
     setFilterRenterData(data);
   };
-
   fetchRenter();
 
   const subscription = supabase
-    .channel("onservice-changes")
+    .channel("schema-db-changes")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "renter_booking" },
       (payload) => {
-        const eventType = payload.eventType;
-        const newData = payload.new as DataRenterHistoryProps;
-
-        setFilterRenterData((prev) => {
-          let updatedList = [...prev];
-
-          if (eventType === "INSERT" || eventType === "UPDATE") {
-            const isAlreadyInList = prev.some(item => item.id === newData.id);
-
-            // Add or Update logic
-            if (newData.status === statusFilter && !newData.deleted_at) {
-              if (isAlreadyInList) {
-                updatedList = prev.map(item => item.id === newData.id ? newData : item);
-              } else {
-                updatedList = [newData, ...prev];
-              }
-            } else {
-              // Remove if status changed or deleted
-              updatedList = prev.filter(item => item.id !== newData.id);
-            }
-          } else if (eventType === "DELETE") {
-            updatedList = prev.filter(item => item.id !== payload.old.id);
-          }
-
-          // Always return the list sorted by start_date
-          return updatedList.sort((a, b) => 
-            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+        if (payload.eventType === "INSERT") {
+          const newData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) => {
+            const updatedList = [...prev, newData];
+            // Manually re-sort the local state so the new item doesn't just jump to the bottom
+            return updatedList.sort((a, b) => 
+              new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+            );
+          });
+        } else if (payload.eventType === "UPDATE") {
+          const updatedData = payload.new as DataRenterHistoryProps;
+          setFilterRenterData((prev) =>
+            prev.map((item) => (item.id === updatedData.id ? updatedData : item))
+                .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
           );
-        });
-
-        if (eventType === "UPDATE") {
-           setSelectedData((current) => current?.id === newData.id ? newData : current);
+        } else if (payload.eventType === "DELETE") {
+          setFilterRenterData((prev) =>
+            prev.filter((item) => item.id !== payload.old.id)
+          );
         }
-      }
+      },
     )
     .subscribe();
 
@@ -191,6 +173,7 @@ const OnService = () => {
     supabase.removeChannel(subscription);
   };
 }, []);
+
   // Combined Filtering Logic (Search + Status)
   useEffect(() => {
     let filtered = [...filterRenterData];
@@ -346,9 +329,9 @@ const OnService = () => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
-                         <div className="text-xs text-red-500 text-left text-ellipsis" >
-                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
                       </div>
+                      <div className="text-xs text-red-500 text-left text-ellipsis" >
+                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
@@ -548,4 +531,4 @@ const OnService = () => {
   );
 };
 
-export default OnService;
+export default OnReservation;

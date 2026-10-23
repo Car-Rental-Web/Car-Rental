@@ -14,15 +14,15 @@ import {
   LoginForm,
   RegisterForm,
   ResetPassword,
-} from "../auth";
+} from "../features/auth";
 import PrivateRoutes from "./PrivateRoutes";
 import { useRestoreSession } from "../hooks/useRestoreSession";
 import { ToastContainer } from "react-toastify";
 import { NotFound} from "../components";
 import PublicRoutes from "./PublicRoutes";
-import OnService from "../components/OnService";
-import OnReservation from "../components/OnReservation";
-import Completed from "../components/Completed";
+import OnService from "../features/rental/components/OnService";
+import OnReservation from "../features/rental/components/OnReservation";
+import Completed from "../features/rental/components/Completed";
 import {
   LaundryDashboard, 
   LaundryCalender,

@@ -7,12 +7,12 @@ import icons from "../constants/icon";
 const SideBarData = [
   {
     label: "Overview",
-    path: "/overview", 
+    path: "/overview",
     icon: <icons.dashboard />,
   },
-    {
+  {
     label: "POS",
-    path: "/pos", 
+    path: "/pos",
     icon: <icons.dashboard />,
   },
   {
@@ -30,10 +30,10 @@ const SideBarData = [
         path: "/car-rental/availability",
         icon: <icons.availability />,
       },
-      { 
-        label: "Renter Profile", 
-        path: "/car-rental/renterprofile", 
-        icon: <icons.person /> 
+      {
+        label: "Renter Profile",
+        path: "/car-rental/renterprofile",
+        icon: <icons.person />
       },
       {
         label: "Rent History",
@@ -45,20 +45,20 @@ const SideBarData = [
           { label: "Completed", path: "/car-rental/bookings/on-completed" },
         ],
       },
-      { 
-        label: "Vehicle", 
-        path: "/car-rental/vehiclehistory", 
-        icon: <icons.vehicle /> 
+      {
+        label: "Vehicle",
+        path: "/car-rental/vehiclehistory",
+        icon: <icons.vehicle />
       },
-      { 
-        label: "Maintenance", 
-        path: "/car-rental/maintenance", 
-        icon: <icons.onMaintenance /> 
+      {
+        label: "Maintenance",
+        path: "/car-rental/maintenance",
+        icon: <icons.onMaintenance />
       },
-      { 
-        label: "Recycle Bin", 
-        path: "/car-rental/trashfile", 
-        icon: <icons.trash /> 
+      {
+        label: "Recycle Bin",
+        path: "/car-rental/trashfile",
+        icon: <icons.trash />
       },
     ],
   },
@@ -127,7 +127,7 @@ const SideBarData = [
       {
         label: "Products",
         path: "/water/products",
-        icon: <icons.booking/>,
+        icon: <icons.booking />,
       },
       {
         label: "Water-History",
@@ -153,7 +153,7 @@ const Sidebar = () => {
 
   // State to track which sub-menu is expanded
   const [openMenus, setOpenMenus] = useState<string[]>(["Overview"]); // Default open Overview
-  const { isSidebarOpen, setSidebarOpen, toggleSidebar } = useSidebarStore();
+  const { isSidebarOpen, setSidebarOpen, toggleSidebar, openCategory } = useSidebarStore();
 
   const handleToggleSubMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -162,7 +162,37 @@ const Sidebar = () => {
         : [...prev, label],
     );
   };
+  useEffect(() => {
+    const path = location.pathname;
+    let categoryToOpen = "";
 
+    if (path.startsWith("/car-rental")) {
+      categoryToOpen = "Car-rental";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Rent History"])]);
+      }
+    } else if (path.startsWith("/laundry")) {
+      categoryToOpen = "Laundry Service";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Laundry-History"])]);
+      }
+    } else if (path.startsWith("/water")) {
+      categoryToOpen = "Water Station";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Water-History"])]);
+      }
+    }
+
+    if (categoryToOpen) {
+      setOpenMenus((prev) => [...new Set([...prev, categoryToOpen])]);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (openCategory) {
+      setOpenMenus((prev) => [...new Set([...prev, openCategory])]);
+    }
+  }, [openCategory]);
   /* =============================
       Resize behavior
   ============================== */
@@ -266,10 +296,9 @@ const Sidebar = () => {
                     }}
                     className={`
                       flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative
-                      ${
-                        active && !hasChildren
-                          ? "bg-blue-50 text-blue-600"
-                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                      ${active && !hasChildren
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                       }
                       ${!isSidebarOpen && "justify-center"}
                     `}
@@ -323,10 +352,9 @@ const Sidebar = () => {
                                 onClick={() => handleToggleSubMenu(sub.label)}
                                 className={`
                                   flex items-center justify-between py-2 px-4 text-xs font-bold rounded-lg transition-colors cursor-pointer
-                                  ${
-                                    subActive
-                                      ? "text-blue-600 bg-blue-50/50"
-                                      : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                  ${subActive
+                                    ? "text-blue-600 bg-blue-50/50"
+                                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
                                   }
                                 `}
                               >
@@ -349,10 +377,9 @@ const Sidebar = () => {
                                         }}
                                         className={`
                                           py-2 px-4 text-xs font-bold rounded-lg transition-colors
-                                          ${
-                                            childActive
-                                              ? "text-blue-600 bg-blue-50/50"
-                                              : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                          ${childActive
+                                            ? "text-blue-600 bg-blue-50/50"
+                                            : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
                                           }
                                         `}
                                       >
@@ -376,10 +403,9 @@ const Sidebar = () => {
                             }}
                             className={`
                               py-2 px-4 flex items-center gap-3 text-xs font-bold rounded-lg transition-colors  
-                              ${
-                                subActive
-                                  ? "text-blue-600 bg-blue-50/50"
-                                  : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                              ${subActive
+                                ? "text-blue-600 bg-blue-50/50"
+                                : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
                               }
                             `}
                           >

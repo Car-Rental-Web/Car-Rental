@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { supabase } from "../utils/supabase";
-import type { DataRenterHistoryProps } from "../types/types";
-import { filterData } from "../utils/FilterData";
-import { useDebouncedValue } from "../utils/useDebounce";
-import { SearchBar } from "../components";
-import icons from "../constants/icon";
-import RenterForm from "../components/RenterForm";
-import { DeleteModal } from "../modals";
+import { supabase } from "../../../utils/supabase";
+import type { DataRenterHistoryProps } from "../../../types/types";
+import { filterData } from "../../../utils/FilterData";
+import { useDebouncedValue } from "../../../utils/useDebounce";
+import { SearchBar } from "../../../components";
+import icons from "../../../constants/icon";
+import RenterForm from "./RenterForm";
+import { DeleteModal } from "../../../modals";
 import { toast } from "react-toastify";
-import { formatDate, formatDateandDay, to12Hour } from "../utils/timeFormatter";
+import { formatDate, formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
 
-const OnReservation = () => {
+const OnService = () => {
   const [openForm, setOpenForm] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit" | "view">(
@@ -27,7 +27,7 @@ const OnReservation = () => {
     DataRenterHistoryProps[]
   >([]);
 
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  // const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,7 +50,7 @@ const OnReservation = () => {
     // 1. Fetch the booking to get details needed for cleanup
     const { data: booking, error: fetchError } = await supabase
       .from("renter_booking")
-      .select("uploaded_proof, car_plate_number")
+      .select("uploaded_proof, car_plate_number, start_date")
       .eq("id", id)
       .maybeSingle();
 
@@ -80,31 +80,37 @@ const OnReservation = () => {
 
     if (deleteError) {
       toast.error("Failed to Move to Trash");
-      return; // Stop execution if this fails
+      return;
     }
 
     toast.success(`Moved to Trash Successfully: ${booking.car_plate_number}`);
 
-    // 4. --- FIX: Check for OTHER active bookings for this vehicle ---
+    // 4. Update Vehicle Status intelligently
+    // Check if there are OTHER active bookings for this vehicle
     const { data: otherActiveBookings, error: checkError } = await supabase
       .from("renter_booking")
-      .select("id")
+      .select("status")
       .eq("car_plate_number", booking.car_plate_number)
       .is("deleted_at", null)
       .neq("id", id) // Exclude the one we just deleted
-      .in("status", ["On Service", "On Reservation"]); // Active statuses
+      .in("status", ["On Service", "On Reservation"]);
+
 
     if (checkError) {
       console.error("Error checking other bookings", checkError);
     }
 
-    // Only set to Available if NO other active bookings exist
-    if (otherActiveBookings && otherActiveBookings.length === 0) {
-      await supabase
-        .from("vehicle")
-        .update({ status: "Available" })
-        .eq("plate_number", booking.car_plate_number);
-    }
+    // Determine new status: If no other active bookings, make it Available
+    const newVehicleStatus =
+      otherActiveBookings && otherActiveBookings.length > 0
+        ? "On Service" // Or keep as is, but this ensures it stays occupied
+        : "Available";
+
+    // Update vehicle status
+    await supabase
+      .from("vehicle")
+      .update({ status: newVehicleStatus })
+      .eq("plate_number", booking.car_plate_number);
 
     // 5. Update Local State to reflect change without refreshing
     setOpenDelete(false);
@@ -116,19 +122,17 @@ const OnReservation = () => {
   }
 };
 
-  // Fetch data and setup subscription
+ // Fetch data and setup subscription
   useEffect(() => {
+  const statusFilter = "On Service";
+  
   const fetchRenter = async () => {
-    const statusFilter = "On Reservation";
     const { data, error } = await supabase
       .from("renter_booking")
       .select("*")
       .eq("status", statusFilter)
       .is("deleted_at", null)
-      // Primary Sort: The date they start
-      .order("start_date", { ascending: true }) 
-      // Secondary Sort: If dates are same, sort by time
-      .order("start_time", { ascending: true }); 
+      .order("start_date", { ascending: true }); // Sequential by date
 
     if (error) {
       console.log("Error fetching renter", error);
@@ -137,35 +141,49 @@ const OnReservation = () => {
     setRenterData(data);
     setFilterRenterData(data);
   };
+
   fetchRenter();
 
   const subscription = supabase
-    .channel("schema-db-changes")
+    .channel("onservice-changes")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "renter_booking" },
       (payload) => {
-        if (payload.eventType === "INSERT") {
-          const newData = payload.new as DataRenterHistoryProps;
-          setFilterRenterData((prev) => {
-            const updatedList = [...prev, newData];
-            // Manually re-sort the local state so the new item doesn't just jump to the bottom
-            return updatedList.sort((a, b) => 
-              new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-            );
-          });
-        } else if (payload.eventType === "UPDATE") {
-          const updatedData = payload.new as DataRenterHistoryProps;
-          setFilterRenterData((prev) =>
-            prev.map((item) => (item.id === updatedData.id ? updatedData : item))
-                .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
+        const eventType = payload.eventType;
+        const newData = payload.new as DataRenterHistoryProps;
+
+        setFilterRenterData((prev) => {
+          let updatedList = [...prev];
+
+          if (eventType === "INSERT" || eventType === "UPDATE") {
+            const isAlreadyInList = prev.some(item => item.id === newData.id);
+
+            // Add or Update logic
+            if (newData.status === statusFilter && !newData.deleted_at) {
+              if (isAlreadyInList) {
+                updatedList = prev.map(item => item.id === newData.id ? newData : item);
+              } else {
+                updatedList = [newData, ...prev];
+              }
+            } else {
+              // Remove if status changed or deleted
+              updatedList = prev.filter(item => item.id !== newData.id);
+            }
+          } else if (eventType === "DELETE") {
+            updatedList = prev.filter(item => item.id !== payload.old.id);
+          }
+
+          // Always return the list sorted by start_date
+          return updatedList.sort((a, b) => 
+            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
           );
-        } else if (payload.eventType === "DELETE") {
-          setFilterRenterData((prev) =>
-            prev.filter((item) => item.id !== payload.old.id)
-          );
+        });
+
+        if (eventType === "UPDATE") {
+           setSelectedData((current) => current?.id === newData.id ? newData : current);
         }
-      },
+      }
     )
     .subscribe();
 
@@ -173,29 +191,28 @@ const OnReservation = () => {
     supabase.removeChannel(subscription);
   };
 }, []);
-
   // Combined Filtering Logic (Search + Status)
-  useEffect(() => {
-    let filtered = [...filterRenterData];
+  // useEffect(() => {
+  //   let filtered = [...filterRenterData];
 
-    if (selectedStatus !== "All") {
-      filtered = filtered.filter((item) => item.status === selectedStatus);
-    }
+  //   if (selectedStatus !== "All") {
+  //     filtered = filtered.filter((item) => item.status === selectedStatus);
+  //   }
 
-    if (debounceSearchTerm) {
-      filtered = filterData(debounceSearchTerm, filtered, [
-        "full_name",
-        "address",
-        "license_number",
-        "car_plate_number",
-        "start_date",
-        "end_date",
-      ]);
-    }
+  //   if (debounceSearchTerm) {
+  //     filtered = filterData(debounceSearchTerm, filtered, [
+  //       "full_name",
+  //       "address",
+  //       "license_number",
+  //       "car_plate_number",
+  //       "start_date",
+  //       "end_date",
+  //     ]);
+  //   }
 
-    setRenterData(filtered);
-    setCurrentPage(1);
-  }, [debounceSearchTerm, filterRenterData, selectedStatus]);
+  //   setRenterData(filtered);
+  //   setCurrentPage(1);
+  // }, [debounceSearchTerm, filterRenterData, selectedStatus]);
 
   return (
     <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
@@ -210,7 +227,7 @@ const OnReservation = () => {
 
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
           {/* Status Filter */}
-          <div className="relative min-w-[180px]">
+          {/* <div className="relative min-w-[180px]">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -224,7 +241,7 @@ const OnReservation = () => {
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
               <icons.filter size={14} />
             </div>
-          </div>
+          </div> */}
 
           {/* Search Bar */}
           <div className="w-full md:w-80">
@@ -329,9 +346,9 @@ const OnReservation = () => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
-                      </div>
-                      <div className="text-xs text-red-500 text-left text-ellipsis" >
+                         <div className="text-xs text-red-500 text-left text-ellipsis" >
                         <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
+                      </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
@@ -398,57 +415,8 @@ const OnReservation = () => {
                     </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan={13} className="p-20 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="p-3 bg-slate-100 rounded-full text-slate-400">
-                        <icons.filter size={24} />
-                      </div>
-                      <p className="text-sm text-slate-500 font-medium text-center">
-                        {searchTerm.length > 0 && selectedStatus !== "All" ? (
-                          <>
-                            No matches found for{" "}
-                            <span className="text-slate-900 font-bold">
-                              "{searchTerm}"
-                            </span>{" "}
-                            in{" "}
-                            <span className="text-slate-900 font-bold">
-                              {selectedStatus}
-                            </span>
-                          </>
-                        ) : searchTerm.length > 0 ? (
-                          <>
-                            No results found for{" "}
-                            <span className="text-slate-900 font-bold">
-                              "{searchTerm}"
-                            </span>
-                          </>
-                        ) : selectedStatus !== "All" ? (
-                          <>
-                            No bookings currently{" "}
-                            <span className="text-slate-900 font-bold">
-                              {selectedStatus}
-                            </span>
-                          </>
-                        ) : (
-                          "No rental history records found."
-                        )}
-                      </p>
-                      {(searchTerm || selectedStatus !== "All") && (
-                        <button
-                          onClick={() => {
-                            setSearchTerm("");
-                            setSelectedStatus("All");
-                          }}
-                          className="text-xs text-blue-600 font-bold hover:underline mt-2"
-                        >
-                          Clear all filters
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+              ): (
+                <tr><td colSpan={13} className="p-20 text-center text-slate-500 font-medium">No records found.</td></tr>
               )}
             </tbody>
           </table>
@@ -531,4 +499,4 @@ const OnReservation = () => {
   );
 };
 
-export default OnReservation;
+export default OnService;

@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { supabase, supabaseLaundry, supabaseWater } from "../utils/supabase";
+import { supabase, supabaseLaundry, supabaseWater } from "../../utils/supabase";
 
 /**
  * One login for all three businesses.

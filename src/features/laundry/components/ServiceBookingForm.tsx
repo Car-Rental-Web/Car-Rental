@@ -5,12 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { supabaseLaundry as supabase } from "../../../utils/supabase";
-import {
-  ACTIVE_BOOKING_STATUSES,
-  syncMachineStatus,
-} from "../../../utils/laundry/syncMachineStatus";
+import { readCache, writeCache } from "../../../utils/lookupCache";
+
 import icons from "../../../constants/icon";
 import type { LaundryMachineData } from "./MachineForm";
+import { ACTIVE_BOOKING_STATUSES, syncMachineStatus } from "../../../utils/laundry/syncMachineStatus";
 
 const PROOF_BUCKET = "uploaded_proof"; // must be a PUBLIC bucket in the laundry project
 
@@ -158,8 +157,13 @@ const ServiceBookingForm: React.FC<Props> = ({
   const isEdit = mode === "edit";
   const isView = mode === "view";
 
-  const [customers, setCustomers] = useState<CustomerOption[]>([]);
-  const [services, setServices] = useState<ServiceOption[]>([]);
+  // Start from the cache so the dropdowns are filled the moment the form opens
+  const [customers, setCustomers] = useState<CustomerOption[]>(
+    () => readCache<CustomerOption[]>("laundry:customers") ?? [],
+  );
+  const [services, setServices] = useState<ServiceOption[]>(
+    () => readCache<ServiceOption[]>("laundry:services") ?? [],
+  );
   const [taken, setTaken] = useState<TakenSlot[]>([]);
 
   const {
@@ -307,6 +311,12 @@ const ServiceBookingForm: React.FC<Props> = ({
   useEffect(() => {
     if (!open) return;
 
+    // Show what we already know straight away; refresh in the background
+    const cachedCustomers = readCache<CustomerOption[]>("laundry:customers");
+    const cachedServices = readCache<ServiceOption[]>("laundry:services");
+    if (cachedCustomers) setCustomers(cachedCustomers);
+    if (cachedServices) setServices(cachedServices);
+
     if (isCreate) {
       const start = defaultStart();
       const end = addMinutes(start.date, start.time, 60);
@@ -335,6 +345,7 @@ const ServiceBookingForm: React.FC<Props> = ({
           return;
         }
         setCustomers(data || []);
+        writeCache("laundry:customers", data || []);
       };
       fetchCustomers();
     } else if (booking) {
@@ -363,6 +374,7 @@ const ServiceBookingForm: React.FC<Props> = ({
         return;
       }
       setServices(data || []);
+      writeCache("laundry:services", data || []);
     };
 
     fetchServices();
@@ -602,7 +614,11 @@ const ServiceBookingForm: React.FC<Props> = ({
             <label className={labelStyles}>Customer</label>
             {isCreate ? (
               <>
-                <select {...register("customer_id")} className={inputStyles}>
+                <select
+                  {...register("customer_id")}
+                  value={customerId ?? ""}
+                  className={inputStyles}
+                >
                   <option value="">
                     {customers.length === 0
                       ? "No customers found"

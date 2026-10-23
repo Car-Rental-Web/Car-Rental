@@ -2,18 +2,18 @@ import { useForm } from "react-hook-form";
 import {
   VehicleHistorySchema,
   type VehicleHistoryData,
-} from "../schema/schema";
+} from "../../../schema/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type React from "react";
-import { ModalButton } from "../components/CustomButtons";
-import { supabase } from "../utils/supabase";
+import { ModalButton } from "../../../components/CustomButtons";
+import { supabase } from "../../../utils/supabase";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
-import type { VehicleFormValues } from "../types/types";
-import { useLoadingStore } from "../store/useLoading";
-import icons from "../constants/icon";
-import getFilePreview from "../utils/rental/getFilePreview";
-import { uploadFile } from "../utils/rental/UploadFile";
+import type { VehicleFormValues } from "../../../types/types";
+import { useLoadingStore } from "../../../store/useLoading";
+import icons from "../../../constants/icon";
+import getFilePreview from "../../../utils/rental/getFilePreview";
+import { uploadFile } from "../../../utils/rental/UploadFile";
 
 export interface ModalProps {
   open: boolean;
