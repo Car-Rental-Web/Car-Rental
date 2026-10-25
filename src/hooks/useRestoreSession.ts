@@ -15,7 +15,7 @@ export const useRestoreSession = () => {
         setUser(data.session.user);
 
         if (location.pathname === "/" || location.pathname === "/login") {
-          navigate("/overview", { replace: true });
+          navigate("/pos", { replace: true });
         }
         finishLoading();
       }
