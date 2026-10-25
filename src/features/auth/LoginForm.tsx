@@ -32,7 +32,7 @@ const LoginForm = () => {
         return
       }
 
-      navigate('/overview')
+      navigate('/pos')
       toast.success('Login Successfully')
     }
   
