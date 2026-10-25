@@ -1,4 +1,3 @@
-import React from 'react'
 import WaterOrderTable from './components/Waterordetable';
 
 const WaterHistory = () => {

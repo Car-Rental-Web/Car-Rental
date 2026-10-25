@@ -27,7 +27,6 @@ import {
   LaundryDashboard, 
   LaundryCalender,
   LaundryCustomerProfile,
-  LaundryHistory,
   LaundryMaintenance,
   LaundryServices
 }from "../features/laundry/index";
@@ -64,7 +63,7 @@ const AppRoutes = () => {
 
         <Route element={<PrivateRoutes />}>
         <Route path="/" element={<RootLayout />}>
-          <Route path="overview" element={<Overview/>} />
+          {/* <Route path="overview" element={<Overview/>} /> */}
           <Route path="pos" element={<POS/>} />
           <Route index element={<Navigate to="/overview" replace />} />
             <Route path="car-rental/">

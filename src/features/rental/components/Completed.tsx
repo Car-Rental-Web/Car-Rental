@@ -2,14 +2,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase";
 import type { DataRenterHistoryProps } from "../../../types/types";
-import { filterData } from "../../../utils/FilterData";
 import { useDebouncedValue } from "../../../utils/useDebounce";
 import { SearchBar } from "../../../components";
 import icons from "../../../constants/icon";
 import RenterForm from "./RenterForm";
 import { DeleteModal } from "../../../modals";
 import { toast } from "react-toastify";
-import { formatDate, formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
+import { formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
 
 const Completed = () => {
   const [openForm, setOpenForm] = useState(false);
