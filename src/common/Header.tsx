@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import SearchBar from "../components/SearchBar";
 import { useAuthStore } from "../store/useAuthStore.ts";
-import { supabase } from "../utils/supabase";
+import { supabase } from "../utils/supabase.ts";
 import icons from "../constants/icon.ts";
 import useSidebarStore from "../store/useSidebarStore.ts";
 import { formatDate } from "../utils/timeFormatter.ts";
@@ -31,12 +31,39 @@ interface BookingReminder {
 }
 
 const navigation_pages = [
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Maintenance", path: "/maintenance" },
-  { name: "Vehicles", path: "/vehiclehistory" },
-  { name: "Renter", path: "/renterprofile" },
-  { name: "Bookings", path: "/bookings" },
-  { name: "Availability", path: "/availability" },
+  // General
+  { name: "Overview", path: "/overview" },
+  { name: "POS", path: "/pos" },
+
+  // Car Rental Module
+  { name: "Car Rental Overview", path: "/car-rental/dashboard" },
+  { name: "Car Rental Availability", path: "/car-rental/availability" },
+  { name: "Renter Profile", path: "/car-rental/renterprofile" },
+  { name: "Car Rental - On Service", path: "/car-rental/bookings/on-service" },
+  { name: "Car Rental - Reservation", path: "/car-rental/bookings/on-reservation" },
+  { name: "Car Rental - Completed", path: "/car-rental/bookings/on-completed" },
+  { name: "Vehicle History", path: "/car-rental/vehiclehistory" },
+  { name: "Car Rental Maintenance", path: "/car-rental/maintenance" },
+  { name: "Car Rental Recycle Bin", path: "/car-rental/trashfile" },
+
+  // Laundry Service Module
+  { name: "Laundry Dashboard", path: "/laundry/dashboard" },
+  { name: "Laundry Calendar", path: "/laundry/calendar" },
+  { name: "Laundry Customers", path: "/laundry/customers" },
+  { name: "Laundry Services", path: "/laundry/services" },
+  { name: "Laundry - On Reservation", path: "/laundry/bookings/on-reservation" },
+  { name: "Laundry - On Service", path: "/laundry/bookings/on-service" },
+  { name: "Laundry - Completed", path: "/laundry/bookings/on-completed" },
+  { name: "Laundry Maintenance", path: "/laundry/maintenance" },
+
+  // Water Station Module
+  { name: "Water Dashboard", path: "/water/dashboard" },
+  { name: "Water Calendar", path: "/water/calendar" },
+  { name: "Water Customers", path: "/water/customers" },
+  { name: "Water Products", path: "/water/products" },
+  { name: "Water - On Delivery", path: "/water/bookings/on-reservation" },
+  { name: "Water - Completed", path: "/water/bookings/on-completed" },
+  { name: "Water Maintenance", path: "/water/maintenance" },
 ];
 
 const Header = () => {
@@ -50,19 +77,17 @@ const Header = () => {
   const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
   const [filterPage, setFilterPage] = useState<PageTypes[]>([]);
 
+
   const navigate = useNavigate();
   const signOut = useAuthStore((state) => state.signOut);
   const userEmail = useAuthStore((state) => state.getDisplayName());
-  const { isSidebarOpen, toggleSidebar } = useSidebarStore();
+  const { isSidebarOpen, toggleSidebar, setOpenCategory, setSidebarOpen } = useSidebarStore();
 
-const handleLogout = async () => {
-  // 1. Execute the fixed store action
-  await signOut(); 
-  
-  // 2. Force the browser to the login page 
-  // (using replace prevents them from clicking 'back' into the dashboard)
-  window.location.replace("/login");
-};
+  const handleLogout = async () => {
+    await signOut();
+    window.location.replace("/login");
+  };
+
   const playSound = () => {
     new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3")
       .play()
@@ -81,7 +106,7 @@ const handleLogout = async () => {
   const fetchReminders = async () => {
     const date = new Date();
     date.setDate(date.getDate() + 1);
-    const localTomorrow = date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const localTomorrow = date.toLocaleDateString("en-CA");
 
     const { data } = await supabase
       .from("renter_booking")
@@ -117,7 +142,6 @@ const handleLogout = async () => {
           const oldBooking = payload.old as any;
           const eventType = payload.eventType;
 
-          // 1. DELETE OR TRASH LOGIC
           if (eventType === "DELETE" || (booking && booking.deleted_at !== null)) {
             const targetId = eventType === "DELETE" ? oldBooking.id : booking.id;
             setBookingReminders((prev) => prev.filter((r) => r.id !== targetId));
@@ -125,7 +149,6 @@ const handleLogout = async () => {
             return;
           }
 
-          // 2. STATUS CHANGE NOTIFICATIONS (The Fix for your 3 features)
           if (eventType === "UPDATE" && oldBooking) {
             if (oldBooking.status !== booking.status) {
               if (booking.status === "On Service") {
@@ -134,16 +157,10 @@ const handleLogout = async () => {
                   position: "top-right",
                   autoClose: 5000,
                 });
-              } else if (booking.status === "Completed") {
-                playSound();
-                // toast.info(`Trip Completed: ${booking.full_name} has returned.`, {
-                //   position: "top-right",
-                // });
               }
             }
           }
 
-          // 3. REMINDER SYNC
           const date = new Date();
           date.setDate(date.getDate() + 1);
           const tomorrowStr = date.toLocaleDateString("en-CA");
@@ -153,17 +170,14 @@ const handleLogout = async () => {
             booking?.start_date === tomorrowStr &&
             !booking?.deleted_at
           ) {
-            // Update or Add to reminders
             setBookingReminders((prev) => {
               const exists = prev.find((r) => r.id === booking.id);
               if (exists) return prev.map((r) => (r.id === booking.id ? booking : r));
-              
-              // Only toast for brand new reminders or status changes back to reservation
+
               toast.warning(`Reminder: ${booking.full_name} starts tomorrow!`, { toastId: booking.id });
               return [booking, ...prev];
             });
           } else {
-            // Remove if it no longer fits criteria (e.g., status moved to On Service)
             setBookingReminders((prev) => prev.filter((r) => r.id !== booking.id));
           }
         }
@@ -174,7 +188,6 @@ const handleLogout = async () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
 
   const markAsRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
@@ -228,23 +241,39 @@ const handleLogout = async () => {
 
   return (
     <header className="h-20 px-6 lg:px-12 flex justify-between items-center w-full bg-white border-b border-slate-200">
-      {/* ... Your JSX for the Logo, Search Bar, and Bell ... */}
       <div className="flex items-center gap-2">
         <button onClick={(e) => { e.stopPropagation(); toggleSidebar(); }} className="p-2 mr-1 text-slate-600 hover:bg-slate-50 rounded-lg md:hidden z-1200">
           {isSidebarOpen ? <icons.closeModal size={24} className="text-blue-600" /> : <icons.menu size={24} />}
         </button>
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/dashboard")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/overview")}>
           <img src="/logo.jpg" alt="logo" className="h-10 w-auto" />
           <p className="text-2xl font-black text-slate-800 hidden sm:block">Mboss</p>
         </div>
       </div>
 
       <div className="flex-1 max-w-md mx-4 relative" onClick={(e) => e.stopPropagation()}>
-        <SearchBar onClear={() => setQuery("")} value={query} onChange={(e) => setQuery(e.target.value)} className="..." placeholder="Search pages..." />
+        <SearchBar onClear={() => setQuery("")} value={query} onChange={(e) => setQuery(e.target.value)} className="rounded-2xl border border-gray-200 py-2 " placeholder="Search pages..." />
         {showResult && filterPage.length > 0 && (
           <div className="absolute top-full left-0 w-full mt-2 bg-white border rounded-2xl shadow-2xl z-50 overflow-hidden">
             {filterPage.map((result) => (
-              <div key={result.path} onClick={() => { navigate(result.path); setQuery(""); setShowResult(false); }} className="p-4 hover:bg-blue-50 cursor-pointer text-slate-600 font-bold text-sm flex justify-between items-center group">
+              <div
+                key={result.path}
+                onClick={() => {
+                  if (result.path.startsWith("/car-rental")) {
+                    setOpenCategory("Car-rental");
+                  } else if (result.path.startsWith("/laundry")) {
+                    setOpenCategory("Laundry Service");
+                  } else if (result.path.startsWith("/water")) {
+                    setOpenCategory("Water Station");
+                  }
+
+                  setSidebarOpen(true);
+                  navigate(result.path);
+                  setQuery("");
+                  setShowResult(false);
+                }}
+                className="p-4 hover:bg-blue-50 cursor-pointer text-slate-600 font-bold text-sm flex justify-between items-center group"
+              >
                 {result.name} <icons.rightArrow size={14} className="opacity-0 group-hover:opacity-100" />
               </div>
             ))}
@@ -274,7 +303,7 @@ const handleLogout = async () => {
                       <button onClick={handleClearAllMessages} className="text-[9px] font-bold text-red-500 uppercase">Clear All</button>
                     </div>
                     {notifications.length > 0 ? notifications.map((n) => (
-                      <div key={n.id} onClick={() => { setOpenNotif(false); navigate("/historyofrent"); }} className="p-4 border-b flex gap-3 hover:bg-slate-50 cursor-pointer">
+                      <div key={n.id} onClick={() => { setOpenNotif(false); navigate("/car-rental/bookings/on-service"); }} className="p-4 border-b flex gap-3 hover:bg-slate-50 cursor-pointer">
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${n.type_text === "new_booking" ? "bg-blue-200 text-blue-500" : "bg-green-500 text-amber-50"}`}><icons.rent size={16} /></div>
                         <div className="flex-1">
                           <p className={`text-sm leading-tight ${!n.is_read ? "text-slate-900 font-bold" : "text-slate-600"}`}>{n.message_text}</p>
@@ -290,7 +319,7 @@ const handleLogout = async () => {
                       <button onClick={handleClearReminders} className="text-[9px] font-bold text-red-500 uppercase">Clear</button>
                     </div>
                     {visibleReminders.length > 0 ? visibleReminders.map((r) => (
-                      <div key={r.id} onClick={() => { navigate("/historyofrent"); setOpenNotif(false); }} className="p-4 border-b flex gap-3 hover:bg-amber-50/30 cursor-pointer">
+                      <div key={r.id} onClick={() => { navigate("/car-rental/bookings/on-reservation"); setOpenNotif(false); }} className="p-4 border-b flex gap-3 hover:bg-amber-50/30 cursor-pointer">
                         <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><icons.calendar size={16} /></div>
                         <div className="flex-1 text-left">
                           <p className="text-sm font-bold text-slate-700">{r.full_name}</p>
@@ -311,11 +340,11 @@ const handleLogout = async () => {
             {userEmail?.charAt(0).toUpperCase()}
           </div>
           {openUserMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl py-2 z-1001">
-              <button  onClick={(e) => {
-                e.stopPropagation()
-                handleLogout()
-              }} className="w-full text-left py-3 px-4 text-red-500 hover:bg-red-50 font-bold text-sm flex items-center gap-3 cursor-pointer">
+            <div className="absolute right-0 mt-3 w-48 bg-white border rounded-2xl shadow-2xl z-1001">
+              <button onClick={(e) => {
+                e.stopPropagation();
+                handleLogout();
+              }} className="w-full text-left py-3 px-4 text-red-500 rounded-2xl hover:bg-red-50 font-bold text-sm flex items-center gap-3 cursor-pointer">
                 <icons.logOut size={18} /> Logout
               </button>
             </div>

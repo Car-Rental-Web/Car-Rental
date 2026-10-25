@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:demo": "vite --mode demo",
+    "dev:local": "vite --mode local",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

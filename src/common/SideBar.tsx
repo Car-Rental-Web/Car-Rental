@@ -1,37 +1,151 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { Children, useEffect, useRef, useState } from "react";
 import useSidebarStore from "../store/useSidebarStore";
 import icons from "../constants/icon";
 
 // Updated Data Structure with Children
 const SideBarData = [
+  // {
+  //   label: "Overview",
+  //   path: "/overview",
+  //   icon: <icons.dashboard />,
+  // },
   {
-    label: "Overview",
-    path: "/dashboard",
+    label: "POS",
+    path: "/pos",
     icon: <icons.dashboard />,
   },
   {
-    label: "Availability",
-    path: "/availability",
-    icon: <icons.availability />,
-  },
-  { label: "Renter Profile", path: "/renterprofile", icon: <icons.person /> },
-  {
-    label: "Rent History",
-    path: "/bookings",
-    icon: <icons.history />,
+    label: "Car-rental",
+    path: "/car-rental/dashboard", // Parent doesn't need a direct route since it acts as a dropdown category
+    icon: <icons.car />,
     children: [
-      { label: "On Service", path: "/bookings/on-service" },
-      { label: "Reservation", path: "/bookings/on-reservation" },
-      { label: "Completed", path: "/bookings/on-completed" },
+      {
+        label: "Overview",
+        path: "/car-rental/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Availability",
+        path: "/car-rental/availability",
+        icon: <icons.availability />,
+      },
+      {
+        label: "Renter Profile",
+        path: "/car-rental/renterprofile",
+        icon: <icons.person />
+      },
+      {
+        label: "Rent History",
+        path: "/car-rental/bookings",
+        icon: <icons.history />,
+        children: [
+          { label: "On Service", path: "/car-rental/bookings/on-service" },
+          { label: "Reservation", path: "/car-rental/bookings/on-reservation" },
+          { label: "Completed", path: "/car-rental/bookings/on-completed" },
+        ],
+      },
+      {
+        label: "Vehicle",
+        path: "/car-rental/vehiclehistory",
+        icon: <icons.vehicle />
+      },
+      {
+        label: "Maintenance",
+        path: "/car-rental/maintenance",
+        icon: <icons.onMaintenance />
+      },
+      {
+        label: "Recycle Bin",
+        path: "/car-rental/trashfile",
+        icon: <icons.trash />
+      },
     ],
   },
-  { label: "Vehicle", path: "/vehiclehistory", icon: <icons.vehicle /> },
-  { label: "Maintenance", path: "/maintenance", icon: <icons.onMaintenance /> },
-  { label: "Qr Codes", path: "/qrcode", icon: <icons.qr /> },
-  { label: "Recycle Bin", path: "/trashfile", icon: <icons.trash /> },
+  {
+    label: "Laundry Service",
+    path: "#",
+    icon: <icons.laundry />,
+    children: [
+      {
+        label: "Dashboard",
+        path: "/laundry/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Calendar",
+        path: "/laundry/calendar",
+        icon: <icons.availability />,
+      },
+      {
+        label: "Customers",
+        path: "/laundry/customers",
+        icon: <icons.person />,
+      },
+      {
+        label: "Services",
+        path: "/laundry/services",
+        icon: <icons.booking />,
+      },
+      {
+        label: "Laundry-History",
+        path: "/laundry/bookings",
+        icon: <icons.history />,
+        children: [
+          { label: "On Reservation", path: "/laundry/bookings/on-reservation" },
+          { label: "On Service", path: "/laundry/bookings/on-service" },
+          { label: "Completed", path: "/laundry/bookings/on-completed" },
+        ],
+      },
+      {
+        label: "Maintenance",
+        path: "/laundry/maintenance",
+        icon: <icons.onMaintenance />,
+      },
+    ],
+  },
+  {
+    label: "Water Station",
+    path: "#",
+    icon: <icons.water />,
+    children: [
+      {
+        label: "Dashboard",
+        path: "/water/dashboard",
+        icon: <icons.dashboard />,
+      },
+      {
+        label: "Calendar",
+        path: "/water/calendar",
+        icon: <icons.availability />,
+      },
+      {
+        label: "Customers",
+        path: "/water/customers",
+        icon: <icons.person />,
+      },
+      {
+        label: "Products",
+        path: "/water/products",
+        icon: <icons.booking />,
+      },
+      {
+        label: "Water-History",
+        path: "/water/services",
+        icon: <icons.history />,
+        children: [
+          { label: "On Delivery", path: "/water/bookings/on-reservation" },
+          { label: "Completed", path: "/water/bookings/on-completed" },
+        ],
+      },
+      {
+        label: "Maintenance",
+        path: "/water/maintenance",
+        icon: <icons.onMaintenance />,
+      },
+    ],
+  },
 ];
-
 const Sidebar = () => {
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -39,7 +153,7 @@ const Sidebar = () => {
 
   // State to track which sub-menu is expanded
   const [openMenus, setOpenMenus] = useState<string[]>(["Overview"]); // Default open Overview
-  const { isSidebarOpen, setSidebarOpen, toggleSidebar } = useSidebarStore();
+  const { isSidebarOpen, setSidebarOpen, toggleSidebar, openCategory } = useSidebarStore();
 
   const handleToggleSubMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -48,7 +162,37 @@ const Sidebar = () => {
         : [...prev, label],
     );
   };
+  useEffect(() => {
+    const path = location.pathname;
+    let categoryToOpen = "";
 
+    if (path.startsWith("/car-rental")) {
+      categoryToOpen = "Car-rental";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Rent History"])]);
+      }
+    } else if (path.startsWith("/laundry")) {
+      categoryToOpen = "Laundry Service";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Laundry-History"])]);
+      }
+    } else if (path.startsWith("/water")) {
+      categoryToOpen = "Water Station";
+      if (path.includes("/bookings/")) {
+        setOpenMenus((prev) => [...new Set([...prev, "Water-History"])]);
+      }
+    }
+
+    if (categoryToOpen) {
+      setOpenMenus((prev) => [...new Set([...prev, categoryToOpen])]);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (openCategory) {
+      setOpenMenus((prev) => [...new Set([...prev, openCategory])]);
+    }
+  }, [openCategory]);
   /* =============================
       Resize behavior
   ============================== */
@@ -152,10 +296,9 @@ const Sidebar = () => {
                     }}
                     className={`
                       flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative
-                      ${
-                        active && !hasChildren
-                          ? "bg-blue-50 text-blue-600"
-                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                      ${active && !hasChildren
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                       }
                       ${!isSidebarOpen && "justify-center"}
                     `}
@@ -193,24 +336,80 @@ const Sidebar = () => {
                   {hasChildren && isOpen && isSidebarOpen && (
                     <div className="flex flex-col ml-10 mt-1 border-l-2 border-slate-100 gap-1 overflow-hidden animate-in slide-in-from-top-2 duration-300">
                       {item.children?.map((sub) => {
-                        const subActive = location.pathname === sub.path;
+                        const nested = sub.children;
+                        const subHasChildren = !!nested && nested.length > 0;
+                        const subOpen = openMenus.includes(sub.label);
+                        const subActive = subHasChildren
+                          ? location.pathname.startsWith(sub.path)
+                          : location.pathname === sub.path;
+
+                        // Sub-item that has its own dropdown (e.g. Rent History)
+                        if (subHasChildren) {
+                          return (
+                            <div key={sub.path} className="flex flex-col gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSubMenu(sub.label)}
+                                className={`
+                                  flex items-center justify-between py-2 px-4 text-xs font-bold rounded-lg transition-colors cursor-pointer
+                                  ${subActive
+                                    ? "text-blue-600 bg-blue-50/50"
+                                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                  }
+                                `}
+                              >
+                                <span>{sub.label}</span>
+                                <icons.chevronDown
+                                  className={`text-xs opacity-50 transition-transform duration-300 ${subOpen ? "rotate-180" : ""}`}
+                                />
+                              </button>
+
+                              {subOpen && (
+                                <div className="flex flex-col ml-4 border-l-2 border-slate-100 gap-1">
+                                  {nested.map((child) => {
+                                    const childActive = location.pathname === child.path;
+                                    return (
+                                      <Link
+                                        key={child.path}
+                                        to={child.path}
+                                        onClick={() => {
+                                          if (window.innerWidth <= 768) setSidebarOpen(false);
+                                        }}
+                                        className={`
+                                          py-2 px-4 text-xs font-bold rounded-lg transition-colors
+                                          ${childActive
+                                            ? "text-blue-600 bg-blue-50/50"
+                                            : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                          }
+                                        `}
+                                      >
+                                        {child.label}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        // Normal sub-item
                         return (
                           <Link
                             key={sub.path}
                             to={sub.path}
                             onClick={() => {
-                              if (window.innerWidth <= 768)
-                                setSidebarOpen(false);
+                              if (window.innerWidth <= 768) setSidebarOpen(false);
                             }}
                             className={`
-                              py-2 px-4 text-xs font-bold rounded-lg transition-colors
-                              ${
-                                subActive
-                                  ? "text-blue-600 bg-blue-50/50"
-                                  : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                              py-2 px-4 flex items-center gap-3 text-xs font-bold rounded-lg transition-colors  
+                              ${subActive
+                                ? "text-blue-600 bg-blue-50/50"
+                                : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
                               }
                             `}
                           >
+                            {sub.icon}
                             {sub.label}
                           </Link>
                         );
