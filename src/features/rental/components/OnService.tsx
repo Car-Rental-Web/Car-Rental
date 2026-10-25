@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../utils/supabase";
 import type { DataRenterHistoryProps } from "../../../types/types";
 import { filterData } from "../../../utils/FilterData";
@@ -9,7 +9,21 @@ import icons from "../../../constants/icon";
 import RenterForm from "./RenterForm";
 import { DeleteModal } from "../../../modals";
 import { toast } from "react-toastify";
-import { formatDate, formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
+import { formatDateandDay, to12Hour } from "../../../utils/timeFormatter";
+
+// Fields the search bar looks in
+const SEARCH_FIELDS: (keyof DataRenterHistoryProps)[] = [
+  "full_name",
+  "address",
+  "license_number",
+  "car_plate_number",
+  "car_model",
+  "location",
+  "type_of_rent",
+  "remarks",
+  "start_date",
+  "end_date",
+];
 
 const OnService = () => {
   const [openForm, setOpenForm] = useState(false);
@@ -20,24 +34,39 @@ const OnService = () => {
   const [selectedData, setSelectedData] =
     useState<DataRenterHistoryProps | null>(null);
 
-  // renterData is what is currently displayed (filtered/paged)
-  const [renterData, setRenterData] = useState<DataRenterHistoryProps[]>([]);
   // filterRenterData acts as the "Source of Truth" from the database
   const [filterRenterData, setFilterRenterData] = useState<
     DataRenterHistoryProps[]
   >([]);
 
-  // const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
 
   const debounceSearchTerm = useDebouncedValue(searchTerm, 200);
 
+  // What the table shows: derived from source of truth, narrowed by the debounced search
+  const renterData = useMemo(() => {
+    if (!debounceSearchTerm.trim()) return filterRenterData;
+    return filterData(debounceSearchTerm, filterRenterData, SEARCH_FIELDS);
+  }, [debounceSearchTerm, filterRenterData]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = renterData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(renterData.length / itemsPerPage);
+
+  // A new search goes back to page 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debounceSearchTerm]);
+
+  // If rows disappear, don't stay on an empty page
+  useEffect(() => {
+    if (currentPage > 1 && currentPage > totalPages) {
+      setCurrentPage(Math.max(totalPages, 1));
+    }
+  }, [currentPage, totalPages]);
 
   const handleAction = (mode: "create" | "view" | "edit", data: any) => {
     setFormMode(mode);
@@ -46,173 +75,146 @@ const OnService = () => {
   };
 
   const handleDelete = async (id: number) => {
-  try {
-    // 1. Fetch the booking to get details needed for cleanup
-    const { data: booking, error: fetchError } = await supabase
-      .from("renter_booking")
-      .select("uploaded_proof, car_plate_number, start_date")
-      .eq("id", id)
-      .maybeSingle();
+    try {
+      const { data: booking, error: fetchError } = await supabase
+        .from("renter_booking")
+        .select("uploaded_proof, car_plate_number, start_date")
+        .eq("id", id)
+        .maybeSingle();
 
-    if (fetchError || !booking) {
-      toast.error("Booking not found");
-      return;
-    }
-
-    // 2. Handle File Storage Deletion (if any proofs exist)
-    const storageTasks: Promise<any>[] = [];
-    if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
-      const proofPaths = Array.isArray(booking.uploaded_proof)
-        ? booking.uploaded_proof
-        : JSON.parse(booking.uploaded_proof);
-
-      storageTasks.push(
-        supabase.storage.from("uploaded_proof").remove(proofPaths),
-      );
-    }
-    await Promise.all(storageTasks);
-
-    // 3. Mark the booking as deleted in database (Soft Delete)
-    const { error: deleteError } = await supabase
-      .from("renter_booking")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("id", id);
-
-    if (deleteError) {
-      toast.error("Failed to Move to Trash");
-      return;
-    }
-
-    toast.success(`Moved to Trash Successfully: ${booking.car_plate_number}`);
-
-    // 4. Update Vehicle Status intelligently
-    // Check if there are OTHER active bookings for this vehicle
-    const { data: otherActiveBookings, error: checkError } = await supabase
-      .from("renter_booking")
-      .select("status")
-      .eq("car_plate_number", booking.car_plate_number)
-      .is("deleted_at", null)
-      .neq("id", id) // Exclude the one we just deleted
-      .in("status", ["On Service", "On Reservation"]);
-
-
-    if (checkError) {
-      console.error("Error checking other bookings", checkError);
-    }
-
-    // Determine new status: If no other active bookings, make it Available
-    const newVehicleStatus =
-      otherActiveBookings && otherActiveBookings.length > 0
-        ? "On Service" // Or keep as is, but this ensures it stays occupied
-        : "Available";
-
-    // Update vehicle status
-    await supabase
-      .from("vehicle")
-      .update({ status: newVehicleStatus })
-      .eq("plate_number", booking.car_plate_number);
-
-    // 5. Update Local State to reflect change without refreshing
-    setOpenDelete(false);
-    setSelectedData(null);
-    setFilterRenterData((prev) => prev.filter((row) => row.id !== id));
-  } catch (error) {
-    console.error("Failed to delete:", error);
-    toast.error("Failed to delete booking");
-  }
-};
-
- // Fetch data and setup subscription
-  useEffect(() => {
-  const statusFilter = "On Service";
-  
-  const fetchRenter = async () => {
-    const { data, error } = await supabase
-      .from("renter_booking")
-      .select("*")
-      .eq("status", statusFilter)
-      .is("deleted_at", null)
-      .order("start_date", { ascending: true }); // Sequential by date
-
-    if (error) {
-      console.log("Error fetching renter", error);
-      return;
-    }
-    setRenterData(data);
-    setFilterRenterData(data);
-  };
-
-  fetchRenter();
-
-  const subscription = supabase
-    .channel("onservice-changes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "renter_booking" },
-      (payload) => {
-        const eventType = payload.eventType;
-        const newData = payload.new as DataRenterHistoryProps;
-
-        setFilterRenterData((prev) => {
-          let updatedList = [...prev];
-
-          if (eventType === "INSERT" || eventType === "UPDATE") {
-            const isAlreadyInList = prev.some(item => item.id === newData.id);
-
-            // Add or Update logic
-            if (newData.status === statusFilter && !newData.deleted_at) {
-              if (isAlreadyInList) {
-                updatedList = prev.map(item => item.id === newData.id ? newData : item);
-              } else {
-                updatedList = [newData, ...prev];
-              }
-            } else {
-              // Remove if status changed or deleted
-              updatedList = prev.filter(item => item.id !== newData.id);
-            }
-          } else if (eventType === "DELETE") {
-            updatedList = prev.filter(item => item.id !== payload.old.id);
-          }
-
-          // Always return the list sorted by start_date
-          return updatedList.sort((a, b) => 
-            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-          );
-        });
-
-        if (eventType === "UPDATE") {
-           setSelectedData((current) => current?.id === newData.id ? newData : current);
-        }
+      if (fetchError || !booking) {
+        toast.error("Booking not found");
+        return;
       }
-    )
-    .subscribe();
 
-  return () => {
-    supabase.removeChannel(subscription);
+      const storageTasks: Promise<any>[] = [];
+      if (booking.uploaded_proof && booking.uploaded_proof.length > 0) {
+        const proofPaths = Array.isArray(booking.uploaded_proof)
+          ? booking.uploaded_proof
+          : JSON.parse(booking.uploaded_proof);
+
+        storageTasks.push(
+          supabase.storage.from("uploaded_proof").remove(proofPaths),
+        );
+      }
+      await Promise.all(storageTasks);
+
+      const { error: deleteError } = await supabase
+        .from("renter_booking")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (deleteError) {
+        toast.error("Failed to Move to Trash");
+        return;
+      }
+
+      toast.success(`Moved to Trash Successfully: ${booking.car_plate_number}`);
+
+      const { data: otherActiveBookings, error: checkError } = await supabase
+        .from("renter_booking")
+        .select("status")
+        .eq("car_plate_number", booking.car_plate_number)
+        .is("deleted_at", null)
+        .neq("id", id)
+        .in("status", ["On Service", "On Reservation"]);
+
+      if (checkError) {
+        console.error("Error checking other bookings", checkError);
+      }
+
+      const newVehicleStatus =
+        otherActiveBookings && otherActiveBookings.length > 0
+          ? "On Service"
+          : "Available";
+
+      await supabase
+        .from("vehicle")
+        .update({ status: newVehicleStatus })
+        .eq("plate_number", booking.car_plate_number);
+
+      setOpenDelete(false);
+      setSelectedData(null);
+      setFilterRenterData((prev) => prev.filter((row) => row.id !== id));
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error("Failed to delete booking");
+    }
   };
-}, []);
-  // Combined Filtering Logic (Search + Status)
-  // useEffect(() => {
-  //   let filtered = [...filterRenterData];
 
-  //   if (selectedStatus !== "All") {
-  //     filtered = filtered.filter((item) => item.status === selectedStatus);
-  //   }
+  // Fetch data and setup subscription
+  useEffect(() => {
+    const statusFilter = "On Service";
 
-  //   if (debounceSearchTerm) {
-  //     filtered = filterData(debounceSearchTerm, filtered, [
-  //       "full_name",
-  //       "address",
-  //       "license_number",
-  //       "car_plate_number",
-  //       "start_date",
-  //       "end_date",
-  //     ]);
-  //   }
+    const fetchRenter = async () => {
+      const { data, error } = await supabase
+        .from("renter_booking")
+        .select("*")
+        .eq("status", statusFilter)
+        .is("deleted_at", null)
+        .order("start_date", { ascending: true });
 
-  //   setRenterData(filtered);
-  //   setCurrentPage(1);
-  // }, [debounceSearchTerm, filterRenterData, selectedStatus]);
+      if (error) {
+        console.log("Error fetching renter", error);
+        return;
+      }
+      setFilterRenterData(data);
+    };
+
+    fetchRenter();
+
+    const subscription = supabase
+      .channel("onservice-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "renter_booking" },
+        (payload) => {
+          const eventType = payload.eventType;
+          const newData = payload.new as DataRenterHistoryProps;
+
+          setFilterRenterData((prev) => {
+            let updatedList = [...prev];
+
+            if (eventType === "INSERT" || eventType === "UPDATE") {
+              const isAlreadyInList = prev.some((item) => item.id === newData.id);
+
+              if (newData.status === statusFilter && !newData.deleted_at) {
+                if (isAlreadyInList) {
+                  updatedList = prev.map((item) =>
+                    item.id === newData.id ? newData : item,
+                  );
+                } else {
+                  updatedList = [newData, ...prev];
+                }
+              } else {
+                updatedList = prev.filter((item) => item.id !== newData.id);
+              }
+            } else if (eventType === "DELETE") {
+              updatedList = prev.filter(
+                (item) => item.id !== (payload.old as any).id,
+              );
+            }
+
+            return updatedList.sort(
+              (a, b) =>
+                new Date(a.start_date).getTime() -
+                new Date(b.start_date).getTime(),
+            );
+          });
+
+          if (eventType === "UPDATE") {
+            setSelectedData((current) =>
+              current?.id === newData.id ? newData : current,
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 w-full pt-12 px-8 flex flex-col gap-6">
@@ -226,23 +228,6 @@ const OnService = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-          {/* Status Filter */}
-          {/* <div className="relative min-w-[180px]">
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full py-2.5 px-4 bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
-            >
-              <option value="All">All Status</option>
-              <option value="On Reservation">On Reservation</option>
-              <option value="On Service">On Service</option>
-              <option value="Completed">Completed</option>
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-              <icons.filter size={14} />
-            </div>
-          </div> */}
-
           {/* Search Bar */}
           <div className="w-full md:w-80">
             <SearchBar
@@ -280,7 +265,7 @@ const OnService = () => {
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Duration
                 </th>
-                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
                   Rent Type
                 </th>
                 <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">
@@ -346,9 +331,10 @@ const OnService = () => {
                         <div className="text-[10px] text-slate-400 mt-0.5">
                           {to12Hour(row.start_time)} - {to12Hour(row.end_time)}
                         </div>
-                         <div className="text-xs text-red-500 text-left text-ellipsis" >
-                        <strong className="text-black">Remarks:</strong> {row.remarks || ""} 
-                      </div>
+                        <div className="text-xs text-red-500 text-left text-ellipsis">
+                          <strong className="text-black">Remarks:</strong>{" "}
+                          {row.remarks || ""}
+                        </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-xs font-black text-slate-700">
@@ -415,8 +401,14 @@ const OnService = () => {
                     </td>
                   </tr>
                 ))
-              ): (
-                <tr><td colSpan={13} className="p-20 text-center text-slate-500 font-medium">No records found.</td></tr>
+              ) : (
+                <tr>
+                  <td colSpan={13} className="p-20 text-center text-slate-500 font-medium">
+                    {searchTerm.trim()
+                      ? `No records found for "${searchTerm.trim()}".`
+                      : "No records found."}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -460,7 +452,7 @@ const OnService = () => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm"
+            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm cursor-pointer"
           >
             Prev
           </button>
@@ -471,7 +463,7 @@ const OnService = () => {
           <button
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm"
+            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm cursor-pointer"
           >
             Next
           </button>
