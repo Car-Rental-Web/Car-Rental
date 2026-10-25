@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import icons from "../../constants/icon";
 import { supabase, supabaseLaundry, supabaseWater } from "../../utils/supabase";
 import { peso, type Accent } from "./components/Posshared";
@@ -7,6 +7,11 @@ import PosRentalPanel from "./components/Posrentalpanel";
 import PosLaundryPanel from "./components/Poslaundrypanel";
 import PosWaterPanel from "./components/Poswaterpanel";
 import { prefetchLaundryLookups, prefetchWaterLookups } from "../../utils/lookupCache";
+import { useFillViewport } from "../../utils/useFillViewPort";
+
+
+
+
 
 type TabKey = "rental" | "laundry" | "water";
 
@@ -80,6 +85,8 @@ const POS = () => {
     laundry: emptyToday,
     water: emptyToday,
   });
+const rootRef = useRef<HTMLDivElement>(null);
+const height = useFillViewport(rootRef);
 
   // Load the customer, product and service lists once, so every form opens ready
   useEffect(() => {
@@ -159,7 +166,10 @@ const POS = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-slate-100 overflow-hidden">
+    <div
+    ref={rootRef}
+  style={{ height: height ?? "100vh" }}
+    className="w-full flex flex-col bg-slate-100 overflow-hidden">
       {/* Register bar */}
       <header className="bg-slate-900 text-white px-4 lg:px-6 py-3 flex flex-wrap items-center gap-x-6 gap-y-3 shrink-0">
         <div className="flex items-center gap-3">
@@ -175,7 +185,7 @@ const POS = () => {
         </div>
 
         {/* Business switcher */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ">
           {TABS.map((t) => {
             const isActive = t.key === activeTab;
             const Icon = t.icon;

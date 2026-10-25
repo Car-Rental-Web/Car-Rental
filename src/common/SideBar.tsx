@@ -5,11 +5,11 @@ import icons from "../constants/icon";
 
 // Updated Data Structure with Children
 const SideBarData = [
-  {
-    label: "Overview",
-    path: "/overview",
-    icon: <icons.dashboard />,
-  },
+  // {
+  //   label: "Overview",
+  //   path: "/overview",
+  //   icon: <icons.dashboard />,
+  // },
   {
     label: "POS",
     path: "/pos",
