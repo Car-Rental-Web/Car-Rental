@@ -32,7 +32,7 @@ interface BookingReminder {
 
 const navigation_pages = [
   // General
-  { name: "Overview", path: "/overview" },
+  // { name: "Overview", path: "/overview" },
   { name: "POS", path: "/pos" },
 
   // Car Rental Module
@@ -245,7 +245,7 @@ const Header = () => {
         <button onClick={(e) => { e.stopPropagation(); toggleSidebar(); }} className="p-2 mr-1 text-slate-600 hover:bg-slate-50 rounded-lg md:hidden z-1200">
           {isSidebarOpen ? <icons.closeModal size={24} className="text-blue-600" /> : <icons.menu size={24} />}
         </button>
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/overview")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/pos")}>
           <img src="/logo.jpg" alt="logo" className="h-10 w-auto" />
           <p className="text-2xl font-black text-slate-800 hidden sm:block">Mboss</p>
         </div>

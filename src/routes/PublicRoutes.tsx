@@ -12,7 +12,7 @@ const PublicRoutes = () => {
       </div>
     );
 
-  return isAuthenticated && !isRecoveringPassword ? <Navigate to="/overview" replace /> : <Outlet />;
+  return isAuthenticated && !isRecoveringPassword ? <Navigate to="/pos" replace /> : <Outlet />;
 };
 
 export default PublicRoutes;

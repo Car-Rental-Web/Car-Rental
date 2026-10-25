@@ -39,7 +39,7 @@ import {
   WaterMaintenance,
   WaterProduct
 }from "../features/waterstation/index";
-import Overview from "../features/Overview";
+// import Overview from "../features/Overview";
 import LaundryOnService from "../features/laundry/components/LaundryOnService";
 import LaundryOnCompleted from "../features/laundry/components/LaundryOnCompleted";
 import LaundryOnReservation from "../features/laundry/components/LaundryOnReservation";
@@ -65,7 +65,7 @@ const AppRoutes = () => {
         <Route path="/" element={<RootLayout />}>
           {/* <Route path="overview" element={<Overview/>} /> */}
           <Route path="pos" element={<POS/>} />
-          <Route index element={<Navigate to="/overview" replace />} />
+          {/* <Route index element={<Navigate to="/overview" replace />} /> */}
             <Route path="car-rental/">
               <Route path="dashboard" element={<Dashboard />}></Route>
               <Route path="availability" element={<Aavailability />}></Route>
