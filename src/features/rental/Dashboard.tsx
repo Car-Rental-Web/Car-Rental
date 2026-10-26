@@ -151,7 +151,7 @@ const Dashboard = () => {
             className="bg-white border-none shadow-sm hover:shadow-md transition-shadow rounded-2xl p-2"
             title={<span className="text-slate-800">Total Renters</span>}
             linkText="View All"
-            url="/renterprofile"
+            url="/car-rental/renterprofile"
             amount={<span className="text-5xl font-black text-slate-800">{totalRenter}</span>}
             description={<span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Lifetime Customers</span>}
             linkIcon={<icons.rightArrow className="text-blue-500" />}
@@ -160,7 +160,7 @@ const Dashboard = () => {
             className="bg-white border-none shadow-sm hover:shadow-md transition-shadow rounded-2xl p-2"
             title={<span className="text-slate-800">Total Bookings</span>}
             linkText="View All"
-            url="/historyofrent"
+            url="/car-rental/bookings/on-completed"
             amount={<span className="text-5xl font-black text-slate-800">{totalBooking}</span>}
             description={<span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Lifetime Records</span>}
             linkIcon={<icons.rightArrow className="text-blue-500" />}
